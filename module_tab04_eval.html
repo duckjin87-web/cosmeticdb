@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CosmeDB — TAB04 신규처 등록평가</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ══════════════════════════════════════
+   CSS 변수 (cosmedb_handover.md 기준)
+══════════════════════════════════════ */
+:root {
+  --navy:#1a2440; --acc:#e8622e; --cyn:#0891b2;
+  --grn:#10b981;  --red:#ef4444; --yel:#f59e0b;
+  --org:#f97316;  --pur:#8b5cf6;
+  --s1:#0f172a; --s2:#1e293b; --s3:#263352;
+  --bd:#334155; --txt:#f1f5f9; --txt2:#94a3b8; --txt3:#475569;
+  --mono:'Courier New',monospace; --r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--s1);color:var(--txt);
+  font-family:'Malgun Gothic','맑은 고딕',sans-serif;font-size:13px;line-height:1.5;}
+
+/* 공통 */
+.btn{padding:5px 12px;border-radius:var(--r);border:1px solid var(--bd);
+  background:var(--s3);color:var(--txt2);font-size:11px;cursor:pointer;transition:.15s;}
+.btn:hover{border-color:var(--cyn);color:var(--cyn);}
+.btn.acc{border-color:var(--acc);background:var(--acc);color:#fff;}
+.btn.acc:hover{background:#c9531f;}
+.btn.grn{border-color:var(--grn);background:var(--grn);color:#fff;}
+.btn.grn:hover{background:#0da36b;}
+.btn.sm{padding:3px 9px;font-size:10px;}
+.tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600;}
+.tag-green {background:rgba(16,185,129,.15);color:var(--grn);}
+.tag-red   {background:rgba(239,68,68,.15); color:var(--red);}
+.tag-yellow{background:rgba(245,158,11,.15);color:var(--yel);}
+.tag-blue  {background:rgba(8,145,178,.15); color:var(--cyn);}
+.tag-gray  {background:rgba(71,85,105,.3);  color:var(--txt2);}
+.tag-orange{background:rgba(232,98,46,.15); color:var(--acc);}
+.tag-purple{background:rgba(139,92,246,.15);color:var(--pur);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--s1);}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--txt3);}
+
+/* ══════════════════════════════════════
+   페이지 레이아웃
+══════════════════════════════════════ */
+#page-eval{display:flex;height:100vh;overflow:hidden;}
+
+/* ── 좌측 리스트 패널 ── */
+.eval-list-panel{
+  width:280px;min-width:280px;
+  background:var(--s2);border-right:1px solid var(--bd);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.eval-list-head{
+  padding:10px 12px 8px;border-bottom:1px solid var(--bd);
+  flex-shrink:0;
+}
+.eval-list-head-row{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+}
+.eval-list-title{font-size:12px;font-weight:700;color:var(--txt2);}
+
+.eval-filter-tabs{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:8px;}
+.eval-ftab{
+  padding:3px 8px;border-radius:10px;border:1px solid var(--bd);
+  background:var(--s3);color:var(--txt3);font-size:10px;cursor:pointer;transition:.15s;
+}
+.eval-ftab.on{border-color:var(--cyn);color:var(--cyn);background:rgba(8,145,178,.12);}
+
+.eval-search{
+  width:100%;padding:5px 9px;background:var(--s3);
+  border:1px solid var(--bd);border-radius:4px;
+  color:var(--txt);font-size:11px;outline:none;
+}
+.eval-search:focus{border-color:var(--cyn);}
+
+.eval-list-body{flex:1;overflow-y:auto;padding:8px;}
+.eval-card{
+  background:var(--s3);border:1px solid var(--bd);border-radius:var(--r);
+  padding:9px 10px;margin-bottom:6px;cursor:pointer;transition:.15s;
+}
+.eval-card:hover{border-color:rgba(8,145,178,.4);}
+.eval-card.selected{border-color:var(--cyn);background:rgba(8,145,178,.08);}
+.eval-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.eval-card-name{font-size:12px;font-weight:700;color:var(--txt);}
+.eval-card-meta{display:flex;gap:5px;align-items:center;margin-top:2px;}
+.eval-card-date{font-size:10px;color:var(--txt3);}
+.eval-card-score{font-size:11px;font-weight:700;color:var(--cyn);}
+.eval-card-score.none{color:var(--txt3);}
+.eval-type-pill{
+  font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;
+  background:rgba(139,92,246,.15);color:var(--pur);
+}
+.eval-type-pill.PKG{background:rgba(249,115,22,.15);color:var(--org);}
+
+/* ── 우측 상세 패널 ── */
+.eval-det-wrap{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+}
+.eval-empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--txt3);gap:8px;
+}
+.eval-empty-icon{font-size:36px;}
+.eval-empty-txt{font-size:13px;}
+
+/* 상세 헤더 */
+.eval-det-header{
+  padding:12px 16px 0;background:var(--s3);border-bottom:1px solid var(--bd);flex-shrink:0;
+}
+.eval-det-header-top{
+  display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;
+}
+.eval-det-name{font-size:16px;font-weight:700;}
+.eval-det-meta{display:flex;gap:6px;align-items:center;margin-top:3px;}
+.eval-det-close{
+  background:none;border:none;color:var(--txt3);cursor:pointer;font-size:18px;line-height:1;
+}
+.eval-det-close:hover{color:var(--txt);}
+
+/* 탭 */
+.eval-tabs{display:flex;gap:0;overflow-x:auto;}
+.eval-tab{
+  padding:7px 13px;font-size:11px;cursor:pointer;color:var(--txt3);
+  border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;flex-shrink:0;
+}
+.eval-tab.active{color:var(--cyn);border-bottom-color:var(--cyn);font-weight:600;}
+.eval-tab:hover{color:var(--txt2);}
+.eval-tab.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+
+/* 탭 본문 */
+.eval-det-body{flex:1;overflow-y:auto;}
+.eval-tab-pane{display:none;padding:16px;}
+.eval-tab-pane.active{display:block;}
+
+/* 폼 공통 */
+.eval-section{margin-bottom:20px;}
+.eval-section-title{
+  font-size:10px;color:var(--txt3);font-weight:600;
+  text-transform:uppercase;letter-spacing:.05em;
+  margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:6px;
+}
+.eval-section-title .pts-badge{
+  font-size:9px;color:var(--cyn);background:rgba(8,145,178,.12);
+  padding:1px 6px;border-radius:8px;text-transform:none;letter-spacing:0;
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
+.form-field{display:flex;flex-direction:column;gap:3px;}
+.form-field.full{grid-column:1/-1;}
+.form-label{font-size:10px;color:var(--txt3);}
+.form-input{
+  background:var(--s3);border:1px solid var(--bd);border-radius:4px;
+  color:var(--txt);padding:5px 8px;font-size:11px;outline:none;
+  font-family:inherit;width:100%;
+}
+.form-input:focus{border-color:var(--cyn);}
+.form-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5);}
+.form-textarea{
+  background:var(--s3);border:1px solid var(--bd);border-radius:4px;
+  color:var(--txt);padding:6px 8px;font-size:11px;outline:none;
+  font-family:inherit;width:100%;resize:vertical;min-height:60px;
+}
+.form-textarea:focus{border-color:var(--cyn);}
+.form-select{
+  background:var(--s3);border:1px solid var(--bd);border-radius:4px;
+  color:var(--txt);padding:5px 8px;font-size:11px;outline:none;cursor:pointer;
+}
+.form-select:focus{border-color:var(--cyn);}
+
+/* Y/N 체크 행 */
+.yn-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 10px;background:var(--s3);border-radius:4px;
+  margin-bottom:4px;border:1px solid transparent;transition:.15s;
+}
+.yn-row:hover{border-color:rgba(51,65,85,.6);}
+.yn-label{font-size:11px;color:var(--txt2);flex:1;}
+.yn-pts{font-size:9px;color:var(--txt3);margin:0 8px;flex-shrink:0;}
+.yn-pts.neg{color:var(--red);}
+.yn-pts.heavy{color:var(--acc);}
+.yn-btns{display:flex;gap:4px;flex-shrink:0;}
+.yn-btn{
+  width:32px;height:22px;border-radius:3px;border:1px solid var(--bd);
+  background:var(--s2);color:var(--txt3);font-size:10px;font-weight:700;
+  cursor:pointer;transition:.15s;
+}
+.yn-btn:hover{border-color:var(--cyn);color:var(--cyn);}
+.yn-btn.y-on{border-color:var(--grn);background:rgba(16,185,129,.15);color:var(--grn);}
+.yn-btn.n-on{border-color:var(--red);background:rgba(239,68,68,.1);color:var(--red);}
+
+/* 수치 입력 그룹 */
+.num-row{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 10px;background:var(--s3);border-radius:4px;
+  margin-bottom:4px;
+}
+.num-label{font-size:11px;color:var(--txt2);flex:1;}
+.num-input{
+  width:80px;background:var(--s2);border:1px solid var(--bd);border-radius:4px;
+  color:var(--txt);padding:3px 7px;font-size:11px;text-align:right;outline:none;
+}
+.num-input:focus{border-color:var(--cyn);}
+.num-unit{font-size:10px;color:var(--txt3);width:24px;}
+
+/* PLT 라디오 그룹 */
+.plt-group{
+  display:flex;gap:6px;padding:6px 10px;background:var(--s3);
+  border-radius:4px;margin-bottom:4px;align-items:center;
+  border:1px solid transparent;
+}
+.plt-label{font-size:11px;color:var(--txt2);flex:1;}
+.plt-opts{display:flex;gap:4px;}
+.plt-opt{
+  padding:2px 9px;border-radius:3px;border:1px solid var(--bd);
+  background:var(--s2);color:var(--txt3);font-size:10px;cursor:pointer;transition:.15s;
+}
+.plt-opt:hover{border-color:var(--cyn);}
+.plt-opt.on{border-color:var(--cyn);background:rgba(8,145,178,.15);color:var(--cyn);}
+.plt-opt.on.both{border-color:var(--grn);background:rgba(16,185,129,.15);color:var(--grn);}
+
+/* 설비 CAPA 테이블 */
+.capa-table-wrap{overflow-x:auto;margin-bottom:8px;}
+.capa-table{width:100%;border-collapse:collapse;font-size:10px;min-width:560px;}
+.capa-table th{
+  padding:5px 7px;background:var(--s2);color:var(--txt3);font-size:9px;
+  font-weight:600;text-align:center;border:1px solid var(--bd);white-space:nowrap;
+}
+.capa-table th:first-child{text-align:left;}
+.capa-table td{
+  padding:3px 4px;border:1px solid rgba(51,65,85,.4);vertical-align:middle;
+}
+.capa-table td input{
+  width:100%;background:transparent;border:none;color:var(--txt);
+  font-size:10px;padding:2px 4px;text-align:center;outline:none;font-family:inherit;
+}
+.capa-table td input:focus{background:rgba(8,145,178,.06);}
+.capa-table td:first-child input{text-align:left;}
+.capa-add-btn{
+  font-size:10px;padding:3px 10px;border-radius:3px;border:1px dashed var(--cyn);
+  background:transparent;color:var(--cyn);cursor:pointer;
+}
+.capa-add-btn:hover{background:rgba(8,145,178,.08);}
+.capa-del-btn{
+  width:20px;height:20px;border-radius:3px;border:1px solid var(--bd);
+  background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;
+}
+.capa-del-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* 진행률 바 (탭 상단 점수 미니) */
+.eval-score-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 16px;background:var(--s1);border-bottom:1px solid var(--bd);
+  flex-shrink:0;
+}
+.esb-item{display:flex;align-items:center;gap:4px;font-size:10px;}
+.esb-label{color:var(--txt3);width:42px;}
+.esb-track{width:60px;height:4px;background:var(--bd);border-radius:2px;overflow:hidden;}
+.esb-fill{height:100%;border-radius:2px;background:var(--cyn);transition:width .4s;}
+.esb-num{color:var(--cyn);font-weight:700;width:22px;text-align:right;}
+.esb-sep{width:1px;height:14px;background:var(--bd);}
+
+/* 결과 탭 */
+.result-total-box{
+  background:var(--s3);border-radius:var(--r);padding:16px;
+  text-align:center;margin-bottom:16px;border:1px solid var(--bd);
+}
+.result-total-num{font-size:48px;font-weight:900;line-height:1;}
+.result-total-max{font-size:14px;color:var(--txt3);margin-left:4px;}
+.result-grade{
+  display:inline-block;font-size:14px;font-weight:700;
+  padding:3px 14px;border-radius:10px;margin-top:8px;
+}
+.result-chart-wrap{position:relative;height:200px;margin-bottom:16px;}
+.result-comment-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.result-comment-item{display:flex;flex-direction:column;gap:3px;}
+.result-comment-item.full{grid-column:1/-1;}
+
+/* 하단 액션 바 */
+.eval-det-footer{
+  padding:10px 16px;border-top:1px solid var(--bd);
+  display:flex;gap:6px;flex-shrink:0;background:var(--s2);
+}
+
+/* 신규평가 폼 (우측 패널) */
+.eval-new-form .form-grid{margin-bottom:8px;}
+
+/* 토스트 */
+#toast-wrap{position:fixed;bottom:20px;right:20px;z-index:9999;
+  display:flex;flex-direction:column;gap:6px;}
+.toast{padding:9px 15px;background:var(--s2);border:1px solid var(--cyn);
+  border-radius:var(--r);color:var(--txt);font-size:12px;
+  animation:toastIn .2s ease;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* 비활성 오버레이 */
+.tab-disabled-overlay{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:160px;gap:6px;color:var(--txt3);
+}
+.tab-disabled-overlay .icon{font-size:28px;}
+</style>
+</head>
+<body>
+
+<div id="page-eval">
+
+  <!-- ══ 좌측: 평가 이력 리스트 ══ -->
+  <div class="eval-list-panel">
+    <div class="eval-list-head">
+      <div class="eval-list-head-row">
+        <span class="eval-list-title">신규처 등록평가</span>
+        <button class="btn sm acc" onclick="openEvalAdd()">+ 신규평가</button>
+      </div>
+      <div class="eval-filter-tabs">
+        <span class="eval-ftab on" data-f="ALL" onclick="setFilter(this,'ALL')">전체</span>
+        <span class="eval-ftab" data-f="WAIT" onclick="setFilter(this,'WAIT')">평가대기</span>
+        <span class="eval-ftab" data-f="DRAFT" onclick="setFilter(this,'DRAFT')">진행중</span>
+        <span class="eval-ftab" data-f="DONE" onclick="setFilter(this,'DONE')">완료</span>
+        <span class="eval-ftab" data-f="DROP" onclick="setFilter(this,'DROP')">DROP</span>
+      </div>
+      <input class="eval-search" type="text" placeholder="업체명 검색..." id="eval-search-inp"
+        oninput="renderEvalList()">
+    </div>
+    <div class="eval-list-body" id="eval-list-body"></div>
+  </div>
+
+  <!-- ══ 우측: 상세 패널 ══ -->
+  <div class="eval-det-wrap" id="eval-det-wrap">
+
+    <!-- 빈 상태 -->
+    <div class="eval-empty" id="eval-empty">
+      <div class="eval-empty-icon">📋</div>
+      <div class="eval-empty-txt">평가 항목을 선택하거나 신규 평가를 시작하세요.</div>
+      <button class="btn" onclick="openEvalAdd()">+ 신규평가 시작</button>
+    </div>
+
+    <!-- 상세 뷰 (선택 시 노출) -->
+    <div id="eval-det-view" style="display:none;flex-direction:column;height:100%;overflow:hidden;display:none;">
+
+      <!-- 헤더 -->
+      <div class="eval-det-header">
+        <div class="eval-det-header-top">
+          <div>
+            <div class="eval-det-name" id="det-name">—</div>
+            <div class="eval-det-meta" id="det-meta"></div>
+          </div>
+          <button class="eval-det-close" onclick="closeDet()">✕</button>
+        </div>
+        <div class="eval-tabs" id="eval-tabs">
+          <div class="eval-tab active" data-tab="info" onclick="setEvalTab('info')">기본정보</div>
+          <div class="eval-tab" data-tab="mfg" onclick="setEvalTab('mfg')">1.제조</div>
+          <div class="eval-tab" data-tab="mat" onclick="setEvalTab('mat')">2.자재</div>
+          <div class="eval-tab" data-tab="pkg" onclick="setEvalTab('pkg')">3.임가공</div>
+          <div class="eval-tab" data-tab="fin" onclick="setEvalTab('fin')">4.완제품</div>
+          <div class="eval-tab" data-tab="ops" onclick="setEvalTab('ops')">5.운영</div>
+          <div class="eval-tab" data-tab="result" onclick="setEvalTab('result')">📊결과</div>
+        </div>
+      </div>
+
+      <!-- 점수 미니바 -->
+      <div class="eval-score-bar" id="eval-score-bar"></div>
+
+      <!-- 탭 본문 -->
+      <div class="eval-det-body" id="eval-det-body">
+
+        <!-- 기본정보 -->
+        <div class="eval-tab-pane active" id="pane-info">
+          <div class="eval-section">
+            <div class="eval-section-title">기본 정보</div>
+            <div class="form-grid">
+              <div class="form-field full">
+                <label class="form-label">업체명 <span style="color:var(--red)">*</span></label>
+                <input class="form-input" id="f-companyName" type="text"
+                  placeholder="업체명 입력 (미등록 업체 직접입력 가능)"
+                  oninput="patchField('companyName',this.value)">
+              </div>
+              <div class="form-field">
+                <label class="form-label">방문일</label>
+                <input class="form-input" id="f-visitDate" type="date"
+                  oninput="patchField('visitDate',this.value)">
+              </div>
+              <div class="form-field">
+                <label class="form-label">방문자</label>
+                <input class="form-input" id="f-visitor" type="text"
+                  placeholder="담당자명" oninput="patchField('visitor',this.value)">
+              </div>
+              <div class="form-field full">
+                <label class="form-label">수배사유</label>
+                <input class="form-input" id="f-reason" type="text"
+                  placeholder="예: 신규 OEM 발굴, SHADOW 전환, 라인 증설 등"
+                  oninput="patchField('reason',this.value)">
+              </div>
+            </div>
+          </div>
+
+          <div class="eval-section">
+            <div class="eval-section-title">업체 유형</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn" id="type-mfg" onclick="setType('MFG')"
+                style="flex:1;padding:10px;">
+                🏭 MFG (제조업체)<br>
+                <span style="font-size:9px;color:var(--txt3);">제조관리 탭 활성</span>
+              </button>
+              <button class="btn" id="type-pkg" onclick="setType('PKG')"
+                style="flex:1;padding:10px;">
+                📦 PKG (충전·포장)<br>
+                <span style="font-size:9px;color:var(--txt3);">제조관리 탭 비활성</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="eval-section">
+            <div class="eval-section-title">식약처 정보</div>
+            <button class="btn" style="width:100%;padding:8px;" onclick="showMfdsInfo()">
+              🔍 식약처 정보 보강 (선택사항)
+            </button>
+            <div style="font-size:10px;color:var(--txt3);margin-top:5px;">
+              허가번호·소재지·허가품목 등 공공데이터 조회 (필수 아님)
+            </div>
+          </div>
+
+          <div class="eval-section">
+            <div class="eval-section-title">담당자 메모</div>
+            <textarea class="form-textarea" id="f-memo" rows="3"
+              placeholder="방문 전 사전 메모, 주의사항 등"
+              oninput="patchNoteField('memo',this.value)"></textarea>
+          </div>
+        </div>
+
+        <!-- 1.제조관리 -->
+        <div class="eval-tab-pane" id="pane-mfg">
+          <div id="mfg-disabled-overlay" class="tab-disabled-overlay" style="display:none;">
+            <div class="icon">🚫</div>
+            <div style="font-size:12px;">PKG(충전·포장) 업체 — 제조관리 탭 해당없음</div>
+          </div>
+          <div id="mfg-content">
+            <div class="eval-section">
+              <div class="eval-section-title">제조관리 Y/N 항목 <span class="pts-badge">30점 기준</span></div>
+              <div id="yn-mfg"></div>
+            </div>
+            <div class="eval-section">
+              <div class="eval-section-title">수치 입력</div>
+              <div class="num-row">
+                <span class="num-label">제조 로스율</span>
+                <input class="num-input" id="f-mfg_loss" type="number" min="0" max="100"
+                  placeholder="—" oninput="patchCheck('mfg_loss',+this.value||null)">
+                <span class="num-unit">%</span>
+              </div>
+              <div class="num-row">
+                <span class="num-label">일 CAPA</span>
+                <input class="num-input" id="f-mfg_capa" type="number" min="0"
+                  placeholder="—" oninput="patchCheck('mfg_capa',+this.value||null)">
+                <span class="num-unit">lot</span>
+              </div>
+              <div class="num-row">
+                <span class="num-label">제조인원</span>
+                <input class="num-input" id="f-mfg_headcount" type="number" min="0"
+                  placeholder="—" oninput="patchCheck('mfg_headcount',+this.value||null)">
+                <span class="num-unit">명</span>
+              </div>
+            </div>
+            <div class="eval-section">
+              <div class="eval-section-title">특이사항</div>
+              <textarea class="form-textarea" id="f-note-mfg" rows="3"
+                placeholder="제조관리 관련 특이사항..."
+                oninput="patchNoteField('mfg',this.value)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.자재관리 -->
+        <div class="eval-tab-pane" id="pane-mat">
+          <div class="eval-section">
+            <div class="eval-section-title">자재관리 Y/N 항목 <span class="pts-badge">20점 기준</span></div>
+            <div id="yn-mat"></div>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">특이사항</div>
+            <textarea class="form-textarea" id="f-note-mat" rows="3"
+              placeholder="자재관리 관련 특이사항..."
+              oninput="patchNoteField('mat',this.value)"></textarea>
+          </div>
+        </div>
+
+        <!-- 3.임가공·충전 -->
+        <div class="eval-tab-pane" id="pane-pkg">
+          <div class="eval-section">
+            <div class="eval-section-title">설비 CAPA 현황</div>
+            <div class="capa-table-wrap">
+              <table class="capa-table" id="capa-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:70px;">설비명</th>
+                    <th>일CAPA</th>
+                    <th>월CAPA</th>
+                    <th>콜마배정</th>
+                    <th>보유대수</th>
+                    <th style="min-width:100px;">비고</th>
+                    <th style="width:28px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="capa-tbody"></tbody>
+              </table>
+            </div>
+            <button class="capa-add-btn" onclick="addCapaRow()">+ 설비 행 추가</button>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">임가공·충전 Y/N 항목 <span class="pts-badge">25점 기준</span></div>
+            <div id="yn-pkg"></div>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">수치 입력</div>
+            <div class="num-row">
+              <span class="num-label">가동율</span>
+              <input class="num-input" id="f-pkg_util" type="number" min="0" max="100"
+                placeholder="—" oninput="patchCheck('pkg_util',+this.value||null)">
+              <span class="num-unit">%</span>
+            </div>
+            <div class="num-row">
+              <span class="num-label">생산 L/T</span>
+              <input class="num-input" id="f-pkg_lt" type="number" min="0"
+                placeholder="—" oninput="patchCheck('pkg_lt',+this.value||null)">
+              <span class="num-unit">일</span>
+            </div>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">특이사항</div>
+            <textarea class="form-textarea" id="f-note-pkg" rows="3"
+              placeholder="임가공·충전 관련 특이사항..."
+              oninput="patchNoteField('pkg',this.value)"></textarea>
+          </div>
+        </div>
+
+        <!-- 4.완제품관리 -->
+        <div class="eval-tab-pane" id="pane-fin">
+          <div class="eval-section">
+            <div class="eval-section-title">완제품관리 Y/N 항목 <span class="pts-badge">10점 기준</span></div>
+            <div id="yn-fin"></div>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">특이사항</div>
+            <textarea class="form-textarea" id="f-note-fin" rows="3"
+              placeholder="완제품관리 관련 특이사항..."
+              oninput="patchNoteField('fin',this.value)"></textarea>
+          </div>
+        </div>
+
+        <!-- 5.운영·거래조건 -->
+        <div class="eval-tab-pane" id="pane-ops">
+          <div class="eval-section">
+            <div class="eval-section-title">운영·거래조건 Y/N 항목 <span class="pts-badge">15점 기준</span></div>
+            <div id="yn-ops"></div>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">특이사항</div>
+            <textarea class="form-textarea" id="f-note-ops" rows="3"
+              placeholder="운영·거래 관련 특이사항..."
+              oninput="patchNoteField('ops',this.value)"></textarea>
+          </div>
+        </div>
+
+        <!-- 📊 결과 -->
+        <div class="eval-tab-pane" id="pane-result">
+          <div class="result-total-box">
+            <div>
+              <span class="result-total-num" id="res-total">—</span>
+              <span class="result-total-max">/ 100</span>
+            </div>
+            <div class="result-grade" id="res-grade">—</div>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">영역별 점수</div>
+            <div class="result-chart-wrap">
+              <canvas id="result-chart"></canvas>
+            </div>
+          </div>
+          <div class="eval-section">
+            <div class="eval-section-title">영역별 총평</div>
+            <div class="result-comment-grid">
+              <div class="result-comment-item">
+                <label class="form-label">1.제조관리</label>
+                <textarea class="form-textarea" id="res-note-mfg" rows="2"
+                  oninput="patchNoteField('mfg',this.value)"></textarea>
+              </div>
+              <div class="result-comment-item">
+                <label class="form-label">2.자재관리</label>
+                <textarea class="form-textarea" id="res-note-mat" rows="2"
+                  oninput="patchNoteField('mat',this.value)"></textarea>
+              </div>
+              <div class="result-comment-item">
+                <label class="form-label">3.임가공·충전</label>
+                <textarea class="form-textarea" id="res-note-pkg" rows="2"
+                  oninput="patchNoteField('pkg',this.value)"></textarea>
+              </div>
+              <div class="result-comment-item">
+                <label class="form-label">4.완제품관리</label>
+                <textarea class="form-textarea" id="res-note-fin" rows="2"
+                  oninput="patchNoteField('fin',this.value)"></textarea>
+              </div>
+              <div class="result-comment-item full">
+                <label class="form-label">5.운영·거래조건</label>
+                <textarea class="form-textarea" id="res-note-ops" rows="2"
+                  oninput="patchNoteField('ops',this.value)"></textarea>
+              </div>
+              <div class="result-comment-item full">
+                <label class="form-label">종합의견</label>
+                <textarea class="form-textarea" id="res-note-overall" rows="3"
+                  oninput="patchNoteField('overall',this.value)"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- eval-det-body -->
+
+      <!-- 하단 버튼 -->
+      <div class="eval-det-footer">
+        <button class="btn" onclick="saveEvalDraft(currentId)">💾 임시저장</button>
+        <button class="btn grn" onclick="saveEvalDone(currentId)">✅ 평가완료</button>
+        <button class="btn" onclick="exportEvalCSV()" style="margin-left:auto;">
+          📥 CSV 내보내기
+        </button>
+        <button class="btn" style="border-color:var(--red);color:var(--red);"
+          onclick="setEvalStatus(currentId,'DROP')">DROP</button>
+      </div>
+
+    </div><!-- eval-det-view -->
+  </div><!-- eval-det-wrap -->
+</div><!-- page-eval -->
+
+<div id="toast-wrap"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   1. 정의: 문항 / 점수
+══════════════════════════════════════════════════════ */
+const YN_DEF = {
+  mfg:[
+    {key:'mfg_q1',  label:'원료 입고검사 실시',          pts:1},
+    {key:'mfg_q2',  label:'원료 보관조건 유지',          pts:1},
+    {key:'mfg_q3',  label:'배합기록 작성',               pts:1},
+    {key:'mfg_q4',  label:'자체 판정기준 보유',          pts:2},
+    {key:'mfg_q5',  label:'자체 성적서 공유 가능',       pts:2},
+    {key:'mfg_q6',  label:'배합 샘플링 SOP 보유',        pts:1},
+    {key:'mfg_q7',  label:'샘플 발송 가능',              pts:1},
+    {key:'mfg_q8',  label:'벌크 보관 온습도 유지',       pts:1},
+    {key:'mfg_q9',  label:'환입 조건',                   pts:1},
+    {key:'mfg_q10', label:'작업인원 근속 3년↑',          pts:1},
+  ],
+  mat:[
+    {key:'mat_q1', label:'입고 자체 검수',               pts:2},
+    {key:'mat_q2', label:'적재공간 CAPA 여유',           pts:1},
+    {key:'mat_q3', label:'자재관리 체계(구획/고객사별/환입/폐기)', pts:1},
+    {key:'mat_q4', label:'현장 소분투입',                pts:2},
+    {key:'mat_q5', label:'자재불량 프로세스 보유',       pts:1},
+    {key:'mat_q6', label:'잔량 환입조건',                pts:1},
+    {key:'mat_q7', label:'자재 책임자 지정',             pts:1},
+  ],
+  pkg:[
+    {key:'pkg_q1', label:'포장사양서·표준관리품 배치',   pts:1},
+    {key:'pkg_q2', label:'충전 샘플링 점검',             pts:2},
+    {key:'pkg_q3', label:'샘플링 기준 보유',             pts:1},
+    {key:'pkg_q4', label:'현장 운영인원 배치',           pts:1},
+    {key:'pkg_q5', label:'이물 검사 절차·장비 보유',     pts:2, heavy:true},
+    {key:'pkg_q6', label:'중량선별기·비전 보유',         pts:3, heavy:true},
+    {key:'pkg_q7', label:'품질 클레임 최근 12개월 있음', pts:-1, neg:true},
+    {key:'pkg_q8', label:'생산기록서 양식 보유',         pts:1},
+  ],
+  fin:[
+    {key:'fin_q1', label:'완제품창고 독립',              pts:1},
+    {key:'fin_q2', label:'완제품 보관 CAPA 여유',        pts:1},
+    {key:'fin_q3', label:'출고 품질검사 실시',           pts:2},
+  ],
+  ops:[
+    {key:'ops_q1',  label:'배차 자체규정 보유',          pts:1},
+    // ops_q2: PLT 특수처리 (별도 렌더)
+    {key:'ops_q3',  label:'타 OEM 전산 경험',            pts:1},
+    {key:'ops_q4',  label:'콜마 담당 인원 배정 가능',    pts:1},
+    {key:'ops_q5',  label:'설비 증량·이전 계획',         pts:1},
+    {key:'ops_q6',  label:'평일 잔업·주말 특근 가능',    pts:1},
+    {key:'ops_q7',  label:'추가 품질인증 예정',          pts:1},
+    {key:'ops_q8',  label:'결제조건 수용',               pts:1},
+    {key:'ops_q9',  label:'단가 협의 완료',              pts:1},
+    {key:'ops_q10', label:'긴급 단납기 대응',            pts:1},
+    {key:'ops_q11', label:'입차 제한 없음',              pts:1},
+  ]
+};
+
+// 실질 문항 최대점수 (분모)
+const REAL_MAX = { mfg:12, mat:9, pkg:11, fin:4, ops:12 };
+// spec 기준 만점
+const SPEC_MAX = { mfg:30, mat:20, pkg:25, fin:10, ops:15 };
+
+/* ══════════════════════════════════════════════════════
+   2. 샘플 데이터 (3건)
+══════════════════════════════════════════════════════ */
+const SAMPLE_RECORDS = [
+  {
+    id:'eval-001', companyId:null, companyName:'(주)한국코스팜',
+    type:'MFG', status:'DONE',
+    visitDate:'2025-12-10', visitor:'김평가', reason:'신규 OEM 발굴',
+    checks:{
+      mfg_q1:'Y',mfg_q2:'Y',mfg_q3:'Y',mfg_q4:'Y',mfg_q5:'N',
+      mfg_q6:'Y',mfg_q7:'Y',mfg_q8:'Y',mfg_q9:'N',mfg_q10:'Y',
+      mfg_loss:4, mfg_capa:18, mfg_headcount:12,
+      mat_q1:'Y',mat_q2:'Y',mat_q3:'Y',mat_q4:'Y',mat_q5:'Y',mat_q6:'N',mat_q7:'Y',
+      pkg_q1:'Y',pkg_q2:'Y',pkg_q3:'Y',pkg_q4:'Y',pkg_q5:'Y',pkg_q6:'Y',pkg_q7:'N',pkg_q8:'Y',
+      pkg_util:75, pkg_lt:7,
+      fin_q1:'Y',fin_q2:'Y',fin_q3:'Y',
+      ops_q1:'Y',ops_q2:'BOTH',ops_q3:'Y',ops_q4:'Y',ops_q5:'N',
+      ops_q6:'Y',ops_q7:'N',ops_q8:'Y',ops_q9:'Y',ops_q10:'Y',ops_q11:'Y',
+      pkg_tbl:[
+        {name:'튜브',daily:300000,monthly:6000000,kolma:150000,cnt:2,note:''},
+        {name:'단발',daily:200000,monthly:4000000,kolma:80000,cnt:1,note:'증설예정'}
+      ]
+    },
+    notes:{
+      mfg:'자체성적서 미공유, 환입조건 미흡하나 타 항목 우수',
+      mat:'잔량 환입 미지원',
+      pkg:'충전라인 3개 운영 중',
+      fin:'독립창고 300평 보유',
+      ops:'설비 증설 계획 없음, 인증 추가 예정 없음',
+      overall:'전반적 우수 업체. 성적서 공유 조건 협의 필요.',
+      memo:''
+    },
+    createdAt:'2025-12-10T09:00:00', updatedAt:'2025-12-10T18:00:00'
+  },
+  {
+    id:'eval-002', companyId:null, companyName:'미래패키징(주)',
+    type:'PKG', status:'DRAFT',
+    visitDate:'2026-01-15', visitor:'이담당', reason:'포장라인 확충 검토',
+    checks:{
+      mat_q1:'Y',mat_q2:'Y',mat_q3:'N',mat_q4:'Y',mat_q5:null,mat_q6:null,mat_q7:null,
+      pkg_q1:'Y',pkg_q2:'Y',pkg_q3:null,pkg_q4:null,pkg_q5:null,pkg_q6:null,
+      pkg_q7:'N',pkg_q8:'Y',
+      fin_q1:'Y',fin_q2:null,fin_q3:null,
+      ops_q1:null,ops_q2:'ONE',ops_q3:null,ops_q4:null,ops_q5:null,
+      ops_q6:null,ops_q7:null,ops_q8:null,ops_q9:null,ops_q10:null,ops_q11:null,
+      pkg_tbl:[
+        {name:'단발',daily:200000,monthly:4000000,kolma:100000,cnt:2,note:'신규도입'}
+      ]
+    },
+    notes:{
+      mfg:'',mat:'자재 구획관리 미흡',pkg:'단발 2기 신규 도입',
+      fin:'',ops:'',overall:'',memo:'2차 방문 필요'
+    },
+    createdAt:'2026-01-15T10:00:00', updatedAt:'2026-01-15T14:30:00'
+  },
+  {
+    id:'eval-003', companyId:'db-cmp-042', companyName:'성신화장품',
+    type:'MFG', status:'CANDIDATE',
+    visitDate:'', visitor:'', reason:'SHADOW 업체 전환 — 최근 허가 갱신 감지',
+    checks:{pkg_tbl:[]},
+    notes:{mfg:'',mat:'',pkg:'',fin:'',ops:'',overall:'',memo:'2026-02 허가갱신 확인됨'},
+    createdAt:'2026-02-01T08:00:00', updatedAt:'2026-02-01T08:00:00'
+  }
+];
+
+/* ══════════════════════════════════════════════════════
+   3. localStorage 관리
+══════════════════════════════════════════════════════ */
+const LS_KEY = 'cosmedb_eval_records';
+
+function loadRecords() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  // 첫 실행: 샘플 저장
+  localStorage.setItem(LS_KEY, JSON.stringify(SAMPLE_RECORDS));
+  return SAMPLE_RECORDS;
+}
+
+function saveRecords(recs) {
+  localStorage.setItem(LS_KEY, JSON.stringify(recs));
+}
+
+function getRecord(id) {
+  return loadRecords().find(r => r.id === id) || null;
+}
+
+function upsertRecord(rec) {
+  const recs = loadRecords();
+  const idx = recs.findIndex(r => r.id === rec.id);
+  rec.updatedAt = new Date().toISOString();
+  if (idx >= 0) recs[idx] = rec;
+  else recs.unshift(rec);
+  saveRecords(recs);
+}
+
+/* ══════════════════════════════════════════════════════
+   4. 점수 계산 (환산: 실질취득/실질max × spec_max)
+══════════════════════════════════════════════════════ */
+function calcScores(record) {
+  const c = record.checks || {};
+  const raw = { mfg:0, mat:0, pkg:0, fin:0, ops:0 };
+
+  // mfg (PKG면 skip)
+  if (record.type !== 'PKG') {
+    for (const it of YN_DEF.mfg) {
+      if (c[it.key] === 'Y') raw.mfg += it.pts;
+    }
+  }
+  // mat
+  for (const it of YN_DEF.mat) {
+    if (c[it.key] === 'Y') raw.mat += it.pts;
+  }
+  // pkg (감점 포함)
+  for (const it of YN_DEF.pkg) {
+    if (it.pts < 0) {
+      if (c[it.key] === 'Y') raw.pkg += it.pts; // 감점
+    } else {
+      if (c[it.key] === 'Y') raw.pkg += it.pts;
+    }
+  }
+  raw.pkg = Math.max(0, raw.pkg);
+  // fin
+  for (const it of YN_DEF.fin) {
+    if (c[it.key] === 'Y') raw.fin += it.pts;
+  }
+  // ops (ops_q2 PLT 특수)
+  for (const it of YN_DEF.ops) {
+    if (c[it.key] === 'Y') raw.ops += it.pts;
+  }
+  const plt = c['ops_q2'];
+  if (plt === 'BOTH') raw.ops += 2;
+  else if (plt === 'ONE') raw.ops += 1;
+
+  // 환산: round(raw/realMax * specMax)
+  const scores = { mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 };
+  for (const d of ['mfg','mat','pkg','fin','ops']) {
+    if (record.type === 'PKG' && d === 'mfg') { scores.mfg = 0; continue; }
+    const rm = REAL_MAX[d];
+    scores[d] = rm > 0 ? Math.round((Math.max(0,raw[d]) / rm) * SPEC_MAX[d]) : 0;
+  }
+  scores.total = scores.mfg + scores.mat + scores.pkg + scores.fin + scores.ops;
+  return scores;
+}
+
+function gradeInfo(total) {
+  if (total >= 90) return { label:'우수', bg:'rgba(16,185,129,.15)', color:'var(--grn)' };
+  if (total >= 70) return { label:'양호', bg:'rgba(8,145,178,.15)',  color:'var(--cyn)' };
+  if (total >= 50) return { label:'보통', bg:'rgba(245,158,11,.15)', color:'var(--yel)' };
+  return { label:'재검토', bg:'rgba(239,68,68,.15)', color:'var(--red)' };
+}
+
+/* ══════════════════════════════════════════════════════
+   5. 상태 시스템
+══════════════════════════════════════════════════════ */
+const STATUS_MAP = {
+  DRAFT:     { label:'진행중',  cls:'tag-blue' },
+  DONE:      { label:'완료',    cls:'tag-green' },
+  DROP:      { label:'DROP',    cls:'tag-gray' },
+  CANDIDATE: { label:'평가대기', cls:'tag-yellow' },
+};
+
+function statusTag(s) {
+  const m = STATUS_MAP[s] || { label:s, cls:'tag-gray' };
+  return `<span class="tag ${m.cls}">${m.label}</span>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   6. 좌측 리스트 렌더링
+══════════════════════════════════════════════════════ */
+let currentFilter = 'ALL';
+let currentId     = null;
+
+function setFilter(el, f) {
+  currentFilter = f;
+  document.querySelectorAll('.eval-ftab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  renderEvalList();
+}
+
+function renderEvalList() {
+  const q  = (document.getElementById('eval-search-inp')?.value || '').trim().toLowerCase();
+  let recs = loadRecords();
+
+  if (currentFilter === 'WAIT')  recs = recs.filter(r => r.status === 'CANDIDATE');
+  else if (currentFilter !== 'ALL') recs = recs.filter(r => r.status === currentFilter);
+
+  if (q) recs = recs.filter(r => r.companyName.toLowerCase().includes(q));
+
+  const body = document.getElementById('eval-list-body');
+  if (!recs.length) {
+    body.innerHTML = '<div style="text-align:center;color:var(--txt3);padding:24px 0;font-size:11px;">항목 없음</div>';
+    return;
+  }
+
+  body.innerHTML = recs.map(r => {
+    const sc  = calcScores(r);
+    const hasSc = r.status === 'DONE' || sc.total > 0;
+    const scoreHtml = hasSc
+      ? `<span class="eval-card-score">${sc.total}점</span>`
+      : `<span class="eval-card-score none">—</span>`;
+    const typeClass = r.type === 'PKG' ? 'PKG' : '';
+    return `
+    <div class="eval-card${currentId===r.id?' selected':''}" onclick="openEvalDet('${r.id}')">
+      <div class="eval-card-top">
+        <span class="eval-card-name">${r.companyName}</span>
+        ${statusTag(r.status)}
+      </div>
+      <div class="eval-card-meta">
+        <span class="eval-type-pill ${typeClass}">${r.type}</span>
+        <span class="eval-card-date">${r.visitDate || '방문일 미정'}</span>
+        ${scoreHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   7. 상세 패널: 열기 / 닫기 / 탭 전환
+══════════════════════════════════════════════════════ */
+function openEvalDet(id) {
+  currentId = id;
+  const rec = getRecord(id);
+  if (!rec) return;
+
+  document.getElementById('eval-empty').style.display   = 'none';
+  const view = document.getElementById('eval-det-view');
+  view.style.display    = 'flex';
+  view.style.flexDirection = 'column';
+  view.style.height     = '100%';
+  view.style.overflow   = 'hidden';
+
+  // 헤더
+  document.getElementById('det-name').textContent = rec.companyName;
+  document.getElementById('det-meta').innerHTML   =
+    `${statusTag(rec.status)} <span class="eval-type-pill ${rec.type==='PKG'?'PKG':''}">${rec.type}</span>`
+    + (rec.visitDate ? ` <span style="font-size:10px;color:var(--txt3);">${rec.visitDate}</span>` : '');
+
+  // 탭 활성화 (PKG면 mfg 탭 disabled)
+  updateMfgTabState(rec.type);
+
+  // 폼 채우기
+  fillForm(rec);
+
+  // 점수 미니바
+  updateScoreBar(rec);
+
+  // 리스트 재렌더 (선택 표시)
+  renderEvalList();
+
+  // 기본 탭: info
+  setEvalTab('info');
+}
+
+function closeDet() {
+  currentId = null;
+  document.getElementById('eval-empty').style.display = 'flex';
+  document.getElementById('eval-det-view').style.display = 'none';
+  renderEvalList();
+}
+
+function setEvalTab(tab) {
+  document.querySelectorAll('.eval-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.querySelectorAll('.eval-tab-pane').forEach(p => {
+    p.classList.toggle('active', p.id === `pane-${tab}`);
+  });
+  if (tab === 'result') renderResult();
+}
+
+function updateMfgTabState(type) {
+  const mfgTab = document.querySelector('.eval-tab[data-tab="mfg"]');
+  const overlay = document.getElementById('mfg-disabled-overlay');
+  const content = document.getElementById('mfg-content');
+  if (type === 'PKG') {
+    mfgTab.classList.add('disabled');
+    overlay.style.display = 'flex';
+    content.style.display = 'none';
+  } else {
+    mfgTab.classList.remove('disabled');
+    overlay.style.display = 'none';
+    content.style.display = 'block';
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   8. 폼 채우기 / Y/N 렌더
+══════════════════════════════════════════════════════ */
+function fillForm(rec) {
+  const c = rec.checks || {};
+  const n = rec.notes  || {};
+
+  // 기본정보
+  setVal('f-companyName', rec.companyName);
+  setVal('f-visitDate',   rec.visitDate || '');
+  setVal('f-visitor',     rec.visitor   || '');
+  setVal('f-reason',      rec.reason    || '');
+  setVal('f-memo',        n.memo || '');
+
+  // 업체유형 버튼 상태
+  ['MFG','PKG'].forEach(t => {
+    const btn = document.getElementById(`type-${t.toLowerCase()}`);
+    if (!btn) return;
+    if (rec.type === t) {
+      btn.classList.add('active');
+      btn.style.borderColor = 'var(--cyn)';
+      btn.style.color = 'var(--cyn)';
+    } else {
+      btn.classList.remove('active');
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+  });
+
+  // Y/N 항목 렌더
+  ['mfg','mat','pkg','fin'].forEach(d => renderYN(d, c));
+  renderOps(c);
+
+  // 수치입력
+  setVal('f-mfg_loss',     c.mfg_loss     ?? '');
+  setVal('f-mfg_capa',     c.mfg_capa     ?? '');
+  setVal('f-mfg_headcount',c.mfg_headcount ?? '');
+  setVal('f-pkg_util',     c.pkg_util     ?? '');
+  setVal('f-pkg_lt',       c.pkg_lt       ?? '');
+
+  // 설비 CAPA 테이블
+  renderCapaTable(c.pkg_tbl || []);
+
+  // 특이사항
+  ['mfg','mat','pkg','fin','ops'].forEach(d => setVal(`f-note-${d}`, n[d] || ''));
+
+  // 결과 탭 영역별 총평
+  ['mfg','mat','pkg','fin','ops','overall'].forEach(d => {
+    const el = document.getElementById(`res-note-${d}`);
+    if (el) el.value = n[d] || '';
+  });
+}
+
+function setVal(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.value = v;
+}
+
+function renderYN(domain, checks) {
+  const wrap = document.getElementById(`yn-${domain}`);
+  if (!wrap) return;
+  wrap.innerHTML = YN_DEF[domain].map(it => {
+    const v    = checks[it.key] || null;
+    const yOn  = v === 'Y' ? 'y-on' : '';
+    const nOn  = v === 'N' ? 'n-on' : '';
+    const ptsClass = it.neg ? 'neg' : it.heavy ? 'heavy' : '';
+    const ptsSign  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
+    return `
+    <div class="yn-row">
+      <span class="yn-label">${it.label}</span>
+      <span class="yn-pts ${ptsClass}">${ptsSign}pt</span>
+      <div class="yn-btns">
+        <button class="yn-btn ${yOn}" onclick="setYN('${it.key}','Y',this)">Y</button>
+        <button class="yn-btn ${nOn}" onclick="setYN('${it.key}','N',this)">N</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderOps(checks) {
+  const wrap = document.getElementById('yn-ops');
+  if (!wrap) return;
+  let html = '';
+  // ops_q1
+  const q1 = YN_DEF.ops[0];
+  html += ynRowHtml(q1, checks[q1.key]);
+
+  // PLT 특수
+  const plt = checks['ops_q2'] || null;
+  html += `
+  <div class="plt-group">
+    <span class="plt-label">거래 PLT (KPP/AJ)</span>
+    <span class="yn-pts">최대+2pt</span>
+    <div class="plt-opts">
+      <span class="plt-opt${plt==='NONE'?' on':''}" onclick="setPLT('NONE',this)">없음</span>
+      <span class="plt-opt${plt==='ONE'?' on':''}" onclick="setPLT('ONE',this)">1개</span>
+      <span class="plt-opt${plt==='BOTH'?' on both':''}" onclick="setPLT('BOTH',this)">KPP+AJ</span>
+    </div>
+  </div>`;
+
+  // ops_q3 ~ ops_q11
+  for (let i = 1; i < YN_DEF.ops.length; i++) {
+    const it = YN_DEF.ops[i];
+    html += ynRowHtml(it, checks[it.key]);
+  }
+  wrap.innerHTML = html;
+}
+
+function ynRowHtml(it, v) {
+  const yOn = v === 'Y' ? 'y-on' : '';
+  const nOn = v === 'N' ? 'n-on' : '';
+  const ptsSign = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
+  return `
+  <div class="yn-row">
+    <span class="yn-label">${it.label}</span>
+    <span class="yn-pts">${ptsSign}pt</span>
+    <div class="yn-btns">
+      <button class="yn-btn ${yOn}" onclick="setYN('${it.key}','Y',this)">Y</button>
+      <button class="yn-btn ${nOn}" onclick="setYN('${it.key}','N',this)">N</button>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   9. 설비 CAPA 테이블
+══════════════════════════════════════════════════════ */
+function renderCapaTable(tbl) {
+  const tbody = document.getElementById('capa-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = (tbl || []).map((row, i) => `
+  <tr>
+    <td><input value="${row.name||''}" onchange="updateCapaRow(${i},'name',this.value)" placeholder="설비명"></td>
+    <td><input value="${row.daily||''}" type="number" onchange="updateCapaRow(${i},'daily',+this.value)" placeholder="0"></td>
+    <td><input value="${row.monthly||''}" type="number" onchange="updateCapaRow(${i},'monthly',+this.value)" placeholder="0"></td>
+    <td><input value="${row.kolma||''}" type="number" onchange="updateCapaRow(${i},'kolma',+this.value)" placeholder="0"></td>
+    <td><input value="${row.cnt||''}" type="number" onchange="updateCapaRow(${i},'cnt',+this.value)" placeholder="0"></td>
+    <td><input value="${row.note||''}" onchange="updateCapaRow(${i},'note',this.value)" placeholder="—"></td>
+    <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
+  </tr>`).join('');
+}
+
+function addCapaRow() {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks.pkg_tbl = rec.checks.pkg_tbl || [];
+  rec.checks.pkg_tbl.push({name:'',daily:0,monthly:0,kolma:0,cnt:0,note:''});
+  upsertRecord(rec);
+  renderCapaTable(rec.checks.pkg_tbl);
+}
+
+function updateCapaRow(idx, field, val) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  if (!rec.checks.pkg_tbl[idx]) return;
+  rec.checks.pkg_tbl[idx][field] = val;
+  upsertRecord(rec);
+}
+
+function delCapaRow(idx) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks.pkg_tbl.splice(idx, 1);
+  upsertRecord(rec);
+  renderCapaTable(rec.checks.pkg_tbl);
+}
+
+/* ══════════════════════════════════════════════════════
+   10. 필드 패치 (실시간 저장)
+══════════════════════════════════════════════════════ */
+function patchField(field, val) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec[field] = val;
+  upsertRecord(rec);
+  if (field === 'companyName') {
+    document.getElementById('det-name').textContent = val || '—';
+    renderEvalList();
+  }
+}
+
+function patchCheck(key, val) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks[key] = val;
+  upsertRecord(rec);
+  updateScoreBar(rec);
+}
+
+function patchNoteField(field, val) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.notes = rec.notes || {};
+  rec.notes[field] = val;
+  // 결과탭 동기화
+  const el = document.getElementById(`res-note-${field}`);
+  if (el && el.value !== val) el.value = val;
+  upsertRecord(rec);
+}
+
+function setYN(key, v, btn) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  // 토글
+  if (rec.checks[key] === v) {
+    rec.checks[key] = null;
+    btn.classList.remove(v === 'Y' ? 'y-on' : 'n-on');
+  } else {
+    rec.checks[key] = v;
+    // 같은 행 반대 버튼 초기화
+    const row  = btn.closest('.yn-row');
+    const other = row.querySelector(v === 'Y' ? '.yn-btn:last-child' : '.yn-btn:first-child');
+    if (other) other.classList.remove(v === 'Y' ? 'n-on' : 'y-on');
+    btn.classList.add(v === 'Y' ? 'y-on' : 'n-on');
+  }
+  upsertRecord(rec);
+  updateScoreBar(rec);
+}
+
+function setPLT(v, el) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks['ops_q2'] = rec.checks['ops_q2'] === v ? null : v;
+  upsertRecord(rec);
+  // UI 업데이트
+  document.querySelectorAll('.plt-opt').forEach(o => {
+    o.classList.remove('on','both');
+    if (o.textContent.trim() === el.textContent.trim() && rec.checks['ops_q2'] === v) {
+      o.classList.add('on');
+      if (v === 'BOTH') o.classList.add('both');
+    }
+  });
+  updateScoreBar(rec);
+}
+
+function setType(t) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.type = t;
+  upsertRecord(rec);
+  // 버튼 UI
+  ['mfg','pkg'].forEach(k => {
+    const btn = document.getElementById(`type-${k}`);
+    const match = k.toUpperCase() === t;
+    btn.style.borderColor = match ? 'var(--cyn)' : '';
+    btn.style.color       = match ? 'var(--cyn)' : '';
+  });
+  updateMfgTabState(t);
+  updateScoreBar(rec);
+  // 리스트 카드 갱신
+  document.getElementById('det-meta').innerHTML =
+    `${statusTag(rec.status)} <span class="eval-type-pill ${t==='PKG'?'PKG':''}">${t}</span>`;
+  renderEvalList();
+}
+
+/* ══════════════════════════════════════════════════════
+   11. 점수 미니바
+══════════════════════════════════════════════════════ */
+function updateScoreBar(rec) {
+  const sc  = calcScores(rec);
+  const bar = document.getElementById('eval-score-bar');
+  if (!bar) return;
+  const domains = [
+    {key:'mfg',label:'제조',   max:SPEC_MAX.mfg},
+    {key:'mat',label:'자재',   max:SPEC_MAX.mat},
+    {key:'pkg',label:'임가공', max:SPEC_MAX.pkg},
+    {key:'fin',label:'완제품', max:SPEC_MAX.fin},
+    {key:'ops',label:'운영',   max:SPEC_MAX.ops},
+  ];
+  bar.innerHTML = domains.map((d, i) => {
+    const pct = Math.round((sc[d.key] / d.max) * 100);
+    return `
+    ${i > 0 ? '<div class="esb-sep"></div>' : ''}
+    <div class="esb-item">
+      <span class="esb-label">${d.label}</span>
+      <div class="esb-track"><div class="esb-fill" style="width:${pct}%"></div></div>
+      <span class="esb-num">${sc[d.key]}</span>
+    </div>`;
+  }).join('') +
+  `<div class="esb-sep"></div>
+   <div class="esb-item">
+     <span style="font-size:10px;color:var(--txt2);font-weight:700;">총점</span>
+     <span style="font-size:14px;font-weight:900;color:var(--cyn);margin-left:4px;">${sc.total}</span>
+   </div>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   12. 결과 탭 렌더
+══════════════════════════════════════════════════════ */
+let chartInst = null;
+
+function renderResult() {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  const sc  = calcScores(rec);
+  const g   = gradeInfo(sc.total);
+
+  document.getElementById('res-total').textContent = sc.total;
+  const gradeEl = document.getElementById('res-grade');
+  gradeEl.textContent = g.label;
+  gradeEl.style.background = g.bg;
+  gradeEl.style.color      = g.color;
+
+  // 바 차트
+  const ctx = document.getElementById('result-chart').getContext('2d');
+  if (chartInst) { chartInst.destroy(); chartInst = null; }
+
+  const labels = ['제조관리(30)', '자재관리(20)', '임가공(25)', '완제품(10)', '운영(15)'];
+  const data   = [sc.mfg, sc.mat, sc.pkg, sc.fin, sc.ops];
+  const maxes  = [30, 20, 25, 10, 15];
+  const bgColors = data.map((v, i) => {
+    const r = v / maxes[i];
+    if (r >= .9) return 'rgba(16,185,129,.7)';
+    if (r >= .7) return 'rgba(8,145,178,.7)';
+    if (r >= .5) return 'rgba(245,158,11,.7)';
+    return 'rgba(239,68,68,.7)';
+  });
+
+  chartInst = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'취득', data, backgroundColor:bgColors, borderRadius:4},
+        {label:'만점', data:maxes, backgroundColor:'rgba(51,65,85,.4)', borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ labels:{ color:'#94a3b8', font:{size:10} } },
+        tooltip:{
+          callbacks:{
+            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}점`
+          }
+        }
+      },
+      scales:{
+        x:{ ticks:{ color:'#94a3b8', font:{size:10} }, grid:{ color:'rgba(51,65,85,.4)' } },
+        y:{ max:35, ticks:{ color:'#94a3b8', font:{size:10} }, grid:{ color:'rgba(51,65,85,.4)' } }
+      }
+    }
+  });
+
+  // 영역별 총평 동기화
+  const n = rec.notes || {};
+  ['mfg','mat','pkg','fin','ops','overall'].forEach(d => {
+    const el = document.getElementById(`res-note-${d}`);
+    if (el) el.value = n[d] || '';
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   13. 저장 / 상태 변경
+══════════════════════════════════════════════════════ */
+function saveEvalDraft(id) {
+  if (!id) return;
+  const rec = getRecord(id);
+  if (rec.status === 'CANDIDATE') rec.status = 'DRAFT';
+  upsertRecord(rec);
+  toast('임시저장 완료');
+  renderEvalList();
+}
+
+function saveEvalDone(id) {
+  if (!id) return;
+  const rec = getRecord(id);
+  if (!rec.companyName.trim()) { toast('업체명을 입력하세요.', 'err'); return; }
+  if (!rec.visitDate)          { toast('방문일을 입력하세요.', 'err'); return; }
+  rec.status = 'DONE';
+  rec.scores = calcScores(rec);
+  upsertRecord(rec);
+  // 상태 뱃지 갱신
+  document.getElementById('det-meta').innerHTML =
+    `${statusTag(rec.status)} <span class="eval-type-pill ${rec.type==='PKG'?'PKG':''}">${rec.type}</span>`
+    + ` <span style="font-size:10px;color:var(--txt3);">${rec.visitDate}</span>`;
+  toast('평가완료 처리됨 — CONFIRMED 전환을 MOD02에서 진행하세요.', 'ok');
+  renderEvalList();
+  updateScoreBar(rec);
+}
+
+function setEvalStatus(id, status) {
+  if (!id) return;
+  if (status === 'DROP' && !confirm('이 평가를 DROP 처리하시겠습니까?')) return;
+  const rec = getRecord(id);
+  rec.status = status;
+  upsertRecord(rec);
+  toast(`상태 변경: ${STATUS_MAP[status]?.label || status}`);
+  renderEvalList();
+  document.getElementById('det-meta').innerHTML =
+    `${statusTag(rec.status)} <span class="eval-type-pill ${rec.type==='PKG'?'PKG':''}">${rec.type}</span>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   14. 신규평가 폼 열기
+══════════════════════════════════════════════════════ */
+function openEvalAdd() {
+  const id = `eval-${Date.now()}`;
+  const rec = {
+    id, companyId:null, companyName:'',
+    type:'MFG', status:'DRAFT',
+    visitDate:'', visitor:'', reason:'',
+    checks:{ pkg_tbl:[] },
+    notes:{ mfg:'', mat:'', pkg:'', fin:'', ops:'', overall:'', memo:'' },
+    scores:{ mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 },
+    createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
+  };
+  upsertRecord(rec);
+  renderEvalList();
+  openEvalDet(id);
+  // 업체명 포커스
+  setTimeout(() => document.getElementById('f-companyName')?.focus(), 50);
+}
+
+/* ══════════════════════════════════════════════════════
+   15. 외부 모듈 진입점
+══════════════════════════════════════════════════════ */
+function addToEvalFromDB(companyId, companyName) {
+  const recs     = loadRecords();
+  const existing = recs.find(r => r.companyId === companyId);
+  if (existing) {
+    openEvalDet(existing.id);
+    toast(`기존 평가 이력 열림: ${companyName}`);
+    return;
+  }
+  const id = `eval-${Date.now()}`;
+  const rec = {
+    id, companyId, companyName,
+    type:'MFG', status:'DRAFT',
+    visitDate:'', visitor:'', reason:'',
+    checks:{ pkg_tbl:[] },
+    notes:{ mfg:'', mat:'', pkg:'', fin:'', ops:'', overall:'', memo:'' },
+    scores:{ mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 },
+    createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
+  };
+  upsertRecord(rec);
+  renderEvalList();
+  openEvalDet(id);
+  toast(`평가 대상 추가: ${companyName}`);
+}
+
+/* ══════════════════════════════════════════════════════
+   16. CSV 내보내기
+══════════════════════════════════════════════════════ */
+function exportEvalCSV() {
+  const recs = loadRecords();
+  const headers = ['업체명','유형','방문일','방문자','수배사유','상태',
+    'MFG점','자재점','임가공점','완제품점','운영점','총점','등급','종합의견'];
+  const rows = recs.map(r => {
+    const sc = calcScores(r);
+    const g  = gradeInfo(sc.total);
+    return [
+      r.companyName, r.type, r.visitDate||'', r.visitor||'',
+      r.reason||'', r.status,
+      sc.mfg, sc.mat, sc.pkg, sc.fin, sc.ops, sc.total, g.label,
+      (r.notes?.overall||'').replace(/\n/g,' ')
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+  });
+  const csv   = '﻿' + [headers.join(','), ...rows].join('\n');
+  const blob  = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a');
+  a.href      = url;
+  a.download  = `cosmedb_eval_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV 내보내기 완료');
+}
+
+/* ══════════════════════════════════════════════════════
+   17. 식약처 정보 보강 (stub)
+══════════════════════════════════════════════════════ */
+function showMfdsInfo() {
+  toast('식약처 정보 보강 기능은 MOD02 연동 시 활성화됩니다.');
+}
+
+/* ══════════════════════════════════════════════════════
+   18. 토스트
+══════════════════════════════════════════════════════ */
+function toast(msg, type) {
+  const wrap = document.getElementById('toast-wrap');
+  const el   = document.createElement('div');
+  el.className = 'toast';
+  if (type === 'err') el.style.borderColor = 'var(--red)';
+  if (type === 'ok')  el.style.borderColor = 'var(--grn)';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+/* ══════════════════════════════════════════════════════
+   19. 초기화
+══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderEvalList();
+});
+</script>
+</body>
+</html>
