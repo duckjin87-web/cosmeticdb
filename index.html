@@ -54,7 +54,24 @@ body{background:var(--s1);color:var(--txt);
   background:var(--s2);border-right:1px solid var(--bd);
   display:flex;flex-direction:column;overflow:hidden;
   box-shadow:2px 0 8px rgba(59,79,138,.08);
+  transition:width .25s ease, min-width .25s ease;
+  flex-shrink:0;
 }
+.eval-list-panel.collapsed{width:0;min-width:0;border-right:none;}
+.eval-list-panel.collapsed > *{display:none;}
+
+/* 사이드바 토글 탭 */
+.sidebar-toggle{
+  position:absolute;top:50%;left:0;transform:translateY(-50%);
+  z-index:100;width:16px;height:48px;
+  background:var(--s2);border:1px solid var(--bd);border-left:none;
+  border-radius:0 6px 6px 0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 0 6px rgba(59,79,138,.1);
+  transition:left .25s ease, background .15s;color:var(--txt3);font-size:10px;
+}
+.sidebar-toggle:hover{background:var(--s1);color:var(--navy);}
+#page-eval{position:relative;}
 .eval-list-head{padding:10px 12px 8px;border-bottom:1px solid var(--bd);flex-shrink:0;}
 .eval-list-head-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .eval-list-title{font-size:12px;font-weight:700;color:var(--navy);}
@@ -489,8 +506,11 @@ body{background:var(--s1);color:var(--txt);
 
 <div id="page-eval">
 
+  <!-- 사이드바 토글 탭 -->
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="리스트 열기/닫기">◀</button>
+
   <!-- 좌측: 리스트 패널 -->
-  <div class="eval-list-panel">
+  <div class="eval-list-panel" id="eval-list-panel">
     <div class="eval-list-head">
       <div class="eval-list-head-row">
         <span class="eval-list-title">신규처 등록평가</span>
@@ -2799,8 +2819,20 @@ function toast(msg, type) {
   setTimeout(() => el.remove(), 3000);
 }
 
-/* ══ 19. 초기화 ══ */
-document.addEventListener('DOMContentLoaded', () => { renderEvalList(); });
+/* ══ 19. 사이드바 토글 ══ */
+function toggleSidebar() {
+  const panel  = document.getElementById('eval-list-panel');
+  const toggle = document.getElementById('sidebar-toggle');
+  const open   = panel.classList.toggle('collapsed');
+  toggle.textContent = open ? '▶' : '◀';
+  toggle.style.left  = open ? '0px' : '280px';
+}
+
+/* ══ 20. 초기화 ══ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sidebar-toggle').style.left = '280px';
+  renderEvalList();
+});
 </script>
 </body>
 </html>
