@@ -17,7 +17,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--s1);color:var(--txt);
-  font-family:'Malgun Gothic','맑은 고딕',sans-serif;font-size:13px;line-height:1.5;}
+  font-family:'Malgun Gothic','맑은 고딕',sans-serif;font-size:15px;line-height:1.5;}
 
 /* 공통 버튼 */
 .btn{padding:5px 12px;border-radius:var(--r);border:1px solid var(--bd);
@@ -74,12 +74,12 @@ body{background:var(--s1);color:var(--txt);
 #page-eval{position:relative;}
 .eval-list-head{padding:10px 12px 8px;border-bottom:1px solid var(--bd);flex-shrink:0;}
 .eval-list-head-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.eval-list-title{font-size:12px;font-weight:700;color:var(--navy);}
+.eval-list-title{font-size:14px;font-weight:700;color:var(--navy);}
 
 .eval-filter-tabs{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:8px;}
 .eval-ftab{
   padding:3px 8px;border-radius:10px;border:1px solid var(--bd);
-  background:var(--s3);color:var(--txt3);font-size:10px;cursor:pointer;transition:.15s;
+  background:var(--s3);color:var(--txt3);font-size:12px;cursor:pointer;transition:.15s;
 }
 .eval-ftab.on{border-color:var(--cyn);color:var(--cyn);background:#e0f2fe;}
 
@@ -126,7 +126,7 @@ body{background:var(--s1);color:var(--txt);
 /* 탭 */
 .eval-tabs{display:flex;gap:0;overflow-x:auto;}
 .eval-tab{
-  padding:7px 13px;font-size:11px;cursor:pointer;color:var(--txt3);
+  padding:7px 13px;font-size:13px;cursor:pointer;color:var(--txt3);
   border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;flex-shrink:0;
 }
 .eval-tab.active{color:var(--cyn);border-bottom-color:var(--cyn);font-weight:600;}
@@ -153,16 +153,16 @@ body{background:var(--s1);color:var(--txt);
 .form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
 .form-field{display:flex;flex-direction:column;gap:3px;}
 .form-field.full{grid-column:1/-1;}
-.form-label{font-size:10px;color:var(--txt3);font-weight:500;}
+.form-label{font-size:13px;color:var(--txt3);font-weight:500;}
 .form-input{
   background:var(--s2);border:1px solid var(--bd);border-radius:4px;
-  color:var(--txt);padding:5px 8px;font-size:11px;outline:none;font-family:inherit;width:100%;transition:.15s;
+  color:var(--txt);padding:5px 8px;font-size:14px;outline:none;font-family:inherit;width:100%;transition:.15s;
 }
 .form-input:focus{border-color:var(--cyn);box-shadow:0 0 0 2px rgba(14,165,233,.1);}
 .form-input[type=date]::-webkit-calendar-picker-indicator{opacity:.4;}
 .form-textarea{
   background:var(--s2);border:1px solid var(--bd);border-radius:4px;
-  color:var(--txt);padding:6px 8px;font-size:11px;outline:none;
+  color:var(--txt);padding:6px 8px;font-size:14px;outline:none;
   font-family:inherit;width:100%;resize:vertical;min-height:60px;transition:.15s;
 }
 .form-textarea:focus{border-color:var(--cyn);box-shadow:0 0 0 2px rgba(14,165,233,.1);}
@@ -174,14 +174,14 @@ body{background:var(--s1);color:var(--txt);
   margin-bottom:4px;border:1px solid var(--bd);transition:.15s;
 }
 .yn-row:hover{border-color:#93c5fd;background:#fafcff;}
-.yn-label{font-size:11px;color:var(--txt2);flex:1;}
-.yn-pts{font-size:9px;color:var(--txt3);margin:0 8px;flex-shrink:0;}
+.yn-label{font-size:14px;color:var(--txt2);flex:1;}
+.yn-pts{font-size:11px;color:var(--txt3);margin:0 8px;flex-shrink:0;}
 .yn-pts.neg{color:var(--red);}
 .yn-pts.heavy{color:var(--acc);font-weight:700;}
 .yn-btns{display:flex;gap:3px;flex-shrink:0;}
 .yn-btn{
-  width:28px;height:22px;border-radius:3px;border:1px solid var(--bd);
-  background:var(--s3);color:var(--txt3);font-size:10px;font-weight:700;
+  width:36px;height:30px;border-radius:3px;border:1px solid var(--bd);
+  background:var(--s3);color:var(--txt3);font-size:13px;font-weight:700;
   cursor:pointer;transition:.15s;
 }
 .yn-btn:hover{border-color:var(--cyn);color:var(--cyn);}
@@ -239,15 +239,16 @@ body{background:var(--s1);color:var(--txt);
 
 /* 점수 미니바 */
 .eval-score-bar{
-  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-  padding:6px 16px;background:var(--s2);border-bottom:1px solid var(--bd);flex-shrink:0;
+  display:flex;align-items:flex-end;gap:10px;
+  padding:8px 16px;background:var(--s2);border-bottom:1px solid var(--bd);flex-shrink:0;
+  overflow-x:auto;
 }
-.esb-item{display:flex;align-items:center;gap:4px;font-size:10px;}
-.esb-label{color:var(--txt3);width:42px;}
-.esb-track{width:60px;height:4px;background:var(--bd);border-radius:2px;overflow:hidden;}
-.esb-fill{height:100%;border-radius:2px;background:var(--cyn);transition:width .4s;}
-.esb-num{color:var(--cyn);font-weight:700;width:22px;text-align:right;}
-.esb-sep{width:1px;height:14px;background:var(--bd);}
+.esb-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.esb-label{font-size:11px;color:var(--txt3);white-space:nowrap;}
+.esb-bar-wrap{width:22px;height:44px;background:var(--bd);border-radius:3px;overflow:hidden;display:flex;align-items:flex-end;}
+.esb-bar-fill{width:100%;border-radius:3px;background:var(--cyn);transition:height .4s;}
+.esb-num{font-size:12px;font-weight:700;color:var(--cyn);}
+.esb-sep{width:1px;height:56px;background:var(--bd);align-self:center;margin:0 2px;}
 
 /* 결과 탭 */
 .result-total-box{
@@ -288,6 +289,17 @@ body{background:var(--s1);color:var(--txt);
 
 /* PKG 환산 뱃지 */
 .pkg-note{font-size:9px;color:var(--acc);background:#fff7ed;padding:1px 6px;border-radius:8px;margin-left:4px;}
+
+/* 체크 완료율 상태 */
+.eval-check-status{
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding:5px 16px;background:#f8fafc;border-bottom:1px solid var(--bd);flex-shrink:0;
+}
+.cst-item{font-size:12px;display:flex;align-items:center;gap:3px;color:var(--txt3);}
+.cst-item .cst-cnt{font-weight:700;}
+.cst-done .cst-cnt{color:var(--grn);}
+.cst-pending .cst-cnt{color:var(--acc);}
+.cst-skip{opacity:.4;}
 
 /* 음수 항목: Y↔N 색 반전 */
 .neg-item .yn-btn.y-on  {border-color:#dc2626;background:#fee2e2;color:#dc2626;}
@@ -560,6 +572,8 @@ body{background:var(--s1);color:var(--txt);
 
       <!-- 점수 미니바 -->
       <div class="eval-score-bar" id="eval-score-bar"></div>
+      <!-- 체크 완료율 상태바 -->
+      <div class="eval-check-status" id="eval-check-status" style="display:none;"></div>
 
       <!-- 투어 동선 바 (항상 고정 표시) -->
       <div class="tour-bar" id="tour-bar" style="display:none;">
@@ -649,13 +663,13 @@ body{background:var(--s1);color:var(--txt);
           <div class="eval-section">
             <div class="eval-section-title">업체 유형</div>
             <div style="display:flex;gap:8px;">
-              <button class="btn" id="type-mfg" onclick="setType('MFG')" style="flex:1;padding:10px;">
+              <button class="btn" id="type-mfg" onclick="setType('MFG')" style="flex:1;padding:18px 10px;font-size:16px;">
                 🏭 제조업체<br>
-                <span style="font-size:9px;color:var(--txt3);">제조관리 탭 활성</span>
+                <span style="font-size:12px;color:var(--txt3);">제조관리 탭 활성</span>
               </button>
-              <button class="btn" id="type-pkg" onclick="setType('PKG')" style="flex:1;padding:10px;">
+              <button class="btn" id="type-pkg" onclick="setType('PKG')" style="flex:1;padding:18px 10px;font-size:16px;">
                 📦 충전·포장<br>
-                <span style="font-size:9px;color:var(--txt3);">제조관리 탭 비활성 / 70→100점 환산</span>
+                <span style="font-size:12px;color:var(--txt3);">제조관리 탭 비활성 / 70→100점 환산</span>
               </button>
             </div>
           </div>
@@ -1270,10 +1284,10 @@ function ynBtnClass(cur, v) {
 function renderYN(domain, checks) {
   const wrap = document.getElementById(`yn-${domain}`);
   if (!wrap) return;
-  wrap.innerHTML = YN_DEF[domain].map(it => ynItemHtml(it, checks)).join('');
+  wrap.innerHTML = YN_DEF[domain].map((it, i) => ynItemHtml(it, checks, i+1)).join('');
 }
 
-function ynItemHtml(it, checks) {
+function ynItemHtml(it, checks, num) {
   const cur      = checks[it.key] || null;
   const noteVal  = checks[it.key + '_note'] || '';
   const hasNote  = noteVal.length > 0;
@@ -1288,12 +1302,11 @@ function ynItemHtml(it, checks) {
   return `
   <div class="yn-item-wrap">
     <div class="yn-row ${negCls} ${noteOpen}">
-      <span class="yn-label">${it.label}${photoBadge}</span>
+      <span class="yn-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num||''}.</span>${it.label}${photoBadge}</span>
       <span class="yn-pts ${ptsClass}">${ptsSign}pt</span>
       <div class="yn-btns">
-        <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">Y</button>
-        <button class="yn-btn ${ynBtnClass(cur,'△')}" data-v="△" onclick="setYN('${it.key}','△',this)" title="${triTitle}">△</button>
-        <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">N</button>
+        <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
+        <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
         <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
           <input type="file" accept="image/*" style="display:none"
@@ -1319,7 +1332,7 @@ function renderOps(checks) {
   if (!wrap) return;
   let html = '';
   const q1 = YN_DEF.ops[0];
-  html += ynRowHtml(q1, checks[q1.key], checks);
+  html += ynRowHtml(q1, checks[q1.key], checks, 1);
 
   const plt = checks['ops_q2'] || null;
   html += `
@@ -1333,11 +1346,11 @@ function renderOps(checks) {
     </div>
   </div>`;
 
-  for (let i = 1; i < YN_DEF.ops.length; i++) html += ynRowHtml(YN_DEF.ops[i], checks[YN_DEF.ops[i].key], checks);
+  for (let i = 1; i < YN_DEF.ops.length; i++) html += ynRowHtml(YN_DEF.ops[i], checks[YN_DEF.ops[i].key], checks, i+2);
   wrap.innerHTML = html;
 }
 
-function ynRowHtml(it, cur, checks) {
+function ynRowHtml(it, cur, checks, num) {
   const noteVal  = (checks && checks[it.key + '_note']) || '';
   const hasNote  = noteVal.length > 0;
   const photos   = normalizePhotos(checks && checks[it.key + '_photos']);
@@ -1350,12 +1363,11 @@ function ynRowHtml(it, cur, checks) {
   return `
   <div class="yn-item-wrap">
     <div class="yn-row ${negCls} ${noteOpen}">
-      <span class="yn-label">${it.label}${photoBadge}</span>
+      <span class="yn-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num||''}.</span>${it.label}${photoBadge}</span>
       <span class="yn-pts">${ptsSign}pt</span>
       <div class="yn-btns">
-        <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">Y</button>
-        <button class="yn-btn ${ynBtnClass(cur,'△')}" data-v="△" onclick="setYN('${it.key}','△',this)" title="${triTitle}">△</button>
-        <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">N</button>
+        <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
+        <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
         <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
           <input type="file" accept="image/*" style="display:none"
@@ -1491,23 +1503,51 @@ function updateScoreBar(rec) {
     {key:'fin',label:'완제품', max:SPEC_MAX.fin},
     {key:'ops',label:'운영',   max:SPEC_MAX.ops},
   ];
-  const pkgNote = rec.type === 'PKG' ? '<span class="pkg-note">PKG 70→100</span>' : '';
+  const pkgNote = rec.type === 'PKG' ? '<span class="pkg-note">70→100</span>' : '';
   bar.innerHTML = domains.map((d, i) => {
-    const pct = Math.round((sc[d.key] / d.max) * 100);
+    const pct = Math.min(100, Math.round((sc[d.key] / d.max) * 100));
+    const color = pct >= 90 ? '#10b981' : pct >= 70 ? '#0ea5e9' : pct >= 50 ? '#f97316' : '#f43f5e';
     return `
     ${i > 0 ? '<div class="esb-sep"></div>' : ''}
-    <div class="esb-item">
+    <div class="esb-item" title="${d.label} ${sc[d.key]}/${d.max}점">
       <span class="esb-label">${d.label}</span>
-      <div class="esb-track"><div class="esb-fill" style="width:${pct}%"></div></div>
+      <div class="esb-bar-wrap">
+        <div class="esb-bar-fill" style="height:${pct}%;background:${color};"></div>
+      </div>
       <span class="esb-num">${sc[d.key]}</span>
     </div>`;
   }).join('') +
   `<div class="esb-sep"></div>
-   <div class="esb-item">
-     <span style="font-size:10px;color:var(--navy);font-weight:700;">총점</span>
-     <span style="font-size:14px;font-weight:900;color:var(--navy);margin-left:4px;">${sc.total}</span>
+   <div class="esb-item" style="justify-content:center;">
+     <span style="font-size:11px;color:var(--navy);font-weight:700;">총점</span>
+     <span style="font-size:20px;font-weight:900;color:var(--navy);line-height:1.1;">${sc.total}</span>
      ${pkgNote}
    </div>`;
+  updateCheckStatus(rec);
+}
+
+function updateCheckStatus(rec) {
+  const el = document.getElementById('eval-check-status');
+  if (!el) return;
+  const c = rec.checks || {};
+  const domains = [
+    { key:'mfg', label:'제조', items: YN_DEF.mfg,  skip: rec.type==='PKG' },
+    { key:'mat', label:'자재', items: YN_DEF.mat },
+    { key:'pkg', label:'임가공', items: YN_DEF.pkg },
+    { key:'fin', label:'완제품', items: YN_DEF.fin },
+    { key:'ops', label:'운영', items: YN_DEF.ops },
+  ];
+  const parts = domains.map(d => {
+    if (d.skip) return `<span class="cst-item cst-skip">${d.label} —</span>`;
+    const total   = d.items.length;
+    const checked = d.items.filter(it => c[it.key] === 'Y' || c[it.key] === 'N').length;
+    const done    = checked === total;
+    return `<span class="cst-item ${done?'cst-done':'cst-pending'}" title="${d.label}: ${checked}/${total} 체크됨">
+      ${d.label} <span class="cst-cnt">${checked}/${total}${done?' ✓':''}</span>
+    </span>`;
+  });
+  el.style.display = 'flex';
+  el.innerHTML = parts.join('<span style="color:var(--bd)">|</span>');
 }
 
 /* ══ 13. 결과 탭 ══ */
@@ -2591,11 +2631,13 @@ function printChecklist() {
       return ynRow(fakeIt, v, note, photos);
     }).join('');
 
+    const domNote = (rec.notes || {})[domain] || '';
     return `<div style="margin-bottom:10px;break-inside:avoid;">
       <div style="background:${bgColor};color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;display:flex;justify-content:space-between;">
         <span>${title}</span><span style="opacity:.8;font-size:9px;">만점 ${specMax}pt</span>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;">${TH}${rows}${customRows}</table>
+      ${domNote ? `<div style="padding:5px 8px;background:#f8fafc;border:1px solid #cbd5e1;border-top:none;font-size:9px;color:#475569;"><span style="font-weight:700;color:#64748b;">총평: </span>${domNote}</div>` : ''}
     </div>`;
   }
 
