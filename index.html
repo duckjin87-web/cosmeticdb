@@ -62,16 +62,13 @@ body{background:var(--s1);color:var(--txt);
 
 /* 사이드바 토글 탭 */
 .sidebar-toggle{
-  position:absolute;top:50%;left:0;transform:translateY(-50%);
-  z-index:100;width:32px;height:96px;
-  background:var(--s2);border:1px solid var(--bd);border-left:none;
-  border-radius:0 6px 6px 0;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:2px 0 6px rgba(59,79,138,.1);
-  transition:left .25s ease, background .15s;color:var(--txt3);font-size:18px;
+  width:28px;min-width:28px;height:100%;
+  background:var(--s2);border:none;border-right:1px solid var(--bd);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 0 4px rgba(59,79,138,.08);
+  color:var(--txt3);font-size:18px;flex-shrink:0;transition:background .15s;
 }
 .sidebar-toggle:hover{background:var(--s1);color:var(--navy);}
-#page-eval{position:relative;}
 .eval-list-head{padding:10px 12px 8px;border-bottom:1px solid var(--bd);flex-shrink:0;}
 .eval-list-head-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .eval-list-title{font-size:14px;font-weight:700;color:var(--navy);}
@@ -186,6 +183,7 @@ body{background:var(--s1);color:var(--txt);
 }
 .yn-btn:hover{border-color:var(--cyn);color:var(--cyn);}
 .yn-btn.y-on  {border-color:#16a34a;background:#dcfce7;color:#16a34a;}
+.yn-btn.tri-on{border-color:#d97706;background:#fef3c7;color:#d97706;}
 .yn-btn.n-on  {border-color:#dc2626;background:#fee2e2;color:#dc2626;}
 
 /* 수치 입력 그룹 */
@@ -194,13 +192,13 @@ body{background:var(--s1);color:var(--txt);
   padding:5px 10px;background:var(--s2);border-radius:4px;
   margin-bottom:4px;border:1px solid var(--bd);
 }
-.num-label{font-size:11px;color:var(--txt2);flex:1;}
+.num-label{font-size:14px;color:var(--txt2);flex:1;}
 .num-input{
-  width:80px;background:var(--s3);border:1px solid var(--bd);border-radius:4px;
-  color:var(--txt);padding:3px 7px;font-size:11px;text-align:right;outline:none;
+  width:90px;background:var(--s3);border:1px solid var(--bd);border-radius:4px;
+  color:var(--txt);padding:5px 8px;font-size:14px;text-align:right;outline:none;
 }
 .num-input:focus{border-color:var(--cyn);}
-.num-unit{font-size:10px;color:var(--txt3);width:24px;}
+.num-unit{font-size:13px;color:var(--txt3);width:28px;}
 
 /* PLT 라디오 */
 .plt-group{
@@ -326,9 +324,9 @@ body{background:var(--s1);color:var(--txt);
   padding:6px 16px 7px;flex-shrink:0;overflow-x:auto;
   border-left:3px solid var(--navy);
 }
-.tour-bar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
-.tour-bar-label{font-size:9px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.06em;}
-.tour-chips{display:flex;gap:4px;align-items:center;flex-wrap:wrap;row-gap:5px;}
+.tour-bar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.tour-bar-label{font-size:14px;font-weight:700;color:var(--navy);}
+.tour-chips{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;}
 
 /* 칩 */
 .tour-chip{
@@ -376,13 +374,13 @@ body{background:var(--s1);color:var(--txt);
   font-family:inherit;
 }
 
-/* [+ 구간 추가] 버튼 */
-.tour-add-btn{
-  padding:2px 9px;border-radius:10px;
-  border:1px dashed var(--cyn);background:transparent;
-  color:var(--cyn);font-size:10px;cursor:pointer;transition:.15s;flex-shrink:0;
+/* 인라인 구간 추가 버튼 */
+.tour-inline-add{
+  padding:5px 12px;border-radius:12px;flex-shrink:0;
+  border:1.5px dashed var(--cyn);background:#f0f9ff;
+  color:var(--cyn);font-size:13px;cursor:pointer;transition:.15s;white-space:nowrap;
 }
-.tour-add-btn:hover{background:#e0f2fe;}
+.tour-inline-add:hover{background:#e0f2fe;border-style:solid;}
 
 /* 투어 칩 순서 이동 버튼 (hover 시 표시) */
 .tour-move-wrap{display:none;gap:1px;align-items:center;}
@@ -516,9 +514,6 @@ body{background:var(--s1);color:var(--txt);
 
 <div id="page-eval">
 
-  <!-- 사이드바 토글 탭 -->
-  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="리스트 열기/닫기">◀</button>
-
   <!-- 좌측: 리스트 패널 -->
   <div class="eval-list-panel" id="eval-list-panel">
     <div class="eval-list-head">
@@ -537,6 +532,9 @@ body{background:var(--s1);color:var(--txt);
     </div>
     <div class="eval-list-body" id="eval-list-body"></div>
   </div>
+
+  <!-- 사이드바 토글 탭 (flex 항목) -->
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="리스트 열기/닫기">◀</button>
 
   <!-- 우측: 상세 패널 -->
   <div class="eval-det-wrap" id="eval-det-wrap">
@@ -578,7 +576,6 @@ body{background:var(--s1);color:var(--txt);
       <div class="tour-bar" id="tour-bar" style="display:none;">
         <div class="tour-bar-head">
           <span class="tour-bar-label">🗺️ 투어 동선</span>
-          <button class="tour-add-btn" onclick="promptAddTourStep(-1)">＋ 구간 추가</button>
         </div>
         <div class="tour-chips" id="tour-chips"></div>
       </div>
@@ -690,7 +687,7 @@ body{background:var(--s1);color:var(--txt);
           </div>
           <div id="mfg-content">
             <div class="eval-section">
-              <div class="eval-section-title">제조관리 Y/N 항목 <span class="pts-badge">30점 기준</span></div>
+              <div class="eval-section-title">제조관리 O/X 항목 <span class="pts-badge">30점 기준</span></div>
               <div id="yn-mfg"></div>
               <div id="custom-section-mfg"></div>
             </div>
@@ -727,7 +724,7 @@ body{background:var(--s1);color:var(--txt);
         <!-- 2.자재관리 -->
         <div class="eval-tab-pane" id="pane-mat">
           <div class="eval-section">
-            <div class="eval-section-title">자재관리 Y/N 항목 <span class="pts-badge">20점 기준</span></div>
+            <div class="eval-section-title">자재관리 O/X 항목 <span class="pts-badge">20점 기준</span></div>
             <div id="yn-mat"></div>
               <div id="custom-section-mat"></div>
           </div>
@@ -758,7 +755,7 @@ body{background:var(--s1);color:var(--txt);
             <button class="capa-add-btn" onclick="addCapaRow()">+ 설비 행 추가</button>
           </div>
           <div class="eval-section">
-            <div class="eval-section-title">임가공·충전 Y/N 항목 <span class="pts-badge">25점 기준</span></div>
+            <div class="eval-section-title">임가공·충전 O/X 항목 <span class="pts-badge">25점 기준</span></div>
             <div id="yn-pkg"></div>
               <div id="custom-section-pkg"></div>
           </div>
@@ -788,7 +785,7 @@ body{background:var(--s1);color:var(--txt);
         <!-- 4.완제품관리 -->
         <div class="eval-tab-pane" id="pane-fin">
           <div class="eval-section">
-            <div class="eval-section-title">완제품관리 Y/N 항목 <span class="pts-badge">10점 기준</span></div>
+            <div class="eval-section-title">완제품관리 O/X 항목 <span class="pts-badge">10점 기준</span></div>
             <div id="yn-fin"></div>
               <div id="custom-section-fin"></div>
           </div>
@@ -803,7 +800,7 @@ body{background:var(--s1);color:var(--txt);
         <!-- 5.운영·거래조건 -->
         <div class="eval-tab-pane" id="pane-ops">
           <div class="eval-section">
-            <div class="eval-section-title">운영·거래조건 Y/N 항목 <span class="pts-badge">15점 기준</span></div>
+            <div class="eval-section-title">운영·거래조건 O/X 항목 <span class="pts-badge">15점 기준</span></div>
             <div id="yn-ops"></div>
               <div id="custom-section-ops"></div>
           </div>
@@ -1298,6 +1295,7 @@ function ynItemHtml(it, checks, num) {
       <span class="yn-pts ${ptsClass}">${ptsSign}pt</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
+        <button class="yn-btn ${ynBtnClass(cur,'△')}" data-v="△" onclick="setYN_tri('${it.key}',this)" title="△ 부분점수 ${halfPts(it.pts)}pt (메모 자동열림)">△</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
         <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
@@ -1306,8 +1304,8 @@ function ynItemHtml(it, checks, num) {
         </label>
       </div>
     </div>
-    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote?'block':'none'};">
-      <input placeholder="현장 메모..." value="${escHtml(noteVal)}"
+    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote||cur==='△'?'block':'none'};">
+      <input placeholder="${cur==='△'?'△ 부분점수 사유 입력':'현장 메모...'}" value="${escHtml(noteVal)}"
         oninput="patchItemNote('${it.key}',this.value)">
     </div>
     ${hasPhoto ? `<div class="yn-photo-panel" id="yphoto-panel-${it.key}">
@@ -1359,6 +1357,7 @@ function ynRowHtml(it, cur, checks, num) {
       <span class="yn-pts">${ptsSign}pt</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
+        <button class="yn-btn ${ynBtnClass(cur,'△')}" data-v="△" onclick="setYN_tri('${it.key}',this)" title="△ 부분점수 ${halfPts(it.pts)}pt (메모 자동열림)">△</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
         <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
@@ -1367,8 +1366,8 @@ function ynRowHtml(it, cur, checks, num) {
         </label>
       </div>
     </div>
-    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote?'block':'none'};">
-      <input placeholder="현장 메모..." value="${escHtml(noteVal)}"
+    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote||cur==='△'?'block':'none'};">
+      <input placeholder="${cur==='△'?'△ 부분점수 사유 입력':'현장 메모...'}" value="${escHtml(noteVal)}"
         oninput="patchItemNote('${it.key}',this.value)">
     </div>
     ${hasPhoto ? `<div class="yn-photo-panel" id="yphoto-panel-${it.key}">
@@ -1384,16 +1383,19 @@ function ynRowHtml(it, cur, checks, num) {
 function renderCapaTable(tbl) {
   const tbody = document.getElementById('capa-tbody');
   if (!tbody) return;
-  tbody.innerHTML = (tbl || []).map((row, i) => `
+  tbody.innerHTML = (tbl || []).map((row, i) => {
+    const autoMonthly = (row.daily||0) * (row.cnt||0);
+    return `
   <tr>
     <td><input value="${row.name||''}" onchange="updateCapaRow(${i},'name',this.value)" placeholder="설비명"></td>
-    <td><input value="${row.daily||''}" type="number" onchange="updateCapaRow(${i},'daily',+this.value)" placeholder="0"></td>
-    <td><input value="${row.monthly||''}" type="number" onchange="updateCapaRow(${i},'monthly',+this.value)" placeholder="0"></td>
+    <td><input value="${row.daily||''}" type="number" onchange="updateCapaRowAuto(${i},'daily',+this.value)" placeholder="0"></td>
+    <td><input value="${autoMonthly||''}" type="number" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="일CAPA × 보유대수 자동계산" placeholder="자동"></td>
     <td><input value="${row.kolma||''}" type="number" onchange="updateCapaRow(${i},'kolma',+this.value)" placeholder="0"></td>
-    <td><input value="${row.cnt||''}" type="number" onchange="updateCapaRow(${i},'cnt',+this.value)" placeholder="0"></td>
+    <td><input value="${row.cnt||''}" type="number" onchange="updateCapaRowAuto(${i},'cnt',+this.value)" placeholder="0"></td>
     <td><input value="${row.note||''}" onchange="updateCapaRow(${i},'note',this.value)" placeholder="—"></td>
     <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 function addCapaRow() {
@@ -1408,6 +1410,15 @@ function updateCapaRow(idx, field, val) {
   const rec = getRecord(currentId);
   if (!rec.checks.pkg_tbl[idx]) return;
   rec.checks.pkg_tbl[idx][field] = val; upsertRecord(rec);
+}
+function updateCapaRowAuto(idx, field, val) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  if (!rec.checks.pkg_tbl[idx]) return;
+  rec.checks.pkg_tbl[idx][field] = val;
+  rec.checks.pkg_tbl[idx].monthly = (rec.checks.pkg_tbl[idx].daily||0) * (rec.checks.pkg_tbl[idx].cnt||0);
+  upsertRecord(rec);
+  renderCapaTable(rec.checks.pkg_tbl);
 }
 function delCapaRow(idx) {
   if (!currentId) return;
@@ -1449,6 +1460,19 @@ function setYN(key, v, btn) {
   else if (cur === '△') row.querySelector('[data-v="△"]')?.classList.add('tri-on');
   else if (cur === 'N') row.querySelector('[data-v="N"]')?.classList.add('n-on');
   updateScoreBar(rec);
+}
+
+function setYN_tri(key, btn) {
+  setYN(key, '△', btn);
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  if (rec.checks[key] === '△') {
+    const panel = document.getElementById(`note-panel-${key}`);
+    if (panel && panel.style.display === 'none') {
+      panel.style.display = 'block';
+      panel.querySelector('input')?.focus();
+    }
+  }
 }
 
 function setPLT(v, el) {
@@ -1774,7 +1798,7 @@ function renderCustomSection(domain, recArg) {
   }
 
   // 항목 목록 갱신
-  itemsEl.innerHTML = items.map(ci => {
+  itemsEl.innerHTML = items.map((ci, idx) => {
     const cur      = c[ci.id] || null;
     const noteVal  = c[ci.id + '_note'] || '';
     const hasNote  = noteVal.length > 0;
@@ -1782,9 +1806,10 @@ function renderCustomSection(domain, recArg) {
     const hasPhoto = photos.length > 0;
     const ptsSign  = ci.pts > 0 ? `+${ci.pts}` : `${ci.pts}`;
     const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
+    const numBadge = `<span style="font-size:11px;font-weight:700;color:#f97316;margin-right:4px;">0.${idx+1}</span>`;
     return `<div class="yn-item-wrap" style="border-left:3px solid var(--acc);">
       <div class="custom-yn-row">
-        <span class="custom-yn-label">${escHtml(ci.label)}${photoBadge}</span>
+        <span class="custom-yn-label">${numBadge}${escHtml(ci.label)}${photoBadge}</span>
         <span class="custom-yn-pts">${ptsSign}pt</span>
         <div class="yn-btns">
           <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${ci.id}','Y',this)">Y</button>
@@ -1913,7 +1938,7 @@ function renderTourBar(rec) {
 
   let html = '';
   if (steps.length === 0) {
-    html = `<span style="font-size:10px;color:var(--txt3);padding:2px 0;">동선을 추가해 주세요 →</span>`;
+    html = `<button class="tour-inline-add" onclick="promptAddTourStep(-1)">＋ 구간추가</button>`;
   } else {
     steps.forEach((s, i) => {
       const photoCnt = s.photos?.length || 0;
@@ -1941,9 +1966,11 @@ function renderTourBar(rec) {
       }
 
       if (i < steps.length - 1) {
-        html += `<span style="color:var(--txt3);font-size:12px;padding:0 2px;">→</span>`;
+        html += `<span style="color:var(--txt3);font-size:13px;padding:0 2px;flex-shrink:0;">→</span>`;
       }
     });
+    // 마지막에 인라인 구간추가 버튼
+    html += `<button class="tour-inline-add" onclick="promptAddTourStep(-1)" title="구간 추가">＋ 구간추가</button>`;
   }
 
   chips.innerHTML = html;
@@ -2629,8 +2656,8 @@ function printChecklist() {
     }).join('');
 
     // 커스텀 항목
-    const customRows = (rec.customItems||[]).filter(ci=>ci.domain===domain).map(ci => {
-      const fakeIt = { key:ci.id, label:`★ ${ci.label}`, pts:ci.pts, neg:ci.pts<0, heavy:false };
+    const customRows = (rec.customItems||[]).filter(ci=>ci.domain===domain).map((ci, idx) => {
+      const fakeIt = { key:ci.id, label:`0.${idx+1} ${ci.label}`, pts:ci.pts, neg:ci.pts<0, heavy:false };
       const v      = c[ci.id] || null;
       const note   = c[ci.id+'_note'] || '';
       const photos = normalizePhotos(c[ci.id+'_photos']);
@@ -2663,8 +2690,8 @@ function printChecklist() {
       const ph = normalizePhotos(c[it.key+'_photos']);
       return ynRow(it, c[it.key]||null, c[it.key+'_note']||'', ph);
     }).join('');
-    const customRows = (rec.customItems||[]).filter(ci=>ci.domain==='ops').map(ci => {
-      const fakeIt = { key:ci.id, label:`★ ${ci.label}`, pts:ci.pts, neg:ci.pts<0, heavy:false };
+    const customRows = (rec.customItems||[]).filter(ci=>ci.domain==='ops').map((ci, idx) => {
+      const fakeIt = { key:ci.id, label:`0.${idx+1} ${ci.label}`, pts:ci.pts, neg:ci.pts<0, heavy:false };
       return ynRow(fakeIt, c[ci.id]||null, c[ci.id+'_note']||'', normalizePhotos(c[ci.id+'_photos']));
     }).join('');
     return `<div style="margin-bottom:10px;break-inside:avoid;">
@@ -2723,7 +2750,7 @@ function printChecklist() {
       </div>
       <div style="display:flex;align-items:center;gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:3px;">
         <span style="font-size:9px;color:#64748b;font-weight:700;min-width:44px;">유형</span>
-        <span style="font-size:11px;font-weight:700;color:#3b4f8a;">${rec.type}</span>
+        <span style="font-size:11px;font-weight:700;color:#3b4f8a;">${rec.type==='PKG'?'충전/포장업체':'제조업체'}</span>
       </div>
       <div style="display:flex;align-items:center;gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:3px;">
         <span style="font-size:9px;color:#64748b;font-weight:700;min-width:44px;">방문자</span>
@@ -2883,16 +2910,12 @@ function toast(msg, type) {
 function toggleSidebar() {
   const panel  = document.getElementById('eval-list-panel');
   const toggle = document.getElementById('sidebar-toggle');
-  const open   = panel.classList.toggle('collapsed');
-  toggle.textContent = open ? '▶' : '◀';
-  toggle.style.left  = open ? '0px' : '280px';
+  const collapsed = panel.classList.toggle('collapsed');
+  toggle.textContent = collapsed ? '▶' : '◀';
 }
 
 /* ══ 20. 초기화 ══ */
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('sidebar-toggle').style.left = '280px';
-  renderEvalList();
-});
+document.addEventListener('DOMContentLoaded', () => { renderEvalList(); });
 </script>
 </body>
 </html>
