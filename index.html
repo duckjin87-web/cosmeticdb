@@ -63,12 +63,12 @@ body{background:var(--s1);color:var(--txt);
 /* 사이드바 토글 탭 */
 .sidebar-toggle{
   position:absolute;top:50%;left:0;transform:translateY(-50%);
-  z-index:100;width:16px;height:48px;
+  z-index:100;width:32px;height:96px;
   background:var(--s2);border:1px solid var(--bd);border-left:none;
   border-radius:0 6px 6px 0;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   box-shadow:2px 0 6px rgba(59,79,138,.1);
-  transition:left .25s ease, background .15s;color:var(--txt3);font-size:10px;
+  transition:left .25s ease, background .15s;color:var(--txt3);font-size:18px;
 }
 .sidebar-toggle:hover{background:var(--s1);color:var(--navy);}
 #page-eval{position:relative;}
@@ -186,7 +186,6 @@ body{background:var(--s1);color:var(--txt);
 }
 .yn-btn:hover{border-color:var(--cyn);color:var(--cyn);}
 .yn-btn.y-on  {border-color:#16a34a;background:#dcfce7;color:#16a34a;}
-.yn-btn.tri-on{border-color:#d97706;background:#fef3c7;color:#d97706;}
 .yn-btn.n-on  {border-color:#dc2626;background:#fee2e2;color:#dc2626;}
 
 /* 수치 입력 그룹 */
@@ -479,7 +478,7 @@ body{background:var(--s1);color:var(--txt);
 .btn.report:hover{background:var(--navy);color:#fff;}
 .tour-step-panel{
   background:#f0f4ff;border-bottom:1px solid var(--bd);
-  padding:10px 16px;flex-shrink:0;
+  padding:10px 16px;flex-shrink:0;max-height:220px;overflow-y:auto;
 }
 .tour-step-panel-header{
   display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
@@ -577,6 +576,8 @@ body{background:var(--s1);color:var(--txt);
           <span class="tour-step-title" id="tour-step-title">—</span>
           <button class="btn sm" onclick="closeTourStepPanel()">✕ 닫기</button>
         </div>
+        <div id="tour-step-actions" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;"></div>
+        <textarea id="tour-step-memo" class="form-textarea" rows="2" placeholder="구간 메모..." style="margin-bottom:6px;" oninput="patchTourStepMemo(this.value)"></textarea>
         <div class="tour-photo-grid" id="tour-photo-grid"></div>
         <div style="display:flex;gap:6px;align-items:center;margin-top:5px;">
           <label class="btn sm" style="cursor:pointer;border-color:var(--cyn);color:var(--cyn);">
@@ -1906,20 +1907,11 @@ function renderTourBar(rec) {
         html += `<div class="tour-chip${isActive?' active':''}" id="tour-chip-${i}">
           <span class="tour-chip-num">${i+1}</span>
           <span class="tour-chip-name" onclick="toggleTourStep(${i})" title="클릭: 사진·메모">${escHtml(s.name)}${badge}${memoDot}</span>
-          <span class="tour-move-wrap">
-            <button class="tour-move-btn" onclick="moveTourStep(${i},-1)"
-              ${i===0?'disabled':''} title="앞으로 이동">◀</button>
-            <button class="tour-move-btn" onclick="moveTourStep(${i},1)"
-              ${i===steps.length-1?'disabled':''} title="뒤로 이동">▶</button>
-          </span>
-          <button class="tour-chip-del" onclick="deleteTourStep(${i})" title="이 구간 삭제">✕</button>
         </div>`;
       }
 
-      // → 버튼 (클릭 = 다음 칩 삭제 / 그 자리에 삽입 버튼 없음: → 자체가 삭제)
       if (i < steps.length - 1) {
-        html += `<button class="tour-arr-btn" onclick="deleteTourStep(${i+1})"
-          title="클릭: [${escHtml(steps[i+1].name)}] 구간 삭제">→</button>`;
+        html += `<span style="color:var(--txt3);font-size:12px;padding:0 2px;">→</span>`;
       }
     });
   }
@@ -2040,7 +2032,17 @@ function openTourStepPanel(idx) {
   const step  = rec.tourSteps[idx];
   if (!step) return;
   activeTourStep = idx;
+  const steps = rec.tourSteps;
   document.getElementById('tour-step-title').textContent = `${idx+1}. ${step.name}`;
+  // 이동/삭제 버튼 업데이트
+  const actionsEl = document.getElementById('tour-step-actions');
+  if (actionsEl) {
+    actionsEl.innerHTML = `
+      <button class="btn sm" onclick="moveTourStep(${idx},-1)" ${idx===0?'disabled':''} title="앞으로 이동">◀ 앞으로</button>
+      <button class="btn sm" onclick="moveTourStep(${idx},1)" ${idx===steps.length-1?'disabled':''} title="뒤로 이동">뒤로 ▶</button>
+      <button class="btn sm" style="border-color:var(--red);color:var(--red);" onclick="deleteTourStep(${idx})" title="이 구간 삭제">🗑 삭제</button>`;
+  }
+  document.getElementById('tour-step-memo').value = step.memo || '';
   renderTourPhotos(step.photos || [], idx);
   document.getElementById('tour-step-panel').style.display = 'block';
   renderTourBar(rec);
@@ -2050,6 +2052,16 @@ function closeTourStepPanel() {
   activeTourStep = -1;
   document.getElementById('tour-step-panel').style.display = 'none';
   if (currentId) { const rec = getRecord(currentId); renderTourBar(rec); }
+}
+
+function patchTourStepMemo(val) {
+  if (!currentId || activeTourStep < 0) return;
+  const rec = getRecord(currentId);
+  syncTourSteps(rec);
+  if (rec.tourSteps[activeTourStep]) {
+    rec.tourSteps[activeTourStep].memo = val;
+    upsertRecord(rec);
+  }
 }
 
 function renderTourPhotos(photos, stepIdx) {
