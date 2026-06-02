@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>신규처 등록평가 체크리스트</title>
+<style>
+@media print {
+  body { margin: 0; }
+  .no-print { display: none; }
+  .page { page-break-after: always; }
+}
+body {
+  font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+  font-size: 11px;
+  color: #1e293b;
+  background: #fff;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+/* 인쇄 버튼 */
+.no-print {
+  text-align: right;
+  margin-bottom: 12px;
+}
+.print-btn {
+  padding: 6px 16px;
+  background: #60a5fa;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 헤더 */
+.doc-header {
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.doc-title {
+  font-size: 16px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: .05em;
+  margin-bottom: 10px;
+  color: #1e40af;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px 12px;
+}
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 3px;
+}
+.info-label {
+  font-size: 9px;
+  color: #64748b;
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 42px;
+}
+.info-val {
+  font-size: 11px;
+  color: #1e293b;
+  flex: 1;
+}
+
+/* 투어순서 */
+.tour-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 7px 10px;
+  margin-bottom: 10px;
+  background: #f8fafc;
+}
+.tour-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.tour-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.tour-step {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.tour-num {
+  width: 16px;
+  height: 16px;
+  background: #60a5fa;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tour-name {
+  font-size: 10px;
+  color: #1e293b;
+}
+.tour-arrow {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+/* 섹션 */
+.section {
+  margin-bottom: 10px;
+  break-inside: avoid;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1e40af;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px 4px 0 0;
+  font-size: 10px;
+  font-weight: 700;
+}
+.section-max {
+  font-size: 9px;
+  opacity: .8;
+}
+.checklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #cbd5e1;
+  border-top: none;
+}
+.checklist-table th {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  padding: 3px 6px;
+  border: 1px solid #cbd5e1;
+}
+.checklist-table th.left { text-align: left; }
+.checklist-table td {
+  padding: 3px 8px;
+  border: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+.checklist-table tr:nth-child(even) td {
+  background: #f8fafc;
+}
+.item-label {
+  font-size: 10px;
+  color: #1e293b;
+}
+.pts-tag {
+  display: inline-block;
+  font-size: 8px;
+  padding: 0px 4px;
+  border-radius: 3px;
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 700;
+  margin-left: 4px;
+}
+.pts-tag.neg { background: #fee2e2; color: #dc2626; }
+.pts-tag.heavy { background: #ffedd5; color: #ea580c; }
+/* Y / △ / N 체크박스 */
+.yn-cell {
+  text-align: center;
+}
+.check-box {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #94a3b8;
+  border-radius: 3px;
+  text-align: center;
+  line-height: 16px;
+  font-size: 10px;
+  font-weight: 700;
+  color: transparent; /* 빈칸 */
+}
+/* 샘플: 체크된 상태 */
+.check-box.y { border-color: #16a34a; background: #dcfce7; color: #16a34a; }
+.check-box.half { border-color: #d97706; background: #fef3c7; color: #d97706; }
+.check-box.n { border-color: #dc2626; background: #fee2e2; color: #dc2626; }
+.note-cell {
+  font-size: 9px;
+  color: #64748b;
+  min-width: 80px;
+}
+/* PLT 행 */
+.plt-row td {
+  background: #eff6ff;
+}
+
+/* CAPA 테이블 */
+.capa-section {
+  margin-bottom: 10px;
+}
+.capa-header {
+  background: #0f766e;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px 4px 0 0;
+  font-size: 10px;
+  font-weight: 700;
+}
+.capa-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #cbd5e1;
+  border-top: none;
+  font-size: 9px;
+}
+.capa-table th {
+  background: #f0fdfa;
+  color: #0f766e;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  padding: 3px;
+  border: 1px solid #cbd5e1;
+}
+.capa-table td {
+  padding: 4px 6px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  color: #1e293b;
+}
+.capa-table td.left { text-align: left; }
+
+/* 점수 요약 */
+.score-summary {
+  display: grid;
+  grid-template-columns: repeat(5,1fr) auto;
+  gap: 6px;
+  margin-bottom: 10px;
+  align-items: stretch;
+}
+.score-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  text-align: center;
+  padding: 6px 4px;
+  background: #f8fafc;
+}
+.score-domain {
+  font-size: 9px;
+  color: #64748b;
+  margin-bottom: 3px;
+}
+.score-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1e40af;
+  line-height: 1;
+}
+.score-max {
+  font-size: 8px;
+  color: #94a3b8;
+}
+.score-total-box {
+  border: 2px solid #1e40af;
+  border-radius: 5px;
+  text-align: center;
+  padding: 6px 12px;
+  background: #eff6ff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.score-total-label {
+  font-size: 9px;
+  color: #1e40af;
+  font-weight: 700;
+}
+.score-total-val {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1e40af;
+  line-height: 1;
+}
+.grade-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: #dcfce7;
+  color: #16a34a;
+  margin-top: 2px;
+}
+
+/* 종합의견 */
+.opinion-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 8px 10px;
+  min-height: 60px;
+  background: #f8fafc;
+  margin-bottom: 10px;
+}
+.opinion-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.opinion-content {
+  font-size: 10px;
+  color: #1e293b;
+  line-height: 1.6;
+}
+
+/* 서명란 */
+.sign-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.sign-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 8px;
+  text-align: center;
+}
+.sign-label {
+  font-size: 9px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+.sign-line {
+  border-top: 1px solid #94a3b8;
+  padding-top: 3px;
+  font-size: 9px;
+  color: #94a3b8;
+}
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <button class="print-btn" onclick="window.print()">🖨️ PDF로 저장 (인쇄)</button>
+</div>
+
+<!-- 헤더 -->
+<div class="doc-header">
+  <div class="doc-title">신규처 등록평가 체크리스트</div>
+  <div class="info-grid">
+    <div class="info-row">
+      <span class="info-label">업체명</span>
+      <span class="info-val">(주)한국코스팜</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">방문일</span>
+      <span class="info-val">2025-12-10</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">업체유형</span>
+      <span class="info-val">MFG (제조업체)</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">방문자</span>
+      <span class="info-val">김평가</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">참관자</span>
+      <span class="info-val">이부장, 박과장</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">수배사유</span>
+      <span class="info-val">신규 OEM 발굴</span>
+    </div>
+  </div>
+</div>
+
+<!-- 투어순서 -->
+<div class="tour-box">
+  <div class="tour-title">투어 동선</div>
+  <div class="tour-steps">
+    <div class="tour-step"><div class="tour-num">1</div><span class="tour-name">원료창고</span></div>
+    <span class="tour-arrow">→</span>
+    <div class="tour-step"><div class="tour-num">2</div><span class="tour-name">배합실</span></div>
+    <span class="tour-arrow">→</span>
+    <div class="tour-step"><div class="tour-num">3</div><span class="tour-name">충전라인</span></div>
+    <span class="tour-arrow">→</span>
+    <div class="tour-step"><div class="tour-num">4</div><span class="tour-name">자재창고</span></div>
+    <span class="tour-arrow">→</span>
+    <div class="tour-step"><div class="tour-num">5</div><span class="tour-name">완제품창고</span></div>
+    <span class="tour-arrow">→</span>
+    <div class="tour-step"><div class="tour-num">6</div><span class="tour-name">품질관리실</span></div>
+  </div>
+</div>
+
+<!-- 1. 제조관리 -->
+<div class="section">
+  <div class="section-header">
+    1. 제조관리
+    <span class="section-max">만점 30pt</span>
+  </div>
+  <table class="checklist-table">
+    <thead>
+      <tr>
+        <th class="left" style="width:50%">평가항목</th>
+        <th style="width:8%">배점</th>
+        <th style="width:8%">Y</th>
+        <th style="width:8%">△</th>
+        <th style="width:8%">N</th>
+        <th class="left">현장 메모</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="item-label">원료 입고검사 실시</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">원료 보관조건 유지</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">배합기록 작성</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">자체 판정기준 보유</td>
+        <td class="yn-cell"><span class="pts-tag">+2</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">자체 성적서 공유 가능</td>
+        <td class="yn-cell"><span class="pts-tag">+2</span></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box half">△</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell">조건부 공유 가능</td>
+      </tr>
+      <tr>
+        <td class="item-label">배합 샘플링 SOP 보유</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">샘플 발송 가능</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">벌크 보관 온습도 유지</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">환입 조건</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box n">N</div></td>
+        <td class="note-cell">환입 불가</td>
+      </tr>
+      <tr>
+        <td class="item-label">작업인원 근속 3년↑</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 3. 임가공 (일부만 예시) -->
+<div class="section">
+  <div class="section-header" style="background:#0f766e;">
+    3. 임가공·충전
+    <span class="section-max">만점 25pt</span>
+  </div>
+  <table class="checklist-table">
+    <thead>
+      <tr>
+        <th class="left" style="width:50%">평가항목</th>
+        <th style="width:8%">배점</th>
+        <th style="width:8%">Y</th>
+        <th style="width:8%">△</th>
+        <th style="width:8%">N</th>
+        <th class="left">현장 메모</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="item-label">포장사양서·표준관리품 배치</td>
+        <td class="yn-cell"><span class="pts-tag">+1</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">이물 검사 절차·장비 보유</td>
+        <td class="yn-cell"><span class="pts-tag heavy">+2</span></td>
+        <td class="yn-cell"><div class="check-box y">Y</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell"></td>
+      </tr>
+      <tr>
+        <td class="item-label">중량선별기·비전 보유</td>
+        <td class="yn-cell"><span class="pts-tag heavy">+3</span></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box half">△</div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="note-cell">중량선별기만 보유</td>
+      </tr>
+      <tr>
+        <td class="item-label">품질 클레임 최근 12개월</td>
+        <td class="yn-cell"><span class="pts-tag neg">-1</span></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box"></div></td>
+        <td class="yn-cell"><div class="check-box n">N</div></td>
+        <td class="note-cell">클레임 없음</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CAPA 테이블 -->
+<div class="capa-section">
+  <div class="capa-header">설비 CAPA 현황</div>
+  <table class="capa-table">
+    <thead>
+      <tr>
+        <th class="left" style="min-width:60px;">설비명</th>
+        <th>일CAPA</th>
+        <th>월CAPA</th>
+        <th>콜마배정</th>
+        <th>보유대수</th>
+        <th class="left" style="min-width:80px;">비고</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="left">튜브</td>
+        <td>300,000</td>
+        <td>6,000,000</td>
+        <td>150,000</td>
+        <td>2</td>
+        <td class="left"></td>
+      </tr>
+      <tr>
+        <td class="left">단발</td>
+        <td>200,000</td>
+        <td>4,000,000</td>
+        <td>80,000</td>
+        <td>1</td>
+        <td class="left">증설예정</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 점수 요약 -->
+<div class="score-summary">
+  <div class="score-box">
+    <div class="score-domain">제조관리</div>
+    <div class="score-val">27</div>
+    <div class="score-max">/ 30</div>
+  </div>
+  <div class="score-box">
+    <div class="score-domain">자재관리</div>
+    <div class="score-val">18</div>
+    <div class="score-max">/ 20</div>
+  </div>
+  <div class="score-box">
+    <div class="score-domain">임가공</div>
+    <div class="score-val">20</div>
+    <div class="score-max">/ 25</div>
+  </div>
+  <div class="score-box">
+    <div class="score-domain">완제품</div>
+    <div class="score-val">10</div>
+    <div class="score-max">/ 10</div>
+  </div>
+  <div class="score-box">
+    <div class="score-domain">운영</div>
+    <div class="score-val">13</div>
+    <div class="score-max">/ 15</div>
+  </div>
+  <div class="score-total-box">
+    <div class="score-total-label">총점</div>
+    <div class="score-total-val">88</div>
+    <div class="score-max">/ 100</div>
+    <div class="grade-badge">양호</div>
+  </div>
+</div>
+
+<!-- 종합의견 -->
+<div class="opinion-box">
+  <div class="opinion-title">종합의견</div>
+  <div class="opinion-content">전반적 우수 업체. 성적서 공유 조건 협의 필요. 환입조건 미흡하나 타 항목 우수.</div>
+</div>
+
+<!-- 서명란 -->
+<div class="sign-row">
+  <div class="sign-box">
+    <div class="sign-label">평가 담당자</div>
+    <div class="sign-line">서명</div>
+  </div>
+  <div class="sign-box">
+    <div class="sign-label">팀장 확인</div>
+    <div class="sign-line">서명</div>
+  </div>
+  <div class="sign-box">
+    <div class="sign-label">작성일</div>
+    <div class="sign-line">2025-12-10</div>
+  </div>
+</div>
+
+</body>
+</html>
