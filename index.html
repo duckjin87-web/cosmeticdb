@@ -239,16 +239,15 @@ body{background:var(--s1);color:var(--txt);
 
 /* 점수 미니바 */
 .eval-score-bar{
-  display:flex;align-items:flex-end;gap:10px;
-  padding:8px 16px;background:var(--s2);border-bottom:1px solid var(--bd);flex-shrink:0;
-  overflow-x:auto;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:7px 16px;background:var(--s2);border-bottom:1px solid var(--bd);flex-shrink:0;
 }
-.esb-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.esb-label{font-size:11px;color:var(--txt3);white-space:nowrap;}
-.esb-bar-wrap{width:22px;height:44px;background:var(--bd);border-radius:3px;overflow:hidden;display:flex;align-items:flex-end;}
-.esb-bar-fill{width:100%;border-radius:3px;background:var(--cyn);transition:height .4s;}
-.esb-num{font-size:12px;font-weight:700;color:var(--cyn);}
-.esb-sep{width:1px;height:56px;background:var(--bd);align-self:center;margin:0 2px;}
+.esb-item{display:flex;align-items:center;gap:4px;font-size:11px;}
+.esb-label{color:var(--txt3);width:44px;font-size:11px;}
+.esb-track{width:64px;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.esb-fill{height:100%;border-radius:3px;background:var(--cyn);transition:width .4s;}
+.esb-num{color:var(--cyn);font-weight:700;width:24px;text-align:right;font-size:11px;}
+.esb-sep{width:1px;height:16px;background:var(--bd);}
 
 /* 결과 탭 */
 .result-total-box{
@@ -333,16 +332,16 @@ body{background:var(--s1);color:var(--txt);
 
 /* 칩 */
 .tour-chip{
-  display:inline-flex;align-items:center;gap:3px;
-  padding:3px 7px 3px 4px;border-radius:12px;border:1px solid var(--bd);
-  background:var(--s3);font-size:11px;color:var(--txt2);
-  white-space:nowrap;transition:.15s;
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 14px 7px 8px;border-radius:14px;border:1px solid var(--bd);
+  background:var(--s3);font-size:15px;color:var(--txt2);
+  white-space:nowrap;transition:.15s;min-height:40px;
 }
 .tour-chip:hover{border-color:var(--cyn);}
 .tour-chip.active{border-color:var(--navy);background:#eef2ff;color:var(--navy);font-weight:700;}
 .tour-chip-num{
-  width:16px;height:16px;border-radius:50%;
-  background:var(--navy);color:#fff;font-size:8px;font-weight:700;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--navy);color:#fff;font-size:11px;font-weight:700;
   display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .tour-chip.active .tour-chip-num{background:#fff;color:var(--navy);}
@@ -593,14 +592,7 @@ body{background:var(--s1);color:var(--txt);
         <div id="tour-step-actions" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;"></div>
         <textarea id="tour-step-memo" class="form-textarea" rows="2" placeholder="구간 메모..." style="margin-bottom:6px;" oninput="patchTourStepMemo(this.value)"></textarea>
         <div class="tour-photo-grid" id="tour-photo-grid"></div>
-        <div style="display:flex;gap:6px;align-items:center;margin-top:5px;">
-          <label class="btn sm" style="cursor:pointer;border-color:var(--cyn);color:var(--cyn);">
-            📷 사진추가
-            <input type="file" id="photo-input" accept="image/*" capture="environment"
-              style="display:none" onchange="handlePhotoUpload(this)">
-          </label>
-          <span style="font-size:10px;color:var(--txt3);">사진 아래 메모 개별 입력 가능</span>
-        </div>
+        <div style="margin-top:4px;font-size:11px;color:var(--txt3);">사진 아래 메모 개별 입력 가능</div>
       </div>
 
       <!-- 탭 본문 -->
@@ -1505,22 +1497,20 @@ function updateScoreBar(rec) {
   ];
   const pkgNote = rec.type === 'PKG' ? '<span class="pkg-note">70→100</span>' : '';
   bar.innerHTML = domains.map((d, i) => {
-    const pct = Math.min(100, Math.round((sc[d.key] / d.max) * 100));
+    const pct   = Math.min(100, Math.round((sc[d.key] / d.max) * 100));
     const color = pct >= 90 ? '#10b981' : pct >= 70 ? '#0ea5e9' : pct >= 50 ? '#f97316' : '#f43f5e';
     return `
     ${i > 0 ? '<div class="esb-sep"></div>' : ''}
-    <div class="esb-item" title="${d.label} ${sc[d.key]}/${d.max}점">
+    <div class="esb-item">
       <span class="esb-label">${d.label}</span>
-      <div class="esb-bar-wrap">
-        <div class="esb-bar-fill" style="height:${pct}%;background:${color};"></div>
-      </div>
-      <span class="esb-num">${sc[d.key]}</span>
+      <div class="esb-track"><div class="esb-fill" style="width:${pct}%;background:${color};"></div></div>
+      <span class="esb-num" style="color:${color};">${sc[d.key]}</span>
     </div>`;
   }).join('') +
   `<div class="esb-sep"></div>
-   <div class="esb-item" style="justify-content:center;">
+   <div class="esb-item">
      <span style="font-size:11px;color:var(--navy);font-weight:700;">총점</span>
-     <span style="font-size:20px;font-weight:900;color:var(--navy);line-height:1.1;">${sc.total}</span>
+     <span style="font-size:16px;font-weight:900;color:var(--navy);margin-left:3px;">${sc.total}</span>
      ${pkgNote}
    </div>`;
   updateCheckStatus(rec);
@@ -1992,6 +1982,7 @@ function deleteTourStep(idx) {
   syncTourSteps(rec);
   if (idx < 0 || idx >= rec.tourSteps.length) return;
   const delName = rec.tourSteps[idx].name;
+  if (!confirm(`"${delName}" 구간을 삭제하시겠습니까?\n해당 구간의 사진·메모도 함께 삭제됩니다.`)) return;
   rec.tourSteps.splice(idx, 1);
   rec.tourOrder = rec.tourSteps.map(s => s.name).join(' → ');
   if (activeTourStep === idx) {
@@ -2080,6 +2071,11 @@ function openTourStepPanel(idx) {
     actionsEl.innerHTML = `
       <button class="btn sm" onclick="moveTourStep(${idx},-1)" ${idx===0?'disabled':''} title="앞으로 이동">◀ 앞으로</button>
       <button class="btn sm" onclick="moveTourStep(${idx},1)" ${idx===steps.length-1?'disabled':''} title="뒤로 이동">뒤로 ▶</button>
+      <label class="btn sm" style="cursor:pointer;border-color:var(--cyn);color:var(--cyn);">
+        📷 사진추가
+        <input type="file" accept="image/*" capture="environment"
+          style="display:none" onchange="handlePhotoUpload(this)">
+      </label>
       <button class="btn sm" style="border-color:var(--red);color:var(--red);" onclick="deleteTourStep(${idx})" title="이 구간 삭제">🗑 삭제</button>`;
   }
   document.getElementById('tour-step-memo').value = step.memo || '';
@@ -2168,21 +2164,31 @@ async function resizeImage(file, maxPx, quality) {
   });
 }
 
+let isUploading = false;
+
 async function handlePhotoUpload(input) {
   if (!input.files.length || !currentId || activeTourStep < 0) return;
-  const file    = input.files[0];
-  const dataUrl = await resizeImage(file, 800, 0.75);
-  const rec = getRecord(currentId);
-  syncTourSteps(rec);
-  const step = rec.tourSteps[activeTourStep];
-  if (!step) return;
-  step.photos = step.photos || [];
-  step.photos.push({ src: dataUrl, memo: '' });
-  upsertRecord(rec);
-  renderTourPhotos(step.photos, activeTourStep);
-  renderTourBar(rec);
-  input.value = '';
-  toast(`사진 추가 완료 (${step.name})`);
+  if (isUploading) { toast('이전 사진 처리 중입니다. 잠시 후 다시 시도하세요.', 'err'); return; }
+  isUploading = true;
+  try {
+    const file    = input.files[0];
+    const dataUrl = await resizeImage(file, 800, 0.75);
+    const rec = getRecord(currentId);
+    syncTourSteps(rec);
+    const step = rec.tourSteps[activeTourStep];
+    if (!step) return;
+    step.photos = step.photos || [];
+    step.photos.push({ src: dataUrl, memo: '' });
+    upsertRecord(rec);
+    renderTourPhotos(step.photos, activeTourStep);
+    renderTourBar(rec);
+    toast(`사진 추가 완료 (${step.name})`);
+  } catch(e) {
+    toast('사진 처리 중 오류가 발생했습니다.', 'err');
+  } finally {
+    input.value = '';
+    isUploading = false;
+  }
 }
 
 /* ══ 16b. 내부보고용 PPTX 다운로드 (가로형 4슬라이드) ══ */
@@ -2637,7 +2643,7 @@ function printChecklist() {
         <span>${title}</span><span style="opacity:.8;font-size:9px;">만점 ${specMax}pt</span>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;">${TH}${rows}${customRows}</table>
-      ${domNote ? `<div style="padding:5px 8px;background:#f8fafc;border:1px solid #cbd5e1;border-top:none;font-size:9px;color:#475569;"><span style="font-weight:700;color:#64748b;">총평: </span>${domNote}</div>` : ''}
+      ${domNote ? `<div style="padding:7px 10px;background:#f0f4ff;border:1px solid #cbd5e1;border-top:none;"><span style="font-size:10px;font-weight:700;color:#3b4f8a;">총평: </span><span style="font-size:12px;font-weight:700;color:#1e293b;">${domNote}</span></div>` : ''}
     </div>`;
   }
 
