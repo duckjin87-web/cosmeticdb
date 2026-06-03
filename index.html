@@ -1324,7 +1324,7 @@ function renderOps(checks) {
   const plt = checks['ops_q2'] || null;
   html += `
   <div class="plt-group">
-    <span class="plt-label">거래 PLT (KPP/AJ)</span>
+    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">2.</span>거래 PLT (KPP/AJ)</span>
     <span class="yn-pts">최대+2pt</span>
     <div class="plt-opts">
       <span class="plt-opt${plt==='NONE'?' on':''}" onclick="setPLT('NONE',this)">없음</span>
@@ -2768,7 +2768,7 @@ function printChecklist() {
     const q1Photos = normalizePhotos(c[q1.key+'_photos']);
     const q1row = ynRow(q1, c[q1.key]||null, c[q1.key+'_note']||'', q1Photos, 1);
     const pltrow = `<tr>
-      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;">거래 PLT (KPP/AJ)</td>
+      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">2.</span>거래 PLT (KPP/AJ)</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
       <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pltLabel}</td>
       <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
