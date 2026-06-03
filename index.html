@@ -246,6 +246,7 @@ body{background:var(--s1);color:var(--txt);
 .esb-fill{height:100%;border-radius:3px;background:var(--cyn);transition:width .4s;}
 .esb-num{color:var(--cyn);font-weight:700;width:24px;text-align:right;font-size:11px;}
 .esb-sep{width:1px;height:16px;background:var(--bd);}
+.esb-cnt{font-size:10px;font-weight:700;white-space:nowrap;}
 
 /* 결과 탭 */
 .result-total-box{
@@ -570,7 +571,7 @@ body{background:var(--s1);color:var(--txt);
       <!-- 점수 미니바 -->
       <div class="eval-score-bar" id="eval-score-bar"></div>
       <!-- 체크 완료율 상태바 -->
-      <div class="eval-check-status" id="eval-check-status" style="display:none;"></div>
+      <!-- eval-check-status merged into score bar -->
 
       <!-- 투어 동선 바 (항상 고정 표시) -->
       <div class="tour-bar" id="tour-bar" style="display:none;">
@@ -1512,23 +1513,35 @@ function updateScoreBar(rec) {
   const sc  = calcScores(rec);
   const bar = document.getElementById('eval-score-bar');
   if (!bar) return;
+  const c = rec.checks || {};
   const domains = [
-    {key:'mfg',label:'제조',   max:SPEC_MAX.mfg},
-    {key:'mat',label:'자재',   max:SPEC_MAX.mat},
-    {key:'pkg',label:'임가공', max:SPEC_MAX.pkg},
-    {key:'fin',label:'완제품', max:SPEC_MAX.fin},
-    {key:'ops',label:'운영',   max:SPEC_MAX.ops},
+    {key:'mfg',label:'제조',   max:SPEC_MAX.mfg, items:YN_DEF.mfg, skip:rec.type==='PKG'},
+    {key:'mat',label:'자재',   max:SPEC_MAX.mat,  items:YN_DEF.mat},
+    {key:'pkg',label:'임가공', max:SPEC_MAX.pkg,  items:YN_DEF.pkg},
+    {key:'fin',label:'완제품', max:SPEC_MAX.fin,  items:YN_DEF.fin},
+    {key:'ops',label:'운영',   max:SPEC_MAX.ops,  items:YN_DEF.ops},
   ];
   const pkgNote = rec.type === 'PKG' ? '<span class="pkg-note">70→100</span>' : '';
   bar.innerHTML = domains.map((d, i) => {
-    const pct   = Math.min(100, Math.round((sc[d.key] / d.max) * 100));
-    const color = pct >= 90 ? '#10b981' : pct >= 70 ? '#0ea5e9' : pct >= 50 ? '#f97316' : '#f43f5e';
+    if (d.skip) return `
+    ${i > 0 ? '<div class="esb-sep"></div>' : ''}
+    <div class="esb-item" style="opacity:.35;">
+      <span class="esb-label">${d.label}</span>
+      <span style="font-size:10px;color:var(--txt3);">—</span>
+    </div>`;
+    const pct     = Math.min(100, Math.round((sc[d.key] / d.max) * 100));
+    const color   = pct >= 90 ? '#10b981' : pct >= 70 ? '#0ea5e9' : pct >= 50 ? '#f97316' : '#f43f5e';
+    const total   = d.items.length;
+    const checked = d.items.filter(it => c[it.key] === 'Y' || c[it.key] === 'N' || c[it.key] === '△').length;
+    const done    = checked === total;
+    const cntColor = done ? '#10b981' : checked > 0 ? '#0ea5e9' : '#94a3b8';
     return `
     ${i > 0 ? '<div class="esb-sep"></div>' : ''}
     <div class="esb-item">
       <span class="esb-label">${d.label}</span>
       <div class="esb-track"><div class="esb-fill" style="width:${pct}%;background:${color};"></div></div>
       <span class="esb-num" style="color:${color};">${sc[d.key]}</span>
+      <span class="esb-cnt" style="color:${cntColor};">(${checked}/${total}${done?'✓':''})</span>
     </div>`;
   }).join('') +
   `<div class="esb-sep"></div>
@@ -1537,7 +1550,6 @@ function updateScoreBar(rec) {
      <span style="font-size:16px;font-weight:900;color:var(--navy);margin-left:3px;">${sc.total}</span>
      ${pkgNote}
    </div>`;
-  updateCheckStatus(rec);
 }
 
 function updateCheckStatus(rec) {
