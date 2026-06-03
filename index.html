@@ -1370,14 +1370,19 @@ function ynRowHtml(it, cur, checks, num) {
 }
 
 /* ══ 10. CAPA 테이블 ══ */
+const CAPA_NAME_PRESETS = ['튜브','용기(멀티셀)','용기(단발)','파우치','마스크'];
+
 function renderCapaTable(tbl) {
   const tbody = document.getElementById('capa-tbody');
   if (!tbody) return;
+  const presetOpts = CAPA_NAME_PRESETS.map(n=>`<option value="${n}">`).join('');
   tbody.innerHTML = (tbl || []).map((row, i) => {
     const autoMonthly = (row.daily||0) * (row.cnt||0);
     return `
   <tr>
-    <td><input value="${row.name||''}" onchange="updateCapaRow(${i},'name',this.value)" placeholder="설비명"></td>
+    <td>
+      <input list="capa-name-list" value="${row.name||''}" onchange="updateCapaRow(${i},'name',this.value)" placeholder="설비명 선택/입력">
+    </td>
     <td><input value="${row.daily||''}" type="number" onchange="updateCapaRowAuto(${i},'daily',+this.value)" placeholder="0"></td>
     <td><input value="${row.cnt||''}" type="number" onchange="updateCapaRowAuto(${i},'cnt',+this.value)" placeholder="0"></td>
     <td><input value="${autoMonthly||''}" type="number" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="일CAPA × 보유대수 자동계산" placeholder="자동"></td>
@@ -1386,6 +1391,15 @@ function renderCapaTable(tbl) {
     <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
   </tr>`;
   }).join('');
+
+  // datalist 주입 (tbody 뒤 table 안에 한 번만)
+  let dl = document.getElementById('capa-name-list');
+  if (!dl) {
+    dl = document.createElement('datalist');
+    dl.id = 'capa-name-list';
+    document.getElementById('capa-table')?.appendChild(dl);
+  }
+  dl.innerHTML = presetOpts;
 }
 
 function addCapaRow() {
