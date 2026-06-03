@@ -745,7 +745,7 @@ body{background:var(--s1);color:var(--txt);
                 <thead>
                   <tr>
                     <th style="min-width:70px;">설비명</th>
-                    <th>일CAPA</th><th>보유대수</th><th>월CAPA</th><th>콜마배정</th>
+                    <th>설비CAPA</th><th>보유대수</th><th>일CAPA</th><th>월CAPA<br><span style="font-size:9px;font-weight:400;">(20일기준)</span></th><th>콜마배정</th>
                     <th style="min-width:100px;">비고</th><th style="width:28px;"></th>
                   </tr>
                 </thead>
@@ -1377,7 +1377,8 @@ function renderCapaTable(tbl) {
   if (!tbody) return;
   const presetOpts = CAPA_NAME_PRESETS.map(n=>`<option value="${n}">`).join('');
   tbody.innerHTML = (tbl || []).map((row, i) => {
-    const autoMonthly = (row.daily||0) * (row.cnt||0);
+    const autoDaily   = (row.daily||0) * (row.cnt||0);
+    const autoMonthly = autoDaily * 20;
     return `
   <tr>
     <td>
@@ -1385,7 +1386,8 @@ function renderCapaTable(tbl) {
     </td>
     <td><input value="${row.daily||''}" type="number" onchange="updateCapaRowAuto(${i},'daily',+this.value)" placeholder="0"></td>
     <td><input value="${row.cnt||''}" type="number" onchange="updateCapaRowAuto(${i},'cnt',+this.value)" placeholder="0"></td>
-    <td><input value="${autoMonthly||''}" type="number" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="일CAPA × 보유대수 자동계산" placeholder="자동"></td>
+    <td><input value="${autoDaily||''}" type="number" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="설비CAPA × 보유대수 자동계산" placeholder="자동"></td>
+    <td><input value="${autoMonthly||''}" type="number" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="일CAPA × 20일 자동계산" placeholder="자동"></td>
     <td><input value="${row.kolma||''}" type="number" onchange="updateCapaRow(${i},'kolma',+this.value)" placeholder="0"></td>
     <td><input value="${row.note||''}" onchange="updateCapaRow(${i},'note',this.value)" placeholder="—"></td>
     <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
@@ -1420,7 +1422,9 @@ function updateCapaRowAuto(idx, field, val) {
   const rec = getRecord(currentId);
   if (!rec.checks.pkg_tbl[idx]) return;
   rec.checks.pkg_tbl[idx][field] = val;
-  rec.checks.pkg_tbl[idx].monthly = (rec.checks.pkg_tbl[idx].daily||0) * (rec.checks.pkg_tbl[idx].cnt||0);
+  const r = rec.checks.pkg_tbl[idx];
+  r.monthly  = (r.daily||0) * (r.cnt||0);          // 일CAPA
+  r.monthly2 = r.monthly * 20;                      // 월CAPA (20일기준)
   upsertRecord(rec);
   renderCapaTable(rec.checks.pkg_tbl);
 }
@@ -2391,17 +2395,21 @@ async function exportInternalReport() {
   if(capaTbl.length>0){
     const hd={fontSize:8.5,bold:true,color:'0F766E',align:'center',border:{color:LGRAY},fontFace:FF,fill:{color:'E8FDF8'}};
     s1.addTable([
-      [{text:'설비명',options:{...hd,align:'left'}},{text:'일CAPA',options:hd},{text:'보유대수',options:hd},
-       {text:'월CAPA',options:hd},{text:'콜마배정',options:hd},{text:'비고',options:{...hd,align:'left'}}],
-      ...capaTbl.map(r=>[
-        {text:r.name||'',options:{fontSize:8.5,fontFace:FF}},
-        {text:(r.daily||0).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
-        {text:String(r.cnt||0),options:{fontSize:8.5,align:'center',fontFace:FF}},
-        {text:(r.monthly||0).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
-        {text:(r.kolma||0).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
-        {text:r.note||'',options:{fontSize:8.5,fontFace:FF}},
-      ])
-    ],{x:CX,y:ry,w:CW,colW:[2.2,2,2,2,1.2,2.54],border:{color:LGRAY},fontFace:FF});
+      [{text:'설비명',options:{...hd,align:'left'}},{text:'설비CAPA',options:hd},{text:'보유대수',options:hd},
+       {text:'일CAPA',options:hd},{text:'월CAPA(20일)',options:hd},{text:'콜마배정',options:hd},{text:'비고',options:{...hd,align:'left'}}],
+      ...capaTbl.map(r=>{
+        const ad=(r.daily||0)*(r.cnt||0);
+        return [
+          {text:r.name||'',options:{fontSize:8.5,fontFace:FF}},
+          {text:(r.daily||0).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
+          {text:String(r.cnt||0),options:{fontSize:8.5,align:'center',fontFace:FF}},
+          {text:ad.toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
+          {text:(ad*20).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
+          {text:(r.kolma||0).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
+          {text:r.note||'',options:{fontSize:8.5,fontFace:FF}},
+        ];
+      })
+    ],{x:CX,y:ry,w:CW,colW:[1.8,1.6,1.2,1.6,1.6,1.2,2.14],border:{color:LGRAY},fontFace:FF});
   } else {
     s1.addText('설비 CAPA 미입력',{x:CX,y:ry,w:CW,h:0.35,fontSize:9,color:'999999',align:'center',fontFace:FF});
   }
@@ -2729,14 +2737,18 @@ function printChecklist() {
 
   // CAPA 테이블
   const capaTbl = (c.pkg_tbl || []);
-  const capaRows = capaTbl.map(r => `<tr>
+  const capaRows = capaTbl.map(r => {
+    const autoDaily = (r.daily||0)*(r.cnt||0);
+    const autoMonthly = autoDaily * 20;
+    return `<tr>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;">${r.name||''}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${(r.daily||0).toLocaleString()}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:center;">${r.cnt||0}</td>
-    <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${(r.monthly||0).toLocaleString()}</td>
+    <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${autoDaily.toLocaleString()}</td>
+    <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${autoMonthly.toLocaleString()}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${(r.kolma||0).toLocaleString()}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;color:#64748b;">${r.note||''}</td>
-  </tr>`).join('') || `<tr><td colspan="6" style="padding:8px;text-align:center;color:#94a3b8;font-size:9px;border:1px solid #e2e8f0;">등록된 설비 없음</td></tr>`;
+  </tr>`; }).join('') || `<tr><td colspan="7" style="padding:8px;text-align:center;color:#94a3b8;font-size:9px;border:1px solid #e2e8f0;">등록된 설비 없음</td></tr>`;
 
   const pkgNoteStr = rec.type==='PKG' ? ' <span style="font-size:9px;color:#f97316;background:#fff7ed;padding:1px 6px;border-radius:6px;margin-left:4px;">PKG 70→100 환산</span>' : '';
   const tourHtml = (rec.tourSteps||[]).length > 0
@@ -2809,9 +2821,10 @@ function printChecklist() {
     <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;font-size:9px;">
       <thead><tr>
         <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px 6px;border:1px solid #cbd5e1;text-align:left;">설비명</th>
-        <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">일CAPA</th>
+        <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">설비CAPA</th>
         <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">보유대수</th>
-        <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">월CAPA</th>
+        <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">일CAPA</th>
+        <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">월CAPA<br>(20일기준)</th>
         <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">콜마배정</th>
         <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px 6px;border:1px solid #cbd5e1;text-align:left;">비고</th>
       </tr></thead>
