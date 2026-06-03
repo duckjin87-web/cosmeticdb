@@ -164,7 +164,7 @@ body{background:var(--s1);color:var(--txt);
 }
 .form-textarea:focus{border-color:var(--cyn);box-shadow:0 0 0 2px rgba(14,165,233,.1);}
 
-/* Y/△/N 체크 행 */
+/* Y/N 체크 행 */
 .yn-row{
   display:flex;justify-content:space-between;align-items:center;
   padding:6px 10px;background:var(--s2);border-radius:4px;
@@ -183,7 +183,6 @@ body{background:var(--s1);color:var(--txt);
 }
 .yn-btn:hover{border-color:var(--cyn);color:var(--cyn);}
 .yn-btn.y-on  {border-color:#16a34a;background:#dcfce7;color:#16a34a;}
-.yn-btn.tri-on{border-color:#d97706;background:#fef3c7;color:#d97706;}
 .yn-btn.n-on  {border-color:#dc2626;background:#fee2e2;color:#dc2626;}
 
 /* 수치 입력 그룹 */
@@ -951,11 +950,11 @@ const SAMPLE_RECORDS = [
     visitDate:'2025-12-10', visitor:'김평가', observers:'이부장, 박과장',
     reason:'신규 OEM 발굴', tourOrder:'원료창고 → 배합실 → 충전라인 → 완제품창고',
     checks:{
-      mfg_q1:'Y',mfg_q2:'Y',mfg_q3:'Y',mfg_q4:'Y',mfg_q5:'△',
+      mfg_q1:'Y',mfg_q2:'Y',mfg_q3:'Y',mfg_q4:'Y',mfg_q5:'N',
       mfg_q6:'Y',mfg_q7:'Y',mfg_q8:'Y',mfg_q9:'N',mfg_q10:'Y',
       mfg_loss:4, mfg_capa:18, mfg_headcount:12,
       mat_q1:'Y',mat_q2:'Y',mat_q3:'Y',mat_q4:'Y',mat_q5:'Y',mat_q6:'N',mat_q7:'Y',
-      pkg_q1:'Y',pkg_q2:'Y',pkg_q3:'Y',pkg_q4:'Y',pkg_q5:'Y',pkg_q6:'△',pkg_q7:'N',pkg_q8:'Y',
+      pkg_q1:'Y',pkg_q2:'Y',pkg_q3:'Y',pkg_q4:'Y',pkg_q5:'Y',pkg_q6:'N',pkg_q7:'N',pkg_q8:'Y',
       pkg_util:75, pkg_lt:7,
       fin_q1:'Y',fin_q2:'Y',fin_q3:'Y',
       ops_q1:'Y',ops_q2:'BOTH',ops_q3:'Y',ops_q4:'Y',ops_q5:'N',
@@ -980,7 +979,7 @@ const SAMPLE_RECORDS = [
     reason:'포장라인 확충 검토', tourOrder:'',
     checks:{
       mat_q1:'Y',mat_q2:'Y',mat_q3:'N',mat_q4:'Y',mat_q5:null,mat_q6:null,mat_q7:null,
-      pkg_q1:'Y',pkg_q2:'△',pkg_q3:null,pkg_q4:null,pkg_q5:null,pkg_q6:null,
+      pkg_q1:'Y',pkg_q2:'N',pkg_q3:null,pkg_q4:null,pkg_q5:null,pkg_q6:null,
       pkg_q7:'N',pkg_q8:'Y',
       fin_q1:'Y',fin_q2:null,fin_q3:null,
       ops_q1:null,ops_q2:'ONE',ops_q3:null,ops_q4:null,ops_q5:null,
@@ -1022,18 +1021,13 @@ function upsertRecord(rec) {
 function getItemScore(pts, val) {
   if (!val) return 0;
   if (pts < 0) {
-    // 음수(감점) 항목: Y=감점, △=0, N=+|pts| (문제없음 = 가점)
     if (val === 'Y')  return pts;
     if (val === 'N')  return -pts;
     return 0;
   }
-  // 양수 항목: Y=full, △=실제½, N=0
   if (val === 'Y')  return pts;
-  if (val === '△') return pts / 2;
   return 0;
 }
-
-function halfPts(pts) { return pts < 0 ? 0 : pts / 2; }
 
 function addDomainScore(raw, domain, items, checks) {
   for (const it of items) {
@@ -1263,11 +1257,10 @@ function fillForm(rec) {
 
 function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
 
-/* ══ 9. Y/△/N 렌더 ══ */
+/* ══ 9. O/X 렌더 ══ */
 function ynBtnClass(cur, v) {
-  if (v === 'Y'  && cur === 'Y')  return 'y-on';
-  if (v === '△' && cur === '△') return 'tri-on';
-  if (v === 'N'  && cur === 'N')  return 'n-on';
+  if (v === 'Y' && cur === 'Y') return 'y-on';
+  if (v === 'N' && cur === 'N') return 'n-on';
   return '';
 }
 
@@ -1285,7 +1278,6 @@ function ynItemHtml(it, checks, num) {
   const hasPhoto = photos.length > 0;
   const ptsClass = it.neg ? 'neg' : it.heavy ? 'heavy' : '';
   const ptsSign  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
-  const triTitle = it.neg ? '△=0pt (판단보류)' : `△=${halfPts(it.pts)}pt`;
   const negCls   = it.neg ? 'neg-item' : '';
   const noteOpen = hasNote ? 'note-open' : '';
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
@@ -1296,7 +1288,6 @@ function ynItemHtml(it, checks, num) {
       <span class="yn-pts ${ptsClass}">${ptsSign}pt</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
-        <button class="yn-btn ${ynBtnClass(cur,'△')}" data-v="△" onclick="setYN_tri('${it.key}',this)" title="△ 부분점수 ${halfPts(it.pts)}pt (메모 자동열림)">△</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
         <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
@@ -1305,8 +1296,8 @@ function ynItemHtml(it, checks, num) {
         </label>
       </div>
     </div>
-    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote||cur==='△'?'block':'none'};">
-      <input placeholder="${cur==='△'?'△ 부분점수 사유 입력':'현장 메모...'}" value="${escHtml(noteVal)}"
+    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote?'block':'none'};">
+      <input placeholder="현장 메모..." value="${escHtml(noteVal)}"
         oninput="patchItemNote('${it.key}',this.value)">
     </div>
     ${hasPhoto ? `<div class="yn-photo-panel" id="yphoto-panel-${it.key}">
@@ -1347,7 +1338,6 @@ function ynRowHtml(it, cur, checks, num) {
   const photos   = normalizePhotos(checks && checks[it.key + '_photos']);
   const hasPhoto = photos.length > 0;
   const ptsSign  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
-  const triTitle = it.neg ? '△=0pt (판단보류)' : `△=${halfPts(it.pts)}pt`;
   const negCls   = it.neg ? 'neg-item' : '';
   const noteOpen = hasNote ? 'note-open' : '';
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
@@ -1358,7 +1348,6 @@ function ynRowHtml(it, cur, checks, num) {
       <span class="yn-pts">${ptsSign}pt</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
-        <button class="yn-btn ${ynBtnClass(cur,'△')}" data-v="△" onclick="setYN_tri('${it.key}',this)" title="△ 부분점수 ${halfPts(it.pts)}pt (메모 자동열림)">△</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
         <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
@@ -1367,8 +1356,8 @@ function ynRowHtml(it, cur, checks, num) {
         </label>
       </div>
     </div>
-    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote||cur==='△'?'block':'none'};">
-      <input placeholder="${cur==='△'?'△ 부분점수 사유 입력':'현장 메모...'}" value="${escHtml(noteVal)}"
+    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote?'block':'none'};">
+      <input placeholder="현장 메모..." value="${escHtml(noteVal)}"
         oninput="patchItemNote('${it.key}',this.value)">
     </div>
     ${hasPhoto ? `<div class="yn-photo-panel" id="yphoto-panel-${it.key}">
@@ -1456,25 +1445,12 @@ function setYN(key, v, btn) {
   upsertRecord(rec);
   const cur = rec.checks[key];
   const row = btn.closest('.yn-row');
-  row.querySelectorAll('.yn-btn[data-v]').forEach(b => b.classList.remove('y-on','tri-on','n-on'));
+  row.querySelectorAll('.yn-btn[data-v]').forEach(b => b.classList.remove('y-on','n-on'));
   if      (cur === 'Y') row.querySelector('[data-v="Y"]')?.classList.add('y-on');
-  else if (cur === '△') row.querySelector('[data-v="△"]')?.classList.add('tri-on');
   else if (cur === 'N') row.querySelector('[data-v="N"]')?.classList.add('n-on');
   updateScoreBar(rec);
 }
 
-function setYN_tri(key, btn) {
-  setYN(key, '△', btn);
-  if (!currentId) return;
-  const rec = getRecord(currentId);
-  if (rec.checks[key] === '△') {
-    const panel = document.getElementById(`note-panel-${key}`);
-    if (panel && panel.style.display === 'none') {
-      panel.style.display = 'block';
-      panel.querySelector('input')?.focus();
-    }
-  }
-}
 
 function setPLT(v, el) {
   if (!currentId) return;
@@ -1532,7 +1508,7 @@ function updateScoreBar(rec) {
     const pct     = Math.min(100, Math.round((sc[d.key] / d.max) * 100));
     const color   = pct >= 90 ? '#10b981' : pct >= 70 ? '#0ea5e9' : pct >= 50 ? '#f97316' : '#f43f5e';
     const total   = d.items.length;
-    const checked = d.items.filter(it => c[it.key] === 'Y' || c[it.key] === 'N' || c[it.key] === '△').length;
+    const checked = d.items.filter(it => c[it.key] === 'Y' || c[it.key] === 'N').length;
     const done    = checked === total;
     const cntColor = done ? '#10b981' : checked > 0 ? '#0ea5e9' : '#94a3b8';
     return `
@@ -1824,9 +1800,8 @@ function renderCustomSection(domain, recArg) {
         <span class="custom-yn-label">${numBadge}${escHtml(ci.label)}${photoBadge}</span>
         <span class="custom-yn-pts">${ptsSign}pt</span>
         <div class="yn-btns">
-          <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${ci.id}','Y',this)">Y</button>
-          <button class="yn-btn ${ynBtnClass(cur,'△')}" data-v="△" onclick="setYN('${ci.id}','△',this)">△</button>
-          <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${ci.id}','N',this)">N</button>
+          <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${ci.id}','Y',this)">O</button>
+          <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${ci.id}','N',this)">X</button>
           <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${ci.id}')" title="메모">💬</button>
           <label class="yn-btn" style="cursor:pointer;" title="사진">📷
             <input type="file" accept="image/*" style="display:none"
@@ -2263,7 +2238,7 @@ async function exportInternalReport() {
   const FF='맑은 고딕';
   const LOGO_B64 = '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';
 
-  // 이슈·특이사항 수집 (N + △+메모, 카테고리별 정렬)
+  // 이슈·특이사항 수집 (N체크, 메모, 사진첨부 항목)
   const domainMeta = [
     {key:'mfg',label:'제조관리',items:rec.type==='PKG'?[]:YN_DEF.mfg,clr:'1E40AF'},
     {key:'mat',label:'자재관리',items:YN_DEF.mat,clr:'0369A1'},
@@ -2272,7 +2247,7 @@ async function exportInternalReport() {
     {key:'ops',label:'운영',    items:YN_DEF.ops,clr:'7C3AED'},
   ];
 
-  // 점검 특이사항: N체크 전체 + △+메모 + 사진첨부항목 → 카테고리→점수 정렬
+  // 점검 특이사항: N체크 전체 + 메모 + 사진첨부항목 → 카테고리→점수 정렬
   const checkItems = [];
   domainMeta.forEach(d => {
     d.items.forEach(it => {
@@ -2281,10 +2256,9 @@ async function exportInternalReport() {
       const photos = normalizePhotos(c[it.key+'_photos']);
       if (!val) return;  // 미체크 제외
       const isIssue = (!it.neg && val==='N') || (it.neg && val==='Y');
-      const isNote  = val==='△' && note;
       const hasPhoto= photos.length > 0;
-      if (isIssue || isNote || hasPhoto || note) {
-        const ptsNum = it.pts*(val==='Y'?1:val==='N'?0:0.5);
+      if (isIssue || hasPhoto || note) {
+        const ptsNum = it.pts*(val==='Y'?1:0);
         checkItems.push({
           domain:d.label, dClr:d.clr, label:it.label,
           val, pts:it.pts, ptsNum, note, photos, isIssue
@@ -2455,11 +2429,11 @@ async function exportInternalReport() {
       // 항목 행
       const isN=item.isIssue;
       const rowBg=idx%2===0?WHITE:'FDF4F4';
-      const valClr=item.val==='N'?RED:item.val==='△'?YELLOW:GRN.replace('9BBB59','16A34A');
+      const valClr=item.val==='N'?RED:GRN.replace('9BBB59','16A34A');
       s2.addShape(pptx.shapes.RECTANGLE,{x:CX,y:iy,w:leftW,h:itemH,fill:{color:rowBg},line:{color:'EEDEDE',width:0.3}});
       // val 뱃지
-      s2.addShape(pptx.shapes.RECTANGLE,{x:CX+0.04,y:iy+0.05,w:0.26,h:itemH-0.1,fill:{color:isN?'FEE2E2':item.val==='△'?'FEF3C7':'DCFCE7'},line:{color:isN?'FECACA':item.val==='△'?'FDE68A':'86EFAC'}});
-      s2.addText(item.val,{x:CX+0.04,y:iy+0.05,w:0.26,h:itemH-0.1,fontSize:9,bold:true,color:isN?RED:item.val==='△'?YELLOW:'16A34A',align:'center',valign:'middle',fontFace:FF});
+      s2.addShape(pptx.shapes.RECTANGLE,{x:CX+0.04,y:iy+0.05,w:0.26,h:itemH-0.1,fill:{color:isN?'FEE2E2':'DCFCE7'},line:{color:isN?'FECACA':'86EFAC'}});
+      s2.addText(item.val==='Y'?'O':'X',{x:CX+0.04,y:iy+0.05,w:0.26,h:itemH-0.1,fontSize:9,bold:true,color:isN?RED:'16A34A',align:'center',valign:'middle',fontFace:FF});
       // 점수
       const pSign=item.pts>0?`+${item.pts}`:`${item.pts}`;
       s2.addShape(pptx.shapes.RECTANGLE,{x:CX+0.32,y:iy+0.05,w:0.35,h:itemH-0.1,fill:{color:'F0F4FF'},line:{color:'C7D2FE'}});
@@ -2610,13 +2584,12 @@ function printChecklist() {
   const c   = rec.checks || {};
 
   function chkBox(val, target) {
+    const label = target === 'Y' ? 'O' : 'X';
     if (val === target) {
-      const cfg = {
-        Y:  { bc:'#16a34a', bg:'#dcfce7', c:'#16a34a' },
-        '△':{ bc:'#d97706', bg:'#fef3c7', c:'#d97706' },
-        N:  { bc:'#dc2626', bg:'#fee2e2', c:'#dc2626' }
-      }[target];
-      return `<span style="display:inline-block;width:18px;height:18px;border:1.5px solid ${cfg.bc};border-radius:3px;background:${cfg.bg};text-align:center;line-height:16px;font-size:10px;font-weight:700;color:${cfg.c};">${target}</span>`;
+      const cfg = target === 'Y'
+        ? { bc:'#16a34a', bg:'#dcfce7', c:'#16a34a' }
+        : { bc:'#dc2626', bg:'#fee2e2', c:'#dc2626' };
+      return `<span style="display:inline-block;width:18px;height:18px;border:1.5px solid ${cfg.bc};border-radius:3px;background:${cfg.bg};text-align:center;line-height:16px;font-size:10px;font-weight:700;color:${cfg.c};">${label}</span>`;
     }
     return `<span style="display:inline-block;width:18px;height:18px;border:1.5px solid #cbd5e1;border-radius:3px;"></span>`;
   }
@@ -2644,18 +2617,16 @@ function printChecklist() {
       </td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;${pStyle}">${pts}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'Y')}</td>
-      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'△')}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'N')}</td>
       <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#1e293b;min-width:90px;">${note}</td>
     </tr>`;
   }
 
   const TH = `<tr>
-    <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;width:42%">평가항목</th>
+    <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;width:46%">평가항목</th>
     <th style="background:#f1f5f9;color:#64748b;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">배점</th>
-    <th style="background:#dcfce7;color:#16a34a;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">Y</th>
-    <th style="background:#fef3c7;color:#d97706;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">△</th>
-    <th style="background:#fee2e2;color:#dc2626;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">N</th>
+    <th style="background:#dcfce7;color:#16a34a;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">O</th>
+    <th style="background:#fee2e2;color:#dc2626;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">X</th>
     <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;">현장 메모</th>
   </tr>`;
 
