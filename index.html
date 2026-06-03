@@ -583,7 +583,12 @@ body{background:var(--s1);color:var(--txt);
       <!-- 투어 단계 상세 패널 -->
       <div class="tour-step-panel" id="tour-step-panel" style="display:none;">
         <div class="tour-step-panel-header">
-          <span class="tour-step-title" id="tour-step-title">—</span>
+          <span class="tour-step-title" id="tour-step-title" ondblclick="startTourTitleEdit()" title="더블클릭하여 이름 수정">—</span>
+          <input id="tour-step-title-input" class="tour-chip-input"
+            style="display:none;font-size:13px;font-weight:700;color:var(--navy);flex:1;max-width:200px;"
+            onkeydown="onTourTitleKey(event)"
+            onblur="saveTourTitle(this.value)">
+          <button class="btn sm" id="tour-title-edit-btn" onclick="startTourTitleEdit()" title="이름 수정" style="padding:3px 8px;font-size:11px;">✏️</button>
           <button class="btn sm" onclick="closeTourStepPanel()">✕ 닫기</button>
         </div>
         <div id="tour-step-actions" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;"></div>
@@ -2082,6 +2087,56 @@ function saveChipName(idx, val) {
 function cancelChipEdit(idx) {
   editingTourIdx = -1;
   if (currentId) { const rec = getRecord(currentId); renderTourBar(rec); }
+}
+
+/* 투어 구간 패널 내 이름 인라인 편집 */
+function startTourTitleEdit() {
+  if (activeTourStep < 0 || !currentId) return;
+  const rec  = getRecord(currentId);
+  const step = rec.tourSteps?.[activeTourStep];
+  if (!step) return;
+  const titleEl = document.getElementById('tour-step-title');
+  const inputEl = document.getElementById('tour-step-title-input');
+  const editBtn = document.getElementById('tour-title-edit-btn');
+  if (!titleEl || !inputEl) return;
+  inputEl.value = step.name;
+  titleEl.style.display = 'none';
+  if (editBtn) editBtn.style.display = 'none';
+  inputEl.style.display = 'inline-block';
+  inputEl.focus(); inputEl.select();
+}
+
+function onTourTitleKey(e) {
+  if (e.key === 'Enter')  { saveTourTitle(e.target.value); }
+  if (e.key === 'Escape') { closeTourTitleEdit(); }
+}
+
+function saveTourTitle(val) {
+  const name = (val || '').trim();
+  const titleEl = document.getElementById('tour-step-title');
+  const inputEl = document.getElementById('tour-step-title-input');
+  if (!inputEl || inputEl.style.display === 'none') return; // already closed
+  if (name && currentId && activeTourStep >= 0) {
+    const rec = getRecord(currentId);
+    syncTourSteps(rec);
+    if (rec.tourSteps[activeTourStep]) {
+      rec.tourSteps[activeTourStep].name = name;
+      rec.tourOrder = rec.tourSteps.map(s => s.name).join(' → ');
+      upsertRecord(rec);
+      renderTourBar(rec);
+      if (titleEl) titleEl.textContent = `${activeTourStep+1}. ${name}`;
+    }
+  }
+  closeTourTitleEdit();
+}
+
+function closeTourTitleEdit() {
+  const titleEl = document.getElementById('tour-step-title');
+  const inputEl = document.getElementById('tour-step-title-input');
+  const editBtn = document.getElementById('tour-title-edit-btn');
+  if (inputEl) inputEl.style.display = 'none';
+  if (titleEl) titleEl.style.display = 'inline';
+  if (editBtn) editBtn.style.display = '';
 }
 
 /* 투어 구간 순서 이동 (dir: -1=앞, +1=뒤) */
