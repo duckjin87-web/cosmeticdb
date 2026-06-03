@@ -2775,7 +2775,7 @@ function printChecklist() {
     </tr>`;
     const restRows = YN_DEF.ops.slice(1).map((it, i) => {
       const ph = normalizePhotos(c[it.key+'_photos']);
-      return ynRow(it, c[it.key]||null, c[it.key+'_note']||'', ph, i + 2);
+      return ynRow(it, c[it.key]||null, c[it.key+'_note']||'', ph, i + 3);
     }).join('');
     const opsBase = YN_DEF.ops.length;
     const customRows = (rec.customItems||[]).filter(ci=>ci.domain==='ops').map((ci, idx) => {
