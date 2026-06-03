@@ -150,10 +150,10 @@ body{background:var(--s1);color:var(--txt);
 .form-grid.g3{grid-template-columns:1fr 1fr 1fr;}
 .form-field{display:flex;flex-direction:column;gap:3px;}
 .form-field.full{grid-column:1/-1;}
-.form-label{font-size:13px;color:var(--txt3);font-weight:500;}
+.form-label{font-size:15px;color:var(--txt3);font-weight:500;}
 .form-input{
   background:var(--s2);border:1px solid var(--bd);border-radius:4px;
-  color:var(--txt);padding:5px 8px;font-size:14px;outline:none;font-family:inherit;width:100%;transition:.15s;
+  color:var(--txt);padding:9px 10px;font-size:16px;outline:none;font-family:inherit;width:100%;transition:.15s;
 }
 .form-input:focus{border-color:var(--cyn);box-shadow:0 0 0 2px rgba(14,165,233,.1);}
 .form-input[type=date]::-webkit-calendar-picker-indicator{opacity:.4;}
@@ -1626,6 +1626,30 @@ function saveEvalDone(id) {
   const rec = getRecord(id);
   if (!rec.companyName.trim()) { toast('업체명을 입력하세요.', 'err'); return; }
   if (!rec.visitDate)          { toast('방문일을 입력하세요.', 'err'); return; }
+
+  // 미체크 항목 확인
+  const c = rec.checks || {};
+  const domainDefs = [
+    { num:1, label:'제조',    key:'mfg', items:YN_DEF.mfg, skip:rec.type==='PKG' },
+    { num:2, label:'자재',    key:'mat', items:YN_DEF.mat },
+    { num:3, label:'임가공',  key:'pkg', items:YN_DEF.pkg },
+    { num:4, label:'완제품',  key:'fin', items:YN_DEF.fin },
+    { num:5, label:'운영',    key:'ops', items:YN_DEF.ops },
+  ];
+  const unchecked = domainDefs
+    .filter(d => !d.skip)
+    .map(d => {
+      const stdUnchecked   = d.items.filter(it => !c[it.key]).length;
+      const customUnchecked= (rec.customItems||[]).filter(ci=>ci.domain===d.key && !c[ci.id]).length;
+      return { ...d, cnt: stdUnchecked + customUnchecked };
+    })
+    .filter(d => d.cnt > 0);
+
+  if (unchecked.length > 0) {
+    const list = unchecked.map(d => `${d.num}.${d.label}(${d.cnt}항목)`).join(', ');
+    if (!confirm(`미체크 항목이 있습니다.\n${list}\n\n평가완료로 처리하시겠습니까?`)) return;
+  }
+
   rec.status = 'DONE'; rec.scores = calcScores(rec); upsertRecord(rec);
   document.getElementById('det-meta').innerHTML =
     `${statusTag(rec.status)} <span class="eval-type-pill ${rec.type==='PKG'?'PKG':''}">${typeLabel(rec.type)}</span>` +
@@ -1777,7 +1801,7 @@ function renderCustomSection(domain, recArg) {
         <input type="text" id="custom-label-${domain}" placeholder="항목명 입력..." maxlength="40"
           onkeydown="if(event.key==='Enter') saveCustomItem('${domain}')">
         <select id="custom-pts-${domain}" style="min-width:70px;">
-          ${CUSTOM_PTS_OPTS.map(v => `<option value="${v}">${v>0?'+'+v:v}pt</option>`).join('')}
+          ${CUSTOM_PTS_OPTS.map(v => `<option value="${v}"${v===1?' selected':''}>${v>0?'+'+v:v}pt</option>`).join('')}
         </select>
         <button class="btn sm grn" onclick="saveCustomItem('${domain}')">✔ 추가</button>
         <button class="btn sm" onclick="hideCustomAddForm('${domain}')">취소</button>
