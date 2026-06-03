@@ -2596,9 +2596,10 @@ function printChecklist() {
   }
 
   /* YN 항목 행 (사진 포함) */
-  function ynRow(it, v, note, photos) {
+  function ynRow(it, v, note, photos, num) {
     const pts  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
     const pStyle = it.neg ? 'color:#dc2626' : it.heavy ? 'color:#f97316;font-weight:700' : 'color:#64748b';
+    const numHtml = num != null ? `<span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>` : '';
     const photoCnt = photos.length;
     const photoHtml = photoCnt > 0
       ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;padding-left:2px;">
@@ -2613,7 +2614,7 @@ function printChecklist() {
         </div>` : '';
     return `<tr>
       <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;">
-        ${it.label}${photoCnt>0?`<span style="font-size:8px;color:#0ea5e9;margin-left:3px;">📷${photoCnt}</span>`:''}
+        ${numHtml}${it.label}${photoCnt>0?`<span style="font-size:8px;color:#0ea5e9;margin-left:3px;">📷${photoCnt}</span>`:''}
         ${photoHtml}
       </td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;${pStyle}">${pts}</td>
@@ -2632,20 +2633,21 @@ function printChecklist() {
   </tr>`;
 
   function domainSection(title, domain, specMax, bgColor) {
-    const rows = YN_DEF[domain].map(it => {
+    const rows = YN_DEF[domain].map((it, i) => {
       const v      = c[it.key] || null;
       const note   = c[it.key+'_note'] || '';
       const photos = normalizePhotos(c[it.key+'_photos']);
-      return ynRow(it, v, note, photos);
+      return ynRow(it, v, note, photos, i + 1);
     }).join('');
 
-    // 커스텀 항목
+    // 커스텀 항목 (기본 항목 수 이후 번호 연속)
+    const base = YN_DEF[domain].length;
     const customRows = (rec.customItems||[]).filter(ci=>ci.domain===domain).map((ci, idx) => {
-      const fakeIt = { key:ci.id, label:`0.${idx+1} ${ci.label}`, pts:ci.pts, neg:ci.pts<0, heavy:false };
+      const fakeIt = { key:ci.id, label:ci.label, pts:ci.pts, neg:ci.pts<0, heavy:false };
       const v      = c[ci.id] || null;
       const note   = c[ci.id+'_note'] || '';
       const photos = normalizePhotos(c[ci.id+'_photos']);
-      return ynRow(fakeIt, v, note, photos);
+      return ynRow(fakeIt, v, note, photos, base + idx + 1);
     }).join('');
 
     const domNote = (rec.notes || {})[domain] || '';
@@ -2663,20 +2665,21 @@ function printChecklist() {
     const pltLabel = plt==='BOTH'?'KPP+AJ':plt==='ONE'?'1개':plt==='NONE'?'없음':'—';
     const q1 = YN_DEF.ops[0];
     const q1Photos = normalizePhotos(c[q1.key+'_photos']);
-    const q1row = ynRow(q1, c[q1.key]||null, c[q1.key+'_note']||'', q1Photos);
+    const q1row = ynRow(q1, c[q1.key]||null, c[q1.key+'_note']||'', q1Photos, 1);
     const pltrow = `<tr>
       <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;">거래 PLT (KPP/AJ)</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
       <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pltLabel}</td>
       <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
     </tr>`;
-    const restRows = YN_DEF.ops.slice(1).map(it => {
+    const restRows = YN_DEF.ops.slice(1).map((it, i) => {
       const ph = normalizePhotos(c[it.key+'_photos']);
-      return ynRow(it, c[it.key]||null, c[it.key+'_note']||'', ph);
+      return ynRow(it, c[it.key]||null, c[it.key+'_note']||'', ph, i + 2);
     }).join('');
+    const opsBase = YN_DEF.ops.length;
     const customRows = (rec.customItems||[]).filter(ci=>ci.domain==='ops').map((ci, idx) => {
-      const fakeIt = { key:ci.id, label:`0.${idx+1} ${ci.label}`, pts:ci.pts, neg:ci.pts<0, heavy:false };
-      return ynRow(fakeIt, c[ci.id]||null, c[ci.id+'_note']||'', normalizePhotos(c[ci.id+'_photos']));
+      const fakeIt = { key:ci.id, label:ci.label, pts:ci.pts, neg:ci.pts<0, heavy:false };
+      return ynRow(fakeIt, c[ci.id]||null, c[ci.id+'_note']||'', normalizePhotos(c[ci.id+'_photos']), opsBase + idx + 1);
     }).join('');
     return `<div style="margin-bottom:10px;break-inside:avoid;">
       <div style="background:#7c3aed;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;display:flex;justify-content:space-between;">
