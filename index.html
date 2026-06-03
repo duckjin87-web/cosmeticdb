@@ -1408,7 +1408,7 @@ function addCapaRow() {
   if (!currentId) return;
   const rec = getRecord(currentId);
   rec.checks.pkg_tbl = rec.checks.pkg_tbl || [];
-  rec.checks.pkg_tbl.push({name:'',daily:0,monthly:0,kolma:0,cnt:0,note:''});
+  rec.checks.pkg_tbl.push({name:'',daily:0,monthly:0,kolma:0,cnt:1,note:''});
   upsertRecord(rec); renderCapaTable(rec.checks.pkg_tbl);
 }
 function updateCapaRow(idx, field, val) {
