@@ -1444,7 +1444,7 @@ function setYN(key, v, btn) {
   rec.checks[key] = rec.checks[key] === v ? null : v;
   upsertRecord(rec);
   const cur = rec.checks[key];
-  const row = btn.closest('.yn-row');
+  const row = btn.closest('.yn-row, .custom-yn-row');
   row.querySelectorAll('.yn-btn[data-v]').forEach(b => b.classList.remove('y-on','n-on'));
   if      (cur === 'Y') row.querySelector('[data-v="Y"]')?.classList.add('y-on');
   else if (cur === 'N') row.querySelector('[data-v="N"]')?.classList.add('n-on');
@@ -1794,7 +1794,8 @@ function renderCustomSection(domain, recArg) {
     const hasPhoto = photos.length > 0;
     const ptsSign  = ci.pts > 0 ? `+${ci.pts}` : `${ci.pts}`;
     const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
-    const numBadge = `<span style="font-size:11px;font-weight:700;color:#f97316;margin-right:4px;">0.${idx+1}</span>`;
+    const baseNum  = (YN_DEF[domain]||[]).length + idx + 1;
+    const numBadge = `<span style="font-size:11px;font-weight:700;color:#f97316;margin-right:4px;">${baseNum}.</span>`;
     return `<div class="yn-item-wrap" style="border-left:3px solid var(--acc);">
       <div class="custom-yn-row">
         <span class="custom-yn-label">${numBadge}${escHtml(ci.label)}${photoBadge}</span>
