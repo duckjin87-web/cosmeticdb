@@ -874,7 +874,8 @@ body{background:var(--s1);color:var(--txt);
       <div class="eval-det-footer">
         <button class="btn" onclick="saveEvalDraft(currentId)">💾 임시저장</button>
         <button class="btn grn" onclick="saveEvalDone(currentId)">✅ 평가완료</button>
-        <button class="btn" onclick="printChecklist()" title="현재 평가를 인쇄용 체크리스트로 출력">📋 체크리스트 인쇄</button>
+        <button class="btn" onclick="printChecklist()" title="인쇄/PDF로 체크리스트 출력">📋 PDF 인쇄</button>
+        <button class="btn" onclick="exportChecklistExcel()" title="Excel 파일로 체크리스트 다운로드">📊 Excel 저장</button>
         <button class="btn report" onclick="exportInternalReport()"
           title="내부보고용 PPTX 다운로드 (가로형 4슬라이드)">📄 내부보고용</button>
         <button class="btn" onclick="exportEvalCSV()" style="margin-left:auto;">📥 CSV 내보내기</button>
@@ -2677,6 +2678,147 @@ async function exportInternalReport() {
 
 
 /* ══ 16. 체크리스트 인쇄 (PDF) ══ */
+/* ══ Excel 체크리스트 내보내기 ══ */
+const XLSX_CDN = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+
+function exportChecklistExcel() {
+  if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
+  if (typeof XLSX !== 'undefined') { doExportExcel(); return; }
+  toast('Excel 라이브러리 로딩 중...');
+  const s = document.createElement('script');
+  s.src = XLSX_CDN;
+  s.onload = doExportExcel;
+  s.onerror = () => toast('라이브러리 로드 실패. 네트워크를 확인하세요.', 'err');
+  document.head.appendChild(s);
+}
+
+function doExportExcel() {
+  const rec = getRecord(currentId);
+  syncTourSteps(rec);
+  const sc = calcScores(rec);
+  const g  = gradeInfo(sc.total);
+  const c  = rec.checks || {};
+  const wb = XLSX.utils.book_new();
+
+  /* ── Sheet 1: 기본정보 & 점수요약 ── */
+  const typeLbl = rec.type === 'PKG' ? '충전/포장업체' : '제조업체';
+  const info = [
+    ['신규처 등록평가 체크리스트'],
+    [],
+    ['업체명',   rec.companyName || '—'],
+    ['방문일',   rec.visitDate   || '—'],
+    ['유형',     typeLbl],
+    ['방문자',   rec.visitor     || '—'],
+    ['참관자',   rec.observers   || '—'],
+    ['수배사유', rec.reason      || '—'],
+    ['소재지',   rec.address     || '—'],
+    [],
+    ['=== 점수 요약 ==='],
+    ['구분', '취득', '만점', '비율(%)'],
+  ];
+  const domainRows = [
+    { label:'제조관리', key:'mfg', max:SPEC_MAX.mfg, skip:rec.type==='PKG' },
+    { label:'자재관리', key:'mat', max:SPEC_MAX.mat },
+    { label:'임가공',   key:'pkg', max:SPEC_MAX.pkg },
+    { label:'완제품',   key:'fin', max:SPEC_MAX.fin },
+    { label:'운영',     key:'ops', max:SPEC_MAX.ops },
+  ];
+  domainRows.forEach(d => {
+    if (d.skip) { info.push([d.label, '—', d.max, '—']); return; }
+    info.push([d.label, sc[d.key], d.max, Math.round(sc[d.key]/d.max*100)+'%']);
+  });
+  info.push(['총점', sc.total, 100, '']);
+  info.push(['등급', g.label, '', '']);
+  if (rec.type === 'PKG') info.push(['※ PKG 70→100 환산 적용']);
+
+  // 영역별 총평
+  info.push([]);
+  info.push(['=== 영역별 총평 ===']);
+  domainRows.forEach(d => {
+    const note = (rec.notes || {})[d.key] || '';
+    if (note) info.push([d.label, note]);
+  });
+  info.push(['종합의견', rec.notes?.overall || '']);
+
+  const ws1 = XLSX.utils.aoa_to_sheet(info);
+  ws1['!cols'] = [{wch:14},{wch:40},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws1, '기본정보_점수');
+
+  /* ── Sheet 2: 체크리스트 ── */
+  const ckRows = [['번호','도메인','항목','배점','O/X','메모']];
+  const domains = [
+    { label:'제조관리', key:'mfg', items:YN_DEF.mfg, skip:rec.type==='PKG' },
+    { label:'자재관리', key:'mat', items:YN_DEF.mat },
+    { label:'임가공',   key:'pkg', items:YN_DEF.pkg },
+    { label:'완제품',   key:'fin', items:YN_DEF.fin },
+    { label:'운영',     key:'ops', items:YN_DEF.ops },
+  ];
+  domains.forEach(d => {
+    if (d.skip) return;
+    // PLT 처리 (ops)
+    const allItems = d.key === 'ops'
+      ? [ ...d.items.slice(0,1),
+          { key:'ops_q2_display', label:'거래 PLT (KPP/AJ)', pts:2, _isPLT:true },
+          ...d.items.slice(1) ]
+      : d.items;
+
+    let numOffset = 0;
+    allItems.forEach((it, i) => {
+      const num = i + 1;
+      if (it._isPLT) {
+        const pltVal = c['ops_q2'];
+        const pltLabel = pltVal==='BOTH'?'KPP+AJ':pltVal==='ONE'?'1개':pltVal==='NONE'?'없음':'—';
+        ckRows.push([num, d.label, it.label, '최대+2', pltLabel, '']);
+        return;
+      }
+      const val  = c[it.key] || '';
+      const note = c[it.key+'_note'] || '';
+      const pts  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
+      const ox   = val === 'Y' ? 'O' : val === 'N' ? 'X' : '';
+      ckRows.push([num, d.label, it.label, pts, ox, note]);
+    });
+    // 커스텀 항목
+    const base = allItems.length;
+    (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach((ci, idx) => {
+      const val  = c[ci.id] || '';
+      const note = c[ci.id+'_note'] || '';
+      const pts  = ci.pts > 0 ? `+${ci.pts}` : `${ci.pts}`;
+      const ox   = val === 'Y' ? 'O' : val === 'N' ? 'X' : '';
+      ckRows.push([base+idx+1, d.label, ci.label, pts, ox, note]);
+    });
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(ckRows);
+  ws2['!cols'] = [{wch:6},{wch:12},{wch:40},{wch:8},{wch:6},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws2, '체크리스트');
+
+  /* ── Sheet 3: 설비CAPA ── */
+  const capaTbl = c.pkg_tbl || [];
+  if (capaTbl.length > 0) {
+    const capaRows = [['설비명','설비CAPA','보유대수','일CAPA','월CAPA(20일)','콜마배정','비고']];
+    capaTbl.forEach(r => {
+      const ad = (r.daily||0)*(r.cnt||0);
+      capaRows.push([r.name||'', r.daily||0, r.cnt||0, ad, ad*20, r.kolma||0, r.note||'']);
+    });
+    const ws3 = XLSX.utils.aoa_to_sheet(capaRows);
+    ws3['!cols'] = [{wch:14},{wch:12},{wch:10},{wch:12},{wch:14},{wch:12},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, ws3, '설비CAPA');
+  }
+
+  /* ── Sheet 4: 투어동선 ── */
+  const tourSteps = rec.tourSteps || [];
+  if (tourSteps.length > 0) {
+    const tourRows = [['구간번호','구간명','메모']];
+    tourSteps.forEach((s,i) => tourRows.push([i+1, s.name, s.memo||'']));
+    const ws4 = XLSX.utils.aoa_to_sheet(tourRows);
+    ws4['!cols'] = [{wch:8},{wch:20},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, ws4, '투어동선');
+  }
+
+  const fileName = `${rec.companyName||'평가'}_${rec.visitDate||'날짜미입력'}_체크리스트.xlsx`;
+  XLSX.writeFile(wb, fileName);
+  toast('Excel 파일 저장됨: ' + fileName, 'ok');
+}
+
 function printChecklist() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
   const rec = getRecord(currentId);
