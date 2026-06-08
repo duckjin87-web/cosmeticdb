@@ -2304,8 +2304,9 @@ async function handlePhotoUpload(input) {
   }
 }
 
-/* ══ 16b. 내부보고용 PPTX 다운로드 (가로형 4슬라이드) ══ */
+/* ══ 16b. 내부보고용 PPTX — HK Kolmar 양식 ══ */
 const PPTX_CDN = 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
+const KOLMAR_LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAAhCAIAAADRQTcHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABFqSURBVGhD7VsJdBRVuq57a+9OAiQhLEmQsESWgOwSBcTIFkXcEAed0TeOCzouuPtUhvdc5ozHp54ZZubhc0EdQR02WQSBIIuCj51AICyBBEhYshGS7q6uqlv3vv92F4Ek3SGJ4jKP79Q5pG/dusu/fP//3yoQY0xoJvKLnY/W2lf3lK/LwB4Vua2X8LME3lFIAmbzdAy9c4+QZ+c4j88KrtpFzgSabSKX8KNB3KY+faxC0GQhOQFh1CR3LKtmXK+meqwCLd9uHC1HEmYd40VZdDtcws8HqPcTZ6gY6xX9o/tK2f2l4T0l90507C12nvmHUViuURIQkIhlr8z81/fDv89WUxKw2ykSTpx2Vu8iFGZ1GwQIEKaDMlLFzPQLz/sjwLRZwUnqUEYIS0kUk1o1tp1fBFDfp86YNqhJQaKaoAWu7oFvG6oM7tqYM9ZRcAhY0ikJvvOAfk3vqHrym+zlecHF27DAHFBsuBFJmob8f7xLH9dPDrf8tCgqpY+877cdURDVOzOde0Yq7o1fLFwLZY5FrZqKgLx4p/bCbGNnIbhZM8CorYoMN0rwi7bYS7eDXsFpuXq5hrEED068SrmuT1TtFpU5r84PPjbLeOIj44vNlttaF7uPOi/MMZ782Jj6kfHsJ8bmAuLeaD5MIhw8KRSf8Rz3i+XV/wq5RR0KAi9kjllcQUvPNE/BAAjfjUTw3UfJf68wKZPAkkIeDBcVEB7QiTw0RmskeFfWsBU7yep9+oo8dWdRhFUVldE3FpsLtyvLd0kr8xTiCOkdWp4LgI0qIgVmorYg/UukFA1iDKOqDHHV/fWDwGewt5ea5X6VUdNtAoMQlXjVmDpea+N1WyICjEYUYVGUUdLQfk772FtLglsLZcExEcOZaebzN6mtvU1KFf+f4MdIImatNTcVIIGR2tALvgsK+22WOrjbhXMrri5wd0brMYRFhL99Za7MwxS0K6k92xvTJmpJrX+MHf2CcNHF8e0+8ukGhyIIt+dCIxa16zLQr4Z9rxTmg9XWnG8dxBws66mtjP+4Q++cFGE7YFT5Jc5XO+2539mfb7AWb7E3HyTVzandHSocOuVsPsgf3HPMsR3eeOI0+3o3jGnCmEu32XlHQ611EbTZlgLyxRb7sw3Wwk32hn12U84MoA/0XLjJgqcWbLI27COVPvep45UUBtx0wN5Z5NQOBTly3lGy6SBcNpQA4cbDp2DLZOk2cnGLEwjnM5aZVUGNEb/bBB4paSmtzUeztRit5Vw673/tmTkWQyIS5aQY+6XbtD6dIsTMNXvsZdvt/BLhaDmxqQqmxUigXWsxPVke0VO4abAap7s9G4FNhDnf2KvzIGkQe3Rwnhiv7SgkS7bR/SW234b0EGMWTE0U+3VGt2fKA7u4Is3ZBeohe0vYySpYpiZQM97DeqQ6Y/riW6+UZTHC3sEgQK+r81j+MVLph+DEgxp/KkUe1xdNulpZn09mrrKZILbSrRduVYd253NBwvRfS6zCclgJG9vHemK8OmuNuXoPPlhietQoHtx4PtxEQL7z8Tpr93EVcje3iXOzJAnk/lFKj+SW5zBr99hvLw2aoDAsxqr2Y2Nxw/I9YLG/LDOn/ZN+uctzuEInLKxJimRPWUDfcEh9fZHz3Gxj//EInlcPlDHIqEsDnlKfkl/svDov8Np8c2eJFnA8oQBCKVaPnlYX5+rPzw6u2m3DIx+vt6bNZesKPKV+L2QbPKlEUmVQ/e6w9seF5I1FJqTr9VBWzaZ/bvzpC7LxsAY9BSzDUwjLVZZnU5H62iIKW95TTE5V43JDO1LmGGdLCpAzeHa5IZfVSHnH7BnLzRkrWP5JxWYKWFFkBTsMdlX/gvIfyKrpR9fAip9vIJyZIfqGgTDY8k2D0M1DWlL1hmPw7iPOG4utyqAOUVlG9r0jYbT6VG/a7G/LzZlfo0qfyJwgs31tdKN/JzI4jbSPMZATYLbhMHHdAf2VeWbByQvrGDJqRoLU8pXVsK1HVIJUHdX07GBkdnPSEm1JMKE6YJa/pNr71+XWW0uMt5cEz5gqsqpTW9UM7UL6pJBY1WQUalG/5Yhg95+sP2f0AL/JXp1vLNkhW1RidgAcN1YxMzraV6ZZybF+ZJ+xmfrOKnPFDhszm9omJMK1TghiUSTEiENt354jzodrLIQVatYgBt2E+obPoDJ1GFD/9sNABXUc2XJQxzbo18Plpvh3wQnnnRxiCRpzAiEz58CSp2c747fXNlYXNQJNFspr6JtARxXAeBajzuRh+L7rNFzXSsECV+SSWWsdxqelcZp9zwhlwhC5tQeBLIImW7ePvLvKLKpQQJTbiz3v5gRevkMHkYUfbxyUiYhaY/rgB0Z7OyXycgMcaHOB8+cvjYIymdr+/cfZgRIHyd5OrWoeHqeN7CVLIgLfOFFF38uxluUKhMBdz+xvjHH9lOR4d+mz11krc6mAHcaYisnEq5TJVyvtWnEtQsj/Zh95P8d3oNRTY4LD2EiM5mTMYuD6LL2tkZkuX9YWQ0HRwINBbFT4eg/9YC0FGdVeH65HczYKlT4HBHFBHw5a7N0c81CZzIjhNnHtahr23z9K7tq+Reqldkkl0JS5uUgBpxQE8cYB4uM36A0rutLT9KM1FsMKY45Hdl66VX14nJoSjyHke1WUEIdvHaK8ebfeOQG4FAw/mJMnrN/b1LMR4NsRPdD027XeqThWRx4VxXnQqL7Sy7/S28bYwKi8j6y30QIvTtQnDFLgLgRC6AnV+bSJelYvhiVFcOzSKrZuj8scsK/FWy0kAeELCnam3qhNu03r1p6P79UQKOnGgfIbd3t6dzQ5bzcCTpA4q7fwP1O8z9+iTR6mZPeXI1N0yA3OXdy2sTgkjYC78HuNahjsA/LVxdsoI1D1nu2KRFVivxkhj+vfkswZ7BohBmpYsMnmEZ2xUb3JczerEV9W7il29hwHZobaSbt5kDg20iFor1Tp4bGqwGyIIEHq2bDfsUijuwoDMgjEJmXK8bH15+2fJg27XEJC6KAdy9dmSFdfXp8dY3Vh/EAlRgqAMB1B3lvsWtU3+eRoJeKuidDIXujuERFE1L2DOGWMFqsEgX7dpgaA8NfOaz40RgPXd5tAb+6/9QA6DJWe7oXFeDXwJD+UuDCPQXm6bLsFlg5s7zZxyche2Rx9RUtCbwiMUmQQGVIVvh6ER2bIiXERFk8ctuNIqGLmkrBG9pYgPrn36mJYT6lzIohUpA7ZV+Kcqrrw4R3ot22MmZwQmYH6pYmiwJ2Y2cFu7aWIgax7B9SuFYZxQKRVZwsLmJ0gL+xRw8HrB6rRTpmuShcHpmEscx+LCBg2ta3YK7nO81EGAwkBe4cueAxo+8Ex2hWdm0StiiTclqkiaiJ8rj+YZ42lfbHZhmStBeCrwRBNiYwJQhjGeP9ra0dhhOQISpricp4KwrKTYkliK7e9IXRZ6JEi8fSAkVNVrPpcMIkOxAkZMpeIAEaFcMuFxkxdibzPOB2pCrc+6GZBKhvCaT/wE2+J0XGvlCgagQWrqFNbDLrgU0QAAinHaiAo93cYUYc7C5hYzu6HJg5tqvOBAd48WJ6UKYXI5KwZMwK52z832ou28Cqi2eAuKQHv3TNS5eYvCEUV2itzg7V1fS3gt2GFBccDZDT3BcCQcTzq8Q6GDcTTJNPj1BYlRNW2g7ai9Tkf4T6Qo4FRhnpz+2j8bADMizoWqMT9XQ+Midz466CBgkF+Iho/QHriBmXq9cqj46SnxgtPT9Cb9WkOFBX3ZqkZyTaWa88RECUmQZ4Pvrb3Fl+4LGkIhsR4L3pknDK2L8WiCiF23yntP+cGj5+usyWMQKnhPxkUS05jUyGDJwn8cUVi3Pl+CoA/yMAjfHIG9Ab1Urg9IgwTxCCBjbm/G6ChXdVXMBCghIXsfvKDo5UpY5Tfj1Pvy5KT45u9+dREPGW0pKEAJM9uE0+EA4cqtPdyzLNO1jwEbQFy+CfHK4M6m5C0UWptLZKhfKwKnPNjSWTt20BkgXSHlFVjYD/3RgOA+g+eCOkfiYmxqClHWhcDsNJ4Hn+5cmoCdH9JVJOE7LW4woEgzLOQJiMyRf8gJ1lZfeTfjFD4Z0AhUg2BQeG0bCf7fGOLNBxCaqL4zASla9sAFmGr9pq9+PWFpi/ojieLKCNFBB6CFM9g2vbDUeufrYcJZ3hGsSSndxSTWrWoePsh0KWdKJAaEE7AllfsJNHYPfeIs/sYBop2fzcNkRXcslSoIe66Rh10GWTUKlhquAVyBCCZD9eQ3KKWEHUYfTpJz92kJ+gG5MAw4qJt7O9fBWsP/664TEzyQoonQZ22YJOz/XCEiYor6MxVJmEyT8aYNbS7qLekfPthMLynnBIP1Ak1Alq/jy3aGkGFVX72wWrzRLUSKj6bgQsmWd8LSXHo0eu1eC0AJanbBDomZqlf/cuXwe/zOeawHtKzE1SPFDqsYHjORvTJegtIDNAxHk0ervDPRRgtPiO/MtdYmQspXugxsF3KjzVe/NTYfQxcFtxXz+xmjehVv2b9MdE5CY/uCwW2DcZaHZTeXOp8uMasqDknnO2Fzh8+M3LyBMg8QH5ua9NwcRUMGNhV/F2WKoUKRLcJ5EqC3xXgWWubZ4z1cONg5bFsRUT84xDTQTNXkcVbeYouS+iOq5Th3UyovRkl+0u1aZ8ZD73jm/ap8dJnwSnvBv59TnBLocIFJepdEoxHs/X4mIsuh8bxb9cqAzoTAWpoapf7pDcWmY+8Zzz/SeAPnxuPvB945h9GTj6UD1hGJFQlNyOCRt5YU7L8puPOYco1vWBVocI6DH5YgT79xl639wJVE6yDOJxHwT7CDno+7rpG+V2WBFUk/B0gntfmB1fm2rD2Nl40/Xb92h4mZABMoDXE+11RzPxt6oJtyobDntOmN7y9jI7my3fIvVPPq9cZr1tgLljp+dOB34ca+RqiyQbiWvhZynAjMQ5GQLAsLJ0/fmIshgUP7GzBDZiAilruCc/iXH3eFnXNAc9JXwy0Zfd1xg2QYHAIeTARPbsO+Dc0Jj+xcBpM3EDBSAxyEf0QWdZZaIow9QYtpbWFxXOBjjl2ta3NWGaerIouDPAxJMTqWBVtTbK1BqU43H1wtDZpKPKqWBV8FpVgwLxjnI6TE/CfJitPjxfTEiyPaDCrBvgNogM1qzXsT44L3j8Kz7hXHZBWh5zBP2J1BHOpItP4iQQH1LWwBb4AyfaqvE9EQH4XfjZGZdHqb2j1qkgVKeyoXuXZrb345t36PSNQUoylIP4NJH9/RQIS9SV5fA9ksdfu9PZKEXWVTwEFce0bZVgPrEoVndCY9RfnfjYb+hMsgL+DS0swX/+1JyPS+/MwGn42C08qiPz1Ps/w6MFs0Rbrpc8sIqhA0G4TEhEWbxlgvzhR9ZyVZj1U+uiOQlpjcC/t0g5HfKtf6WNbDzlQekHyT6jQuS3un3auG9zddojsLablPgpztIlBl3cQB3WVks47sK1FtcG+zXdgEKCN3in48tBLa/CPnUWkuIIbYmsPBB0p4nHE8UoG3SDYg8T7XiZ1SozQx7KFTQWkwsf9rkMbdGXojX09HC2nG/c7h045UPV6NNStHc5Ml6DshFsHTjj7Srjr6gq64jLcLvR9ki9Itx6ikIXBoCkJGLYWGsaFq2CuWoRTWptZGfiWwXJ4Y9EQ4bto2Utt/3tTPMOifzcPCnhriTlvMwPfDXEqB8OqJprTJ3my+0V98BK+D1CPx6uQHJfkNcb0RTf0l6+oS1kRcb6CeXSUPHFy4MaB6N4stUObKPwVwmk/+Ad/zcwjYwiMMihvuneQ+jXtoPsSmgs0cnr1qD5ydn95QJemihgU/PTHRtHpGIHZKg5e308eP0Aaki5FC06X8BMC5Rc73TvgZukGFPwUKLgUjR8o3noldz4ICe69S/iZoSX/P/jgCbpgs52ZLg7tLp092b+EnyUE4f8AhvBwCdsGivkAAAAASUVORK5CYII=';
 
 function loadPptxLib() {
   return new Promise((resolve, reject) => {
@@ -2322,357 +2323,328 @@ async function exportInternalReport() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
   toast('PPTX 생성 중...');
   try { await loadPptxLib(); } catch(e) { toast(e.message, 'err'); return; }
+  try { await doExportReport(); } catch(e) { console.error(e); toast('PPTX 생성 오류: ' + e.message, 'err'); }
+}
 
-  const rec   = getRecord(currentId);
+async function doExportReport() {
+  const rec = getRecord(currentId);
   syncTourSteps(rec);
-  const sc    = calcScores(rec);
-  const g     = gradeInfo(sc.total);
-  const c     = rec.checks || {};
-  const n     = rec.notes  || {};
-  const steps = rec.tourSteps || [];
+  const sc  = calcScores(rec);
+  const g   = gradeInfo(sc.total);
+  const c   = rec.checks || {};
 
-  const BLUE='4F81BD', DKBLUE='1F497D', CARD='F2F2F2', WHITE='FFFFFF';
-  const TXT='3C4650', RED='C0504D', GRN='9BBB59', LGRAY='E8E8E8';
-  const ORANGE='E67E22', YELLOW='F39C12';
-  const FF='맑은 고딕';
-  const LOGO_B64 = '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';
+  /* ── 색상 팔레트 (3~4색: 콜마블루 / 다크네이비 / 틸 / 레드) ── */
+  const KB   = '2B7CC7'; // Kolmar Blue  (메인)
+  const KBL  = 'D6E8F7'; // Kolmar Blue Light  (헤더 배경)
+  const DN   = '1B3764'; // Dark Navy  (투어동선 헤더)
+  const TL   = '0F766E'; // Teal  (CAPA 헤더)
+  const RD   = 'DC2626'; // Red  (X 결과/특이사항)
+  const WH   = 'FFFFFF';
+  const LG   = 'E2E8F0'; // Light Gray border
+  const MG   = 'F1F5F9'; // Mid Gray row alt
+  const DT   = '1E293B'; // Dark Text
+  const ST   = '475569'; // Secondary Text
+  const FF   = '맑은 고딕';
 
-  // 이슈·특이사항 수집 (N체크, 메모, 사진첨부 항목)
-  const domainMeta = [
-    {key:'mfg',label:'제조관리',items:rec.type==='PKG'?[]:YN_DEF.mfg,clr:'1E40AF'},
-    {key:'mat',label:'자재관리',items:YN_DEF.mat,clr:'0369A1'},
-    {key:'pkg',label:'임가공',  items:YN_DEF.pkg,clr:'0F766E'},
-    {key:'fin',label:'완제품',  items:YN_DEF.fin,clr:'BE185D'},
-    {key:'ops',label:'운영',    items:YN_DEF.ops,clr:'7C3AED'},
-  ];
-
-  // 점검 특이사항: N체크 전체 + 메모 + 사진첨부항목 → 카테고리→점수 정렬
-  const checkItems = [];
-  domainMeta.forEach(d => {
-    d.items.forEach(it => {
-      const val    = c[it.key]||null;
-      const note   = c[it.key+'_note']||'';
-      const photos = normalizePhotos(c[it.key+'_photos']);
-      if (!val) return;  // 미체크 제외
-      const isIssue = (!it.neg && val==='N') || (it.neg && val==='Y');
-      const hasPhoto= photos.length > 0;
-      if (isIssue || hasPhoto || note) {
-        const ptsNum = it.pts*(val==='Y'?1:0);
-        checkItems.push({
-          domain:d.label, dClr:d.clr, label:it.label,
-          val, pts:it.pts, ptsNum, note, photos, isIssue
-        });
-      }
-    });
-    // 커스텀 항목
-    (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach(ci => {
-      const val  = c[ci.id]||null;
-      const note = c[ci.id+'_note']||'';
-      if (!val && !note) return;
-      const isIssue = val==='N';
-      if (isIssue || note) {
-        checkItems.push({
-          domain:d.label, dClr:d.clr, label:`★ ${ci.label}`,
-          val, pts:ci.pts, ptsNum:0, note, photos:[], isIssue, custom:true
-        });
-      }
-    });
-  });
-  // 정렬: 카테고리 순 → N이슈 우선 → 점수 낮은 순
-  const domOrder = domainMeta.map(d=>d.label);
-  checkItems.sort((a,b) => {
-    const di = domOrder.indexOf(a.domain) - domOrder.indexOf(b.domain);
-    if (di !== 0) return di;
-    if (a.isIssue !== b.isIssue) return a.isIssue ? -1 : 1;
-    return a.ptsNum - b.ptsNum;
-  });
-
-  // 현장사진 특이사항: 투어 사진+메모 + 항목 사진
-  const fieldItems = [];
-  steps.forEach(st => {
-    const photos = normalizePhotos(st.photos||[]).filter(p=>p.src);
-    if (photos.length>0) fieldItems.push({type:'step', name:st.name, photos});
-  });
-  domainMeta.forEach(d => {
-    d.items.forEach(it => {
-      const photos = normalizePhotos(c[it.key+'_photos']).filter(p=>p.src);
-      if (photos.length>0) fieldItems.push({type:'item', domain:d.label, name:it.label, photos});
-    });
-  });
-
-  const capaTbl  = c.pkg_tbl||[];
-  const routeTxt = steps.length>0 ? steps.map((s,i)=>(i>0?' → ':'')+`${i+1}. ${s.name}`).join('') : '미입력';
+  /* ── 레이아웃 상수 ── */
+  const W = 13.33, H = 7.5;
+  const MX = 0.4;
+  const CX = MX, CW = W - MX * 2; // 12.53"
+  const HLY = 0.63; // 헤더 구분선 y
+  const TY  = 0.78; // 컨텐츠 시작 y
+  const BOT = 7.3;  // 컨텐츠 끝 y
 
   const pptx = new PptxGenJS();
-  pptx.layout='LAYOUT_WIDE'; pptx.author='CosmeDB';
-  pptx.title=`${rec.companyName} 참관보고`;
+  pptx.layout = 'LAYOUT_WIDE';
+  pptx.author = 'HK Kolmar CosmeDB';
+  pptx.title  = `${rec.companyName} 참관보고`;
 
-  const CX=0.68, CW=11.94, CY=0.88;
-
-  function addTemplate(slide, titleTxt) {
-    slide.addImage({data:LOGO_B64, x:11.37, y:0.18, w:1.66, h:0.34});
-    slide.addText(titleTxt, {x:0.3,y:0.08,w:6,h:0.42, fontSize:16,bold:true,color:BLUE,fontFace:FF});
-    slide.addShape(pptx.shapes.RECTANGLE, {x:0.42,y:0.593,w:12.61,h:0.018, fill:{color:BLUE},line:{color:BLUE}});
-    slide.addShape(pptx.shapes.ROUNDED_RECTANGLE, {x:0.5,y:0.8,w:12.3,h:5.9, fill:{color:CARD},line:{color:LGRAY,width:0.5},rectRadius:0.08});
+  /* ── 공통 헤더 ── */
+  function addHeader(slide, title) {
+    slide.addText(title, {x:CX, y:0.14, w:9.5, h:0.44, fontSize:18, bold:true, color:DT, fontFace:FF});
+    try { slide.addImage({data:KOLMAR_LOGO, x:11.55, y:0.09, w:1.42, h:0.46}); } catch(e){}
+    slide.addShape(pptx.shapes.RECTANGLE, {x:CX, y:HLY, w:CW, h:0.035, fill:{color:KB}, line:{color:KB}});
   }
 
   /* ── SLIDE 1: 업체 개요 ── */
-  const s1=pptx.addSlide(); addTemplate(s1,'업체 개요');
-  s1.addText(rec.companyName||'업체명 미입력',{x:CX,y:CY,w:CW,h:0.58,fontSize:22,bold:true,color:DKBLUE,fontFace:FF});
-  const infoRows=[
-    [['방문일',rec.visitDate||'—'],['업체유형',typeLabel(rec.type)+(rec.type==='PKG'?' (70→100환산)':'')]],
-    [['소재지',rec.address||'—'],['수배사유',rec.reason||'—']],
-    [['방문자',rec.visitor||'—'],['참관자',rec.observers||'—']],
-    [['담당자',rec.contactName||'—'],['연락처',rec.contactTel||'—']],
-  ];
-  const hO={fontSize:8.5,bold:true,color:WHITE,align:'center',valign:'middle',fontFace:FF};
-  const vO={fontSize:9,color:TXT,valign:'middle',fontFace:FF};
-  const LW=1.1,VW=4.7,RH=0.31,RGTOTAL=LW+VW;
-  let ry=CY+0.62;
-  infoRows.forEach(row=>{
-    row.forEach(([lbl,val],ci)=>{
-      const bx=CX+ci*(RGTOTAL+0.08);
-      s1.addShape(pptx.shapes.RECTANGLE,{x:bx,y:ry,w:LW,h:RH,fill:{color:BLUE},line:{color:BLUE}});
-      s1.addText(lbl,{...hO,x:bx,y:ry,w:LW,h:RH});
-      s1.addShape(pptx.shapes.RECTANGLE,{x:bx+LW,y:ry,w:VW,h:RH,fill:{color:WHITE},line:{color:LGRAY}});
-      s1.addText(val,{...vO,x:bx+LW+0.06,y:ry,w:VW-0.08,h:RH});
-    }); ry+=RH+0.04;
-  });
-  ry+=0.1;
-  s1.addShape(pptx.shapes.RECTANGLE,{x:CX,y:ry,w:CW,h:0.28,fill:{color:DKBLUE},line:{color:DKBLUE}});
-  s1.addText('🗺  투어 동선',{x:CX+0.08,y:ry+0.04,w:3,h:0.2,fontSize:9,bold:true,color:WHITE,fontFace:FF});
-  ry+=0.29;
-  s1.addShape(pptx.shapes.RECTANGLE,{x:CX,y:ry,w:CW,h:0.32,fill:{color:WHITE},line:{color:LGRAY}});
-  s1.addText(routeTxt,{x:CX+0.1,y:ry+0.03,w:CW-0.15,h:0.26,fontSize:9,color:DKBLUE,fontFace:FF});
-  ry+=0.38;
-  s1.addShape(pptx.shapes.RECTANGLE,{x:CX,y:ry,w:CW,h:0.28,fill:{color:'0F766E'},line:{color:'0F766E'}});
-  s1.addText('🏭  설비 CAPA 현황',{x:CX+0.08,y:ry+0.04,w:4,h:0.2,fontSize:9,bold:true,color:WHITE,fontFace:FF});
-  ry+=0.29;
-  if(capaTbl.length>0){
-    const hd={fontSize:8.5,bold:true,color:'0F766E',align:'center',border:{color:LGRAY},fontFace:FF,fill:{color:'E8FDF8'}};
-    s1.addTable([
-      [{text:'설비명',options:{...hd,align:'left'}},{text:'설비CAPA',options:hd},{text:'보유대수',options:hd},
-       {text:'일CAPA',options:hd},{text:'월CAPA(20일)',options:hd},{text:'콜마배정',options:hd},{text:'비고',options:{...hd,align:'left'}}],
-      ...capaTbl.map(r=>{
-        const ad=(r.daily||0)*(r.cnt||0);
-        return [
-          {text:r.name||'',options:{fontSize:8.5,fontFace:FF}},
-          {text:(r.daily||0).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
-          {text:String(r.cnt||0),options:{fontSize:8.5,align:'center',fontFace:FF}},
-          {text:ad.toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
-          {text:(ad*20).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
-          {text:(r.kolma||0).toLocaleString(),options:{fontSize:8.5,align:'right',fontFace:FF}},
-          {text:r.note||'',options:{fontSize:8.5,fontFace:FF}},
-        ];
-      })
-    ],{x:CX,y:ry,w:CW,colW:[1.8,1.6,1.2,1.6,1.6,1.2,2.14],border:{color:LGRAY},fontFace:FF});
-  } else {
-    s1.addText('설비 CAPA 미입력',{x:CX,y:ry,w:CW,h:0.35,fontSize:9,color:'999999',align:'center',fontFace:FF});
-  }
+  {
+    const s = pptx.addSlide();
+    addHeader(s, '업체 개요');
+    let y = TY;
 
-  /* ── SLIDE 2: 점검 특이사항 ── */
-  const s2=pptx.addSlide(); addTemplate(s2,'점검 특이사항');
+    // 업체명 대형
+    s.addText(rec.companyName || '—', {x:CX, y, w:CW, h:0.5, fontSize:22, bold:true, color:DT, fontFace:FF});
+    y += 0.55;
 
-  // 점수 한 줄 (콤팩트)
-  const scoreY=CY, scoreH=0.7;
-  const domains=[
-    {key:'mfg',label:'제조',max:30,skip:rec.type==='PKG'},
-    {key:'mat',label:'자재',max:20},{key:'pkg',label:'임가공',max:25},
-    {key:'fin',label:'완제품',max:10},{key:'ops',label:'운영',max:15},
-  ];
-  const totW=1.45, dW=(CW-totW-0.06)/5;
-  const grBg=(g.bg||'#dbeafe').replace('#','');
-  const grClr=(g.color||'#1d4ed8').replace('#','');
-  s2.addShape(pptx.shapes.RECTANGLE,{x:CX,y:scoreY,w:totW,h:scoreH,fill:{color:'EEF4FF'},line:{color:BLUE}});
-  s2.addText('총점',{x:CX,y:scoreY+0.04,w:totW,h:0.2,fontSize:8,bold:true,color:BLUE,align:'center',fontFace:FF});
-  s2.addText(String(sc.total),{x:CX,y:scoreY+0.22,w:totW,h:0.3,fontSize:22,bold:true,color:DKBLUE,align:'center',fontFace:FF});
-  s2.addShape(pptx.shapes.RECTANGLE,{x:CX+0.1,y:scoreY+0.53,w:totW-0.2,h:0.14,fill:{color:grBg},line:{color:grBg}});
-  s2.addText(g.label,{x:CX+0.1,y:scoreY+0.535,w:totW-0.2,h:0.13,fontSize:8,bold:true,color:grClr,align:'center',fontFace:FF});
-  let dx=CX+totW+0.06;
-  domains.forEach(d=>{
-    const pct=d.skip?0:Math.min(1,sc[d.key]/d.max);
-    s2.addShape(pptx.shapes.RECTANGLE,{x:dx,y:scoreY,w:dW,h:scoreH,fill:{color:WHITE},line:{color:LGRAY}});
-    s2.addText(d.label,{x:dx,y:scoreY+0.04,w:dW,h:0.18,fontSize:7,bold:true,color:BLUE,align:'center',fontFace:FF});
-    s2.addText(d.skip?'—':String(sc[d.key]),{x:dx,y:scoreY+0.2,w:dW,h:0.26,fontSize:16,bold:true,color:d.skip?'bbbbbb':DKBLUE,align:'center',fontFace:FF});
-    s2.addText(`/${d.max}`,{x:dx,y:scoreY+0.45,w:dW,h:0.13,fontSize:7,color:'999999',align:'center',fontFace:FF});
-    const bw=dW-0.14;
-    s2.addShape(pptx.shapes.RECTANGLE,{x:dx+0.07,y:scoreY+0.6,w:bw,h:0.07,fill:{color:LGRAY},line:{color:LGRAY}});
-    if(!d.skip&&pct>0) s2.addShape(pptx.shapes.RECTANGLE,{x:dx+0.07,y:scoreY+0.6,w:bw*pct,h:0.07,fill:{color:BLUE},line:{color:BLUE}});
-    dx+=dW;
-  });
+    // 기본정보 2열 그리드
+    const leftRows  = [['방문일', rec.visitDate||'—'],['소재지', rec.address||'—'],['방문자', rec.visitor||'—'],['담당자', rec.contact||'—']];
+    const rightRows = [['업체유형', rec.type==='PKG'?'충전·포장 (70→100환산)':'제조업체'],['수배사유', rec.reason||'—'],['참관자', rec.observers||'—'],['연락처', rec.contactPhone||'—']];
+    const rH = 0.38, lhW = 1.3, lvW = 4.85, gap = 0.2;
+    const rhW = 1.3, rvW = 4.88;
+    const rOffX = CX + lhW + lvW + gap;
 
-  // 2열 레이아웃: 왼쪽=점검 특이사항, 오른쪽=종합의견
-  const bodyY=CY+scoreH+0.1;
-  const leftW=7.6, rightX=CX+leftW+0.15, rightW=CW-leftW-0.15;
-  const bodyH=6.58-bodyY;
-
-  // 왼쪽: 카테고리별 체크항목 전체
-  s2.addShape(pptx.shapes.RECTANGLE,{x:CX,y:bodyY,w:leftW,h:0.3,fill:{color:RED},line:{color:RED}});
-  s2.addText(`⚠  점검 특이사항 전체  (${checkItems.length}건 / 카테고리·유형 정렬)`,
-    {x:CX+0.1,y:bodyY+0.05,w:leftW-0.2,h:0.22,fontSize:9.5,bold:true,color:WHITE,fontFace:FF});
-
-  let iy=bodyY+0.31;
-  let lastDomain='';
-  const maxEnd=6.56;
-
-  if(checkItems.length>0){
-    const itemH=Math.min(0.42, (maxEnd-iy-0.1) / checkItems.length);
-    checkItems.forEach((item,idx)=>{
-      if(iy+itemH>maxEnd) return;
-      // 카테고리 구분선
-      if(item.domain!==lastDomain){
-        if(iy+0.22>maxEnd) return;
-        const dMeta=domainMeta.find(d=>d.label===item.domain);
-        s2.addShape(pptx.shapes.RECTANGLE,{x:CX,y:iy,w:leftW,h:0.22,fill:{color:dMeta?.clr||'475569'},line:{color:dMeta?.clr||'475569'}});
-        s2.addText(`[ ${item.domain} ]  ${sc[domainMeta.find(d=>d.label===item.domain)?.key]||0}/${domainMeta.find(d=>d.label===item.domain)?.items?.reduce((s,i)=>s+i.pts,0)||0}pt`,
-          {x:CX+0.1,y:iy+0.03,w:leftW-0.2,h:0.16,fontSize:8.5,bold:true,color:WHITE,fontFace:FF});
-        iy+=0.24; lastDomain=item.domain;
-        if(iy+itemH>maxEnd) return;
-      }
-      // 항목 행
-      const isN=item.isIssue;
-      const rowBg=idx%2===0?WHITE:'FDF4F4';
-      const valClr=item.val==='N'?RED:GRN.replace('9BBB59','16A34A');
-      s2.addShape(pptx.shapes.RECTANGLE,{x:CX,y:iy,w:leftW,h:itemH,fill:{color:rowBg},line:{color:'EEDEDE',width:0.3}});
-      // val 뱃지
-      s2.addShape(pptx.shapes.RECTANGLE,{x:CX+0.04,y:iy+0.05,w:0.26,h:itemH-0.1,fill:{color:isN?'FEE2E2':'DCFCE7'},line:{color:isN?'FECACA':'86EFAC'}});
-      s2.addText(item.val==='Y'?'O':'X',{x:CX+0.04,y:iy+0.05,w:0.26,h:itemH-0.1,fontSize:9,bold:true,color:isN?RED:'16A34A',align:'center',valign:'middle',fontFace:FF});
-      // 점수
-      const pSign=item.pts>0?`+${item.pts}`:`${item.pts}`;
-      s2.addShape(pptx.shapes.RECTANGLE,{x:CX+0.32,y:iy+0.05,w:0.35,h:itemH-0.1,fill:{color:'F0F4FF'},line:{color:'C7D2FE'}});
-      s2.addText(pSign+'pt',{x:CX+0.32,y:iy+0.05,w:0.35,h:itemH-0.1,fontSize:7.5,bold:true,color:DKBLUE,align:'center',valign:'middle',fontFace:FF});
-      // 항목명
-      const labelH=item.note?itemH*0.46:itemH-0.08;
-      s2.addText(item.label,{x:CX+0.71,y:iy+0.04,w:leftW-0.77,h:labelH,fontSize:9,bold:isN,color:TXT,valign:'middle',fontFace:FF});
-      if(item.note){
-        s2.addText(`↳ ${item.note}`,{x:CX+0.71,y:iy+labelH+0.02,w:leftW-0.77,h:itemH*0.46,fontSize:7.5,color:'64748b',italic:true,fontFace:FF});
-      }
-      // 사진 아이콘
-      if(item.photos&&item.photos.length>0){
-        s2.addText(`📷${item.photos.length}`,{x:CX+leftW-0.5,y:iy+0.05,w:0.44,h:itemH-0.1,fontSize:7.5,color:'0EA5E9',align:'right',fontFace:FF});
-      }
-      iy+=itemH;
+    leftRows.forEach(([lbl,val], i) => {
+      const ry = y + i*rH;
+      s.addShape(pptx.shapes.RECTANGLE, {x:CX,      y:ry, w:lhW, h:rH, fill:{color:KB}, line:{color:KB}});
+      s.addText(lbl, {x:CX+0.06,     y:ry+0.05, w:lhW-0.1, h:rH-0.08, fontSize:10, bold:true, color:WH, fontFace:FF, valign:'middle'});
+      s.addShape(pptx.shapes.RECTANGLE, {x:CX+lhW,  y:ry, w:lvW, h:rH, fill:{color:WH}, line:{color:LG}});
+      s.addText(val, {x:CX+lhW+0.1, y:ry+0.05, w:lvW-0.14, h:rH-0.08, fontSize:10, color:DT, fontFace:FF, valign:'middle'});
     });
-  } else {
-    s2.addShape(pptx.shapes.RECTANGLE,{x:CX,y:iy,w:leftW,h:0.42,fill:{color:'F0FDF4'},line:{color:'86EFAC'}});
-    s2.addText('✓  이슈 및 특이사항 없음',{x:CX,y:iy,w:leftW,h:0.42,fontSize:10,color:'16A34A',align:'center',fontFace:FF});
-  }
-
-  // 오른쪽: 평가점수 요약 + 종합의견
-  s2.addShape(pptx.shapes.RECTANGLE,{x:rightX,y:bodyY,w:rightW,h:0.3,fill:{color:DKBLUE},line:{color:DKBLUE}});
-  s2.addText('💬  평가의견 / 종합의견',{x:rightX+0.08,y:bodyY+0.05,w:rightW-0.14,h:0.22,fontSize:9.5,bold:true,color:WHITE,fontFace:FF});
-  // 종합의견
-  const opinH=Math.min(2.0,bodyH*0.42);
-  s2.addShape(pptx.shapes.RECTANGLE,{x:rightX,y:bodyY+0.31,w:rightW,h:opinH,fill:{color:WHITE},line:{color:LGRAY}});
-  s2.addText(n.overall||'(종합의견 미입력)',{
-    x:rightX+0.08,y:bodyY+0.35,w:rightW-0.14,h:opinH-0.06,
-    fontSize:9,color:n.overall?TXT:'999999',wrap:true,valign:'top',fontFace:FF
-  });
-  // 영역별 의견
-  let oy2=bodyY+0.31+opinH+0.06;
-  const dLabels2=['제조관리','자재관리','임가공','완제품','운영'];
-  ['mfg','mat','pkg','fin','ops'].forEach((dk,i)=>{
-    const note=n[dk];
-    if(!note||(rec.type==='PKG'&&dk==='mfg')||oy2>maxEnd-0.1) return;
-    s2.addShape(pptx.shapes.RECTANGLE,{x:rightX,y:oy2,w:rightW,h:0.18,fill:{color:'EEF4FF'},line:{color:BLUE}});
-    s2.addText(`[${dLabels2[i]}]`,{x:rightX+0.06,y:oy2+0.02,w:rightW-0.1,h:0.15,fontSize:7.5,bold:true,color:BLUE,fontFace:FF});
-    oy2+=0.2;
-    if(oy2>maxEnd-0.1) return;
-    const nh=Math.min(0.5,maxEnd-oy2);
-    s2.addShape(pptx.shapes.RECTANGLE,{x:rightX,y:oy2,w:rightW,h:nh,fill:{color:WHITE},line:{color:LGRAY}});
-    s2.addText(note,{x:rightX+0.08,y:oy2+0.03,w:rightW-0.14,h:nh-0.05,fontSize:8,color:TXT,wrap:true,valign:'top',fontFace:FF});
-    oy2+=nh+0.04;
-  });
-
-  /* ── SLIDE 3: 현장사진 및 특이사항 ── */
-  const s3=pptx.addSlide(); addTemplate(s3,'현장사진 및 특이사항');
-
-  // 동선 요약
-  s3.addShape(pptx.shapes.RECTANGLE,{x:CX,y:CY,w:CW,h:0.26,fill:{color:DKBLUE},line:{color:DKBLUE}});
-  s3.addText(routeTxt,{x:CX+0.1,y:CY+0.03,w:CW-0.15,h:0.2,fontSize:8.5,color:WHITE,fontFace:FF});
-
-  // 2열 그리드 - 투어동선 구간들 (꽉차게)
-  const dispSteps=steps.slice(0,4);
-  const rows3=Math.ceil(Math.max(dispSteps.length,1)/2);
-  const cellH3=(5.48-(rows3-1)*0.08)/rows3;
-  const cellW3=5.87, cellGap3=0.1, startY3=CY+0.3;
-
-  if(dispSteps.length>0){
-    dispSteps.forEach((step,idx)=>{
-      const col=idx%2, row=Math.floor(idx/2);
-      const bx=CX+col*(cellW3+cellGap3), by=startY3+row*(cellH3+0.08);
-      const tH=0.28;
-      s3.addShape(pptx.shapes.RECTANGLE,{x:bx,y:by,w:cellW3,h:cellH3,fill:{color:WHITE},line:{color:LGRAY}});
-      s3.addShape(pptx.shapes.RECTANGLE,{x:bx,y:by,w:cellW3,h:tH,fill:{color:BLUE},line:{color:BLUE}});
-      s3.addText(`${idx+1}. ${step.name}`,{x:bx+0.08,y:by+0.05,w:cellW3-0.14,h:0.2,fontSize:10,bold:true,color:WHITE,fontFace:FF});
-      const photos3=normalizePhotos(step.photos||[]).filter(p=>p.src).slice(0,3);
-      const cY3=by+tH+0.04;
-      const remH3=cellH3-tH-0.08;
-      const hasMemo3=photos3.some(p=>p?.memo?.trim());
-      const imgH3=hasMemo3?remH3*0.67:remH3*0.9;
-      if(photos3.length>0){
-        const imgW3=(cellW3-0.14-(photos3.length-1)*0.06)/photos3.length;
-        let ix3=bx+0.07;
-        photos3.forEach(p=>{
-          const src3=(p&&typeof p==='object')?p.src:p;
-          const m3=(p&&typeof p==='object')?(p.memo||''):'';
-          try{s3.addImage({data:src3,x:ix3,y:cY3,w:imgW3,h:imgH3});}catch(e){}
-          if(m3){
-            s3.addShape(pptx.shapes.RECTANGLE,{x:ix3,y:cY3+imgH3+0.02,w:imgW3,h:remH3-imgH3-0.04,fill:{color:'F8FAFC'},line:{color:LGRAY}});
-            s3.addText(m3,{x:ix3+0.03,y:cY3+imgH3+0.03,w:imgW3-0.05,h:remH3-imgH3-0.07,fontSize:7.5,color:'475569',wrap:true,fontFace:FF});
-          }
-          ix3+=imgW3+0.06;
-        });
-      } else {
-        s3.addShape(pptx.shapes.RECTANGLE,{x:bx+0.07,y:cY3,w:cellW3-0.14,h:remH3,fill:{color:CARD},line:{color:LGRAY,dashType:'dash'}});
-        s3.addText('사진 없음',{x:bx+0.07,y:cY3+remH3/2-0.14,w:cellW3-0.14,h:0.28,fontSize:10,color:'bbbbbb',align:'center',fontFace:FF});
-      }
+    rightRows.forEach(([lbl,val], i) => {
+      const ry = y + i*rH;
+      s.addShape(pptx.shapes.RECTANGLE, {x:rOffX,       y:ry, w:rhW, h:rH, fill:{color:KB}, line:{color:KB}});
+      s.addText(lbl, {x:rOffX+0.06,      y:ry+0.05, w:rhW-0.1,  h:rH-0.08, fontSize:10, bold:true, color:WH, fontFace:FF, valign:'middle'});
+      s.addShape(pptx.shapes.RECTANGLE, {x:rOffX+rhW,   y:ry, w:rvW, h:rH, fill:{color:WH}, line:{color:LG}});
+      s.addText(val, {x:rOffX+rhW+0.1, y:ry+0.05, w:rvW-0.14,  h:rH-0.08, fontSize:10, color:DT, fontFace:FF, valign:'middle'});
     });
-  }
+    y += 4*rH + 0.12;
 
-  // 항목 사진이 있으면 슬라이드 추가
-  const itemPhotoSlides = [];
-  fieldItems.filter(fi=>fi.type==='item').forEach(fi=>{
-    if(fi.photos.length>0) itemPhotoSlides.push(fi);
-  });
+    // 투어 동선
+    const tourTxt = (rec.tourSteps||[]).map((st,i)=>`${i+1}. ${st.name}`).join(' → ') || '미입력';
+    s.addShape(pptx.shapes.RECTANGLE, {x:CX, y, w:CW, h:0.3, fill:{color:DN}, line:{color:DN}});
+    s.addText('투어 동선', {x:CX+0.12, y:y+0.05, w:3, h:0.22, fontSize:11, bold:true, color:WH, fontFace:FF});
+    y += 0.3;
+    s.addShape(pptx.shapes.RECTANGLE, {x:CX, y, w:CW, h:0.38, fill:{color:WH}, line:{color:LG}});
+    s.addText(tourTxt, {x:CX+0.12, y:y+0.06, w:CW-0.2, h:0.28, fontSize:10, color:DT, fontFace:FF, valign:'middle'});
+    y += 0.38 + 0.1;
 
-  if(itemPhotoSlides.length>0){
-    // 2개씩 한 슬라이드
-    for(let si=0; si<itemPhotoSlides.length; si+=2){
-      const s4=pptx.addSlide(); addTemplate(s4,'현장사진 및 특이사항 (항목)');
-      const pair=itemPhotoSlides.slice(si,si+2);
-      pair.forEach((fi,pi)=>{
-        const bx4=CX+pi*(cellW3+cellGap3), by4=CY;
-        const tH4=0.28;
-        s4.addShape(pptx.shapes.RECTANGLE,{x:bx4,y:by4,w:cellW3,h:5.8,fill:{color:WHITE},line:{color:LGRAY}});
-        const dMeta4=domainMeta.find(d=>d.label===fi.domain);
-        s4.addShape(pptx.shapes.RECTANGLE,{x:bx4,y:by4,w:cellW3,h:tH4,fill:{color:dMeta4?.clr||DKBLUE},line:{color:dMeta4?.clr||DKBLUE}});
-        s4.addText(`[${fi.domain}] ${fi.name}`,{x:bx4+0.08,y:by4+0.05,w:cellW3-0.14,h:0.2,fontSize:9.5,bold:true,color:WHITE,fontFace:FF});
-        const ph4=fi.photos.slice(0,4);
-        const cols4=ph4.length<=2?ph4.length:2, rows4=Math.ceil(ph4.length/cols4);
-        const iW4=(cellW3-0.14-(cols4-1)*0.06)/cols4;
-        const iH4=(5.8-tH4-0.12-(rows4-1)*0.06)/rows4;
-        ph4.forEach((p,pi4)=>{
-          const col4=pi4%cols4, row4=Math.floor(pi4/cols4);
-          const ix4=bx4+0.07+col4*(iW4+0.06);
-          const iy4=by4+tH4+0.06+row4*(iH4+0.06);
-          const src4=(p&&typeof p==='object')?p.src:p;
-          const m4=(p&&typeof p==='object')?(p.memo||''):'';
-          try{s4.addImage({data:src4,x:ix4,y:iy4,w:iW4,h:iH4*(m4?0.82:1)});}catch(e){}
-          if(m4) s4.addText(m4,{x:ix4,y:iy4+iH4*0.84,w:iW4,h:iH4*0.14,fontSize:7,color:'475569',fontFace:FF});
+    // 설비 CAPA
+    const capaTbl = c.pkg_tbl || [];
+    s.addShape(pptx.shapes.RECTANGLE, {x:CX, y, w:CW, h:0.3, fill:{color:TL}, line:{color:TL}});
+    s.addText('설비 CAPA 현황', {x:CX+0.12, y:y+0.05, w:4, h:0.22, fontSize:11, bold:true, color:WH, fontFace:FF});
+    y += 0.3;
+
+    const cCW = [2.1,1.9,1.4,1.9,2.1,1.5,1.63];
+    const cHD = ['설비명','설비CAPA','보유대수','일CAPA','월CAPA(20일)','콜마배정','비고'];
+    let cx2 = CX;
+    cCW.forEach((w,i) => {
+      s.addShape(pptx.shapes.RECTANGLE, {x:cx2, y, w, h:0.3, fill:{color:KBL}, line:{color:LG}});
+      s.addText(cHD[i], {x:cx2+0.04, y:y+0.05, w:w-0.06, h:0.22, fontSize:9, bold:true, color:KB, align:'center', fontFace:FF});
+      cx2 += w;
+    });
+    y += 0.3;
+
+    if (!capaTbl.length) {
+      s.addShape(pptx.shapes.RECTANGLE, {x:CX, y, w:CW, h:0.34, fill:{color:WH}, line:{color:LG}});
+      s.addText('등록된 설비 없음', {x:CX, y:y+0.07, w:CW, h:0.22, fontSize:9, color:'aaaaaa', align:'center', fontFace:FF});
+    } else {
+      capaTbl.forEach((r,ri) => {
+        const ad=(r.daily||0)*(r.cnt||0), am=ad*20;
+        const bg = ri%2===0?WH:MG;
+        const vals=[r.name||'',(r.daily||0).toLocaleString(),String(r.cnt||0),ad.toLocaleString(),am.toLocaleString(),(r.kolma||0).toLocaleString(),r.note||''];
+        let cx3=CX;
+        cCW.forEach((w,ci) => {
+          s.addShape(pptx.shapes.RECTANGLE, {x:cx3, y, w, h:0.32, fill:{color:bg}, line:{color:LG}});
+          s.addText(vals[ci], {x:cx3+0.05, y:y+0.04, w:w-0.08, h:0.26, fontSize:9, color:DT, align:ci===0||ci===6?'left':'right', fontFace:FF, valign:'middle'});
+          cx3 += w;
         });
+        y += 0.32;
       });
     }
   }
 
-  if(steps.length>4){
-    // 안내 추가는 마지막 슬라이드에서 처리됨
+  /* ── SLIDE 2+: 점검 특이사항 ── */
+  {
+    const domainDefs = [
+      {key:'mfg', label:'제조관리', max:SPEC_MAX.mfg, skip:rec.type==='PKG'},
+      {key:'mat', label:'자재관리', max:SPEC_MAX.mat},
+      {key:'pkg', label:'임가공',   max:SPEC_MAX.pkg},
+      {key:'fin', label:'완제품',   max:SPEC_MAX.fin},
+      {key:'ops', label:'운영',     max:SPEC_MAX.ops},
+    ];
+
+    // 이슈 행 수집
+    const issueRows = [];
+    domainDefs.filter(d=>!d.skip).forEach(d => {
+      const domNote = (rec.notes||{})[d.key]||'';
+      const allItems = d.key==='ops'
+        ? [...YN_DEF.ops.slice(0,1), {key:'_plt', label:'거래 PLT (KPP/AJ)', _plt:true}, ...YN_DEF.ops.slice(1)]
+        : YN_DEF[d.key];
+      const domItems = [];
+      allItems.forEach(it => {
+        if (it._plt) {
+          const pv=c['ops_q2'];
+          if (pv) domItems.push({label:it.label, result:pv==='BOTH'?'KPP+AJ':pv==='ONE'?'1개':'없음', note:'', isIssue:false});
+          return;
+        }
+        const val=c[it.key]||null, note=c[it.key+'_note']||'';
+        const photos=normalizePhotos(c[it.key+'_photos']);
+        const isIssue=(!it.neg&&val==='N')||(it.neg&&val==='Y');
+        if (!val && !note && !photos.length) return;
+        if (!isIssue && !note && !photos.length) return;
+        domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue});
+      });
+      (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach(ci => {
+        const val=c[ci.id]||null, note=c[ci.id+'_note']||'';
+        if (!val && !note) return;
+        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ci.pts>0&&val==='N'});
+      });
+      if (!domItems.length) {
+        issueRows.push({domLabel:d.label, domScore:sc[d.key], domMax:d.max, label:'해당사항 없음', result:'', note:'', opinion:domNote, isIssue:false, first:true, noItems:true});
+      } else {
+        domItems.forEach((it,idx)=>issueRows.push({...it, domLabel:d.label, domScore:sc[d.key], domMax:d.max, opinion:idx===0?domNote:'', first:idx===0}));
+      }
+    });
+
+    // 열 너비 및 위치
+    const colW = [1.5, 2.6, 0.46, 3.82, 4.15];
+    const colX = []; { let cx=CX; colW.forEach(w=>{colX.push(cx);cx+=w;}); }
+    const hdrs = ['카테고리','평가항목','결과','특이사항','평가의견'];
+    const scoreH = 0.42, hdrH = 0.3;
+
+    let curS = null, curY = 0;
+
+    function startIssueSlide() {
+      curS = pptx.addSlide();
+      addHeader(curS, '점검 특이사항');
+      curY = TY;
+      // 점수 요약 바
+      const activeDoms = domainDefs.filter(d=>!d.skip);
+      const sW = CW / (activeDoms.length + 2);
+      let sx = CX;
+      activeDoms.forEach(d => {
+        curS.addShape(pptx.shapes.RECTANGLE, {x:sx, y:curY, w:sW, h:scoreH, fill:{color:MG}, line:{color:LG}});
+        curS.addText(`${d.label}\n(${sc[d.key]}/${d.max})`, {x:sx+0.04, y:curY+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:8.5, color:DT, align:'center', fontFace:FF});
+        sx += sW;
+      });
+      curS.addShape(pptx.shapes.RECTANGLE, {x:sx, y:curY, w:sW, h:scoreH, fill:{color:KB}, line:{color:KB}});
+      curS.addText(`총점\n${sc.total}`, {x:sx+0.04, y:curY+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
+      sx += sW;
+      const gBg = sc.total>=80?'166534':sc.total>=60?'1e40af':'991b1b';
+      curS.addShape(pptx.shapes.RECTANGLE, {x:sx, y:curY, w:sW, h:scoreH, fill:{color:gBg}, line:{color:gBg}});
+      curS.addText(`결과\n${g.label}`, {x:sx+0.04, y:curY+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
+      curY += scoreH + 0.05;
+      // 테이블 헤더
+      hdrs.forEach((h,i) => {
+        curS.addShape(pptx.shapes.RECTANGLE, {x:colX[i], y:curY, w:colW[i], h:hdrH, fill:{color:KB}, line:{color:KB}});
+        curS.addText(h, {x:colX[i]+0.05, y:curY+0.05, w:colW[i]-0.08, h:hdrH-0.08, fontSize:9.5, bold:true, color:i===3?'FFE4E4':WH, align:'center', fontFace:FF});
+      });
+      curY += hdrH;
+    }
+    startIssueSlide();
+
+    issueRows.forEach((row, ri) => {
+      // 행 높이 추정
+      const noteLen = (row.note||'').length, lblLen = (row.label||'').length, opLen=(row.opinion||'').length;
+      const rH = Math.max(0.35, Math.max(Math.ceil(lblLen/24), Math.ceil(noteLen/26), Math.ceil(opLen/40)) * 0.26 + 0.1);
+      if (curY + rH > BOT - 0.05) startIssueSlide();
+      const bg = ri%2===0 ? WH : MG;
+      colW.forEach((w,ci) => curS.addShape(pptx.shapes.RECTANGLE, {x:colX[ci], y:curY, w, h:rH, fill:{color:bg}, line:{color:LG, width:0.5}}));
+      if (row.first) curS.addText(`${row.domLabel}\n(${row.domScore}/${row.domMax})`, {x:colX[0]+0.05, y:curY+0.04, w:colW[0]-0.08, h:rH-0.06, fontSize:9, bold:true, color:DT, align:'center', fontFace:FF, valign:'middle'});
+      curS.addText(row.noItems?'해당사항 없음':row.label, {x:colX[1]+0.07, y:curY+0.04, w:colW[1]-0.1, h:rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'middle', wrap:true, italic:!!row.noItems});
+      if (row.result) {
+        const rc = row.result==='O'?'16a34a':row.result==='X'?RD:DT;
+        curS.addText(row.result, {x:colX[2]+0.04, y:curY+0.04, w:colW[2]-0.06, h:rH-0.06, fontSize:11, bold:true, color:rc, align:'center', fontFace:FF, valign:'middle'});
+      }
+      if (row.note) curS.addText(row.note, {x:colX[3]+0.07, y:curY+0.04, w:colW[3]-0.1, h:rH-0.06, fontSize:9, color:row.isIssue?RD:DT, fontFace:FF, valign:'top', wrap:true});
+      if (row.opinion) curS.addText(row.opinion, {x:colX[4]+0.07, y:curY+0.04, w:colW[4]-0.1, h:rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'top', wrap:true});
+      curY += rH;
+    });
+
+    // 종합의견 + 첨부사진 (새 슬라이드)
+    const overallNote = (rec.notes||{}).overall||'';
+    const attachPhotos = [];
+    domainDefs.filter(d=>!d.skip).forEach(d => {
+      YN_DEF[d.key].forEach(it => {
+        normalizePhotos(c[it.key+'_photos']).forEach(p => attachPhotos.push({label:`${d.label} – ${it.label}`, src:(p&&p.src)||p, memo:(p&&p.memo)||''}));
+      });
+    });
+
+    const ov = pptx.addSlide(); addHeader(ov, '점검 특이사항');
+    let oy = TY;
+    // 종합의견 표
+    const sumW = [1.8, CW-1.8];
+    ['카테고리','종합의견'].forEach((h,i) => {
+      ov.addShape(pptx.shapes.RECTANGLE, {x:CX+(i?sumW[0]:0), y:oy, w:sumW[i], h:0.3, fill:{color:KB}, line:{color:KB}});
+      ov.addText(h, {x:CX+(i?sumW[0]+0.06:0.06), y:oy+0.05, w:sumW[i]-0.1, h:0.22, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
+    });
+    oy += 0.3;
+    const totalRH = Math.max(1.0, Math.ceil((overallNote.length||1)/55)*0.26+0.25);
+    ov.addShape(pptx.shapes.RECTANGLE, {x:CX, y:oy, w:sumW[0], h:totalRH, fill:{color:MG}, line:{color:LG}});
+    ov.addText(`총점\n(${sc.total}/100)`, {x:CX+0.06, y:oy+0.1, w:sumW[0]-0.1, h:totalRH-0.16, fontSize:10, bold:true, color:DT, align:'center', fontFace:FF, valign:'middle'});
+    ov.addShape(pptx.shapes.RECTANGLE, {x:CX+sumW[0], y:oy, w:sumW[1], h:totalRH, fill:{color:WH}, line:{color:LG}});
+    if (overallNote) ov.addText(overallNote, {x:CX+sumW[0]+0.1, y:oy+0.07, w:sumW[1]-0.15, h:totalRH-0.1, fontSize:9.5, color:DT, fontFace:FF, valign:'top', wrap:true});
+    oy += totalRH + 0.12;
+
+    // 첨부사진 (4개씩 페이지)
+    if (attachPhotos.length) {
+      let curPhSl = ov, phY = oy;
+      const photoW = (CW - 0.3) / 4, photoH = 1.9;
+      attachPhotos.forEach((ap, api) => {
+        if (api > 0 && api % 4 === 0) {
+          curPhSl = pptx.addSlide(); addHeader(curPhSl, '점검 특이사항');
+          phY = TY;
+          curPhSl.addShape(pptx.shapes.RECTANGLE, {x:CX, y:phY, w:CW, h:0.27, fill:{color:MG}, line:{color:LG}});
+          curPhSl.addText('첨부사진 (계속)', {x:CX+0.1, y:phY+0.04, w:4, h:0.21, fontSize:10, bold:true, color:DT, fontFace:FF});
+          phY += 0.32;
+        }
+        if (api === 0) {
+          curPhSl.addShape(pptx.shapes.RECTANGLE, {x:CX, y:phY, w:CW, h:0.27, fill:{color:MG}, line:{color:LG}});
+          curPhSl.addText('첨부사진', {x:CX+0.1, y:phY+0.04, w:4, h:0.21, fontSize:10, bold:true, color:DT, fontFace:FF});
+          phY += 0.32;
+        }
+        const col = api % 4;
+        const px = CX + col * (photoW + 0.1);
+        curPhSl.addShape(pptx.shapes.RECTANGLE, {x:px, y:phY, w:photoW, h:0.24, fill:{color:KB}, line:{color:KB}});
+        curPhSl.addText(ap.label, {x:px+0.04, y:phY+0.04, w:photoW-0.06, h:0.18, fontSize:7.5, color:WH, fontFace:FF, shrinkText:true});
+        try { curPhSl.addImage({data:ap.src, x:px, y:phY+0.25, w:photoW, h:photoH}); } catch(e){}
+        if (ap.memo) curPhSl.addText(ap.memo, {x:px, y:phY+0.25+photoH+0.02, w:photoW, h:0.2, fontSize:7, color:ST, fontFace:FF});
+      });
+    }
   }
 
-  const fileName=`참관보고_${rec.companyName||'업체'}_${rec.visitDate||new Date().toISOString().slice(0,10)}.pptx`;
+  /* ── 현장사진 및 특이사항 (투어 구간, 4슬롯/페이지) ── */
+  {
+    const steps = rec.tourSteps || [];
+    if (steps.length) {
+      const routeTxt = steps.map((st,i)=>`${i+1}. ${st.name}`).join(' → ');
+      for (let si = 0; si < steps.length; si += 4) {
+        const pg = steps.slice(si, si+4);
+        const ps = pptx.addSlide(); addHeader(ps, '현장사진 및 특이사항');
+        let py = TY;
+        // 동선 바
+        ps.addShape(pptx.shapes.RECTANGLE, {x:CX, y:py, w:CW, h:0.27, fill:{color:DN}, line:{color:DN}});
+        ps.addText(routeTxt, {x:CX+0.1, y:py+0.04, w:CW-0.15, h:0.2, fontSize:8.5, color:WH, fontFace:FF});
+        py += 0.3;
+        // 2×2 그리드
+        const cellW = (CW-0.15)/2, cellH = (BOT-py-0.1)/2;
+        pg.forEach((step, idx) => {
+          const col=idx%2, row=Math.floor(idx/2);
+          const bx=CX+col*(cellW+0.15), by=py+row*(cellH+0.08);
+          const tH=0.28;
+          ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:cellH, fill:{color:WH}, line:{color:LG}});
+          ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:tH, fill:{color:KB}, line:{color:KB}});
+          ps.addText(`${si+idx+1}. ${step.name}`, {x:bx+0.08, y:by+0.06, w:cellW-0.14, h:tH-0.08, fontSize:11, bold:true, color:WH, fontFace:FF, valign:'middle'});
+          const photos = normalizePhotos(step.photos||[]).filter(p=>p&&((p.src)||p));
+          const ia = {x:bx+0.07, y:by+tH+0.05, w:cellW-0.14, h:cellH-tH-0.12};
+          if (!photos.length) {
+            ps.addShape(pptx.shapes.RECTANGLE, {x:ia.x, y:ia.y, w:ia.w, h:ia.h, fill:{color:MG}, line:{color:LG, dashType:'dash'}});
+            ps.addText('사진 없음', {x:ia.x, y:ia.y+ia.h/2-0.15, w:ia.w, h:0.3, fontSize:10, color:'aaaaaa', align:'center', fontFace:FF});
+          } else {
+            const nc = photos.length===1?1:2, nr=Math.ceil(photos.length/nc);
+            const hasMemo = photos.some(p=>p?.memo?.trim());
+            const imgW=(ia.w-(nc-1)*0.06)/nc, imgH=(ia.h-(nr-1)*0.07)/nr*(hasMemo?0.78:0.97);
+            photos.forEach((p,pi) => {
+              if(pi>=nc*nr) return;
+              const pc=pi%nc, pr=Math.floor(pi/nc);
+              const ix=ia.x+pc*(imgW+0.06), iy=ia.y+pr*(imgH+(hasMemo?0.22:0.08));
+              const src=(p&&typeof p==='object')?p.src:p;
+              const memo=(p&&typeof p==='object')?(p.memo||''):'';
+              try{ps.addImage({data:src, x:ix, y:iy, w:imgW, h:imgH});}catch(e){}
+              if(memo) ps.addText(memo, {x:ix, y:iy+imgH+0.02, w:imgW, h:0.19, fontSize:7.5, color:ST, fontFace:FF, wrap:true});
+            });
+          }
+          if (step.memo) ps.addText(step.memo, {x:bx+0.08, y:by+cellH-0.22, w:cellW-0.14, h:0.2, fontSize:7.5, color:ST, fontFace:FF, italic:true});
+        });
+      }
+    }
+  }
+
+  const fileName = `참관보고_${rec.companyName||'업체'}_${rec.visitDate||new Date().toISOString().slice(0,10)}.pptx`;
   await pptx.writeFile({fileName});
-  toast('📄 PPTX 다운로드 완료 (HK Kolmar 양식)', 'ok');
+  toast('내부보고용 PPTX 다운로드 완료', 'ok');
 }
+
 
 
 
