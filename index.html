@@ -2362,7 +2362,7 @@ async function doExportReport() {
   /* ── 공통 헤더 ── */
   function addHeader(slide, title) {
     slide.addText(title, {x:CX, y:0.14, w:9.5, h:0.44, fontSize:18, bold:true, color:DT, fontFace:FF});
-    try { slide.addImage({data:KOLMAR_LOGO, x:11.55, y:0.09, w:1.42, h:0.46}); } catch(e){}
+    try { slide.addImage({data:KOLMAR_LOGO, x:11.13, y:0.14, w:1.8, h:0.37}); } catch(e){}
     slide.addShape(pptx.shapes.RECTANGLE, {x:CX, y:HLY, w:CW, h:0.035, fill:{color:KB}, line:{color:KB}});
   }
 
@@ -2446,11 +2446,11 @@ async function doExportReport() {
   /* ── SLIDE 2+: 점검 특이사항 ── */
   {
     const domainDefs = [
-      {key:'mfg', label:'제조관리', max:SPEC_MAX.mfg, skip:rec.type==='PKG'},
-      {key:'mat', label:'자재관리', max:SPEC_MAX.mat},
-      {key:'pkg', label:'임가공',   max:SPEC_MAX.pkg},
-      {key:'fin', label:'완제품',   max:SPEC_MAX.fin},
-      {key:'ops', label:'운영',     max:SPEC_MAX.ops},
+      {key:'mfg', num:1, label:'제조관리', max:SPEC_MAX.mfg, skip:rec.type==='PKG'},
+      {key:'mat', num:2, label:'자재관리', max:SPEC_MAX.mat},
+      {key:'pkg', num:3, label:'임가공',   max:SPEC_MAX.pkg},
+      {key:'fin', num:4, label:'완제품',   max:SPEC_MAX.fin},
+      {key:'ops', num:5, label:'운영',     max:SPEC_MAX.ops},
     ];
 
     // 이슈 행 수집
@@ -2464,7 +2464,7 @@ async function doExportReport() {
       allItems.forEach(it => {
         if (it._plt) {
           const pv=c['ops_q2'];
-          if (pv) domItems.push({label:it.label, result:pv==='BOTH'?'KPP+AJ':pv==='ONE'?'1개':'없음', note:'', isIssue:false});
+          if (pv) domItems.push({label:it.label, result:pv==='BOTH'?'KPP+AJ':pv==='ONE'?'1개':'없음', note:'', isIssue:false, isText:true});
           return;
         }
         const val=c[it.key]||null, note=c[it.key+'_note']||'';
@@ -2480,9 +2480,9 @@ async function doExportReport() {
         domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ci.pts>0&&val==='N'});
       });
       if (!domItems.length) {
-        issueRows.push({domLabel:d.label, domScore:sc[d.key], domMax:d.max, label:'해당사항 없음', result:'', note:'', opinion:domNote, isIssue:false, first:true, noItems:true});
+        issueRows.push({domLabel:d.label, domNum:d.num, domScore:sc[d.key], domMax:d.max, label:'해당사항 없음', result:'', note:'', opinion:domNote, isIssue:false, noItems:true});
       } else {
-        domItems.forEach((it,idx)=>issueRows.push({...it, domLabel:d.label, domScore:sc[d.key], domMax:d.max, opinion:idx===0?domNote:'', first:idx===0}));
+        domItems.forEach((it,idx)=>issueRows.push({...it, domLabel:d.label, domNum:d.num, domScore:sc[d.key], domMax:d.max, opinion:idx===0?domNote:''}));
       }
     });
 
@@ -2491,54 +2491,97 @@ async function doExportReport() {
     const colX = []; { let cx=CX; colW.forEach(w=>{colX.push(cx);cx+=w;}); }
     const hdrs = ['카테고리','평가항목','결과','특이사항','평가의견'];
     const scoreH = 0.42, hdrH = 0.3;
+    const topH = scoreH + 0.05 + hdrH;
+    const pageContentH = BOT - TY - topH;
 
-    let curS = null, curY = 0;
+    // 행 높이 사전 계산
+    const rowsWithH = issueRows.map(row => {
+      const noteLen=(row.note||'').length, lblLen=(row.label||'').length, opLen=(row.opinion||'').length;
+      const rH=Math.max(0.35, Math.max(Math.ceil(lblLen/24), Math.ceil(noteLen/26), Math.ceil(opLen/40))*0.26+0.1);
+      return {...row, rH};
+    });
 
-    function startIssueSlide() {
-      curS = pptx.addSlide();
-      addHeader(curS, '점검 특이사항');
-      curY = TY;
+    // 페이지에 행 배분 (같은 도메인 행이 가능하면 함께 유지)
+    const pages = [[]];
+    let pageRemain = pageContentH;
+    rowsWithH.forEach(row => {
+      if (pageRemain - row.rH < -0.05 && pages[pages.length-1].length > 0) {
+        pages.push([]);
+        pageRemain = pageContentH;
+      }
+      pages[pages.length-1].push(row);
+      pageRemain -= row.rH;
+    });
+
+    // 각 페이지 렌더링
+    let globalRowIdx = 0;
+    pages.forEach(pageRows => {
+      const s = pptx.addSlide();
+      addHeader(s, '점검 특이사항');
+      let y = TY;
+
       // 점수 요약 바
       const activeDoms = domainDefs.filter(d=>!d.skip);
       const sW = CW / (activeDoms.length + 2);
       let sx = CX;
       activeDoms.forEach(d => {
-        curS.addShape(pptx.shapes.RECTANGLE, {x:sx, y:curY, w:sW, h:scoreH, fill:{color:MG}, line:{color:LG}});
-        curS.addText(`${d.label}\n(${sc[d.key]}/${d.max})`, {x:sx+0.04, y:curY+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:8.5, color:DT, align:'center', fontFace:FF});
+        const isLow = sc[d.key] / d.max < 0.5;
+        const sBg = isLow ? 'FEE2E2' : MG;
+        const sTx = isLow ? RD : DT;
+        s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:sBg}, line:{color:isLow?RD:LG}});
+        s.addText(`${d.num}. ${d.label}\n(${sc[d.key]}/${d.max})`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:8, bold:isLow, color:sTx, align:'center', fontFace:FF});
         sx += sW;
       });
-      curS.addShape(pptx.shapes.RECTANGLE, {x:sx, y:curY, w:sW, h:scoreH, fill:{color:KB}, line:{color:KB}});
-      curS.addText(`총점\n${sc.total}`, {x:sx+0.04, y:curY+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
+      s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:KB}, line:{color:KB}});
+      s.addText(`총점\n${sc.total}`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
       sx += sW;
       const gBg = sc.total>=80?'166534':sc.total>=60?'1e40af':'991b1b';
-      curS.addShape(pptx.shapes.RECTANGLE, {x:sx, y:curY, w:sW, h:scoreH, fill:{color:gBg}, line:{color:gBg}});
-      curS.addText(`결과\n${g.label}`, {x:sx+0.04, y:curY+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
-      curY += scoreH + 0.05;
+      s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:gBg}, line:{color:gBg}});
+      s.addText(`결과\n${g.label}`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
+      y += scoreH + 0.05;
+
       // 테이블 헤더
       hdrs.forEach((h,i) => {
-        curS.addShape(pptx.shapes.RECTANGLE, {x:colX[i], y:curY, w:colW[i], h:hdrH, fill:{color:KB}, line:{color:KB}});
-        curS.addText(h, {x:colX[i]+0.05, y:curY+0.05, w:colW[i]-0.08, h:hdrH-0.08, fontSize:9.5, bold:true, color:i===3?'FFE4E4':WH, align:'center', fontFace:FF});
+        s.addShape(pptx.shapes.RECTANGLE, {x:colX[i], y, w:colW[i], h:hdrH, fill:{color:KB}, line:{color:KB}});
+        s.addText(h, {x:colX[i]+0.05, y:y+0.05, w:colW[i]-0.08, h:hdrH-0.08, fontSize:9.5, bold:true, color:i===3?'FFE4E4':WH, align:'center', fontFace:FF});
       });
-      curY += hdrH;
-    }
-    startIssueSlide();
+      y += hdrH;
 
-    issueRows.forEach((row, ri) => {
-      // 행 높이 추정
-      const noteLen = (row.note||'').length, lblLen = (row.label||'').length, opLen=(row.opinion||'').length;
-      const rH = Math.max(0.35, Math.max(Math.ceil(lblLen/24), Math.ceil(noteLen/26), Math.ceil(opLen/40)) * 0.26 + 0.1);
-      if (curY + rH > BOT - 0.05) startIssueSlide();
-      const bg = ri%2===0 ? WH : MG;
-      colW.forEach((w,ci) => curS.addShape(pptx.shapes.RECTANGLE, {x:colX[ci], y:curY, w, h:rH, fill:{color:bg}, line:{color:LG, width:0.5}}));
-      if (row.first) curS.addText(`${row.domLabel}\n(${row.domScore}/${row.domMax})`, {x:colX[0]+0.05, y:curY+0.04, w:colW[0]-0.08, h:rH-0.06, fontSize:9, bold:true, color:DT, align:'center', fontFace:FF, valign:'middle'});
-      curS.addText(row.noItems?'해당사항 없음':row.label, {x:colX[1]+0.07, y:curY+0.04, w:colW[1]-0.1, h:rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'middle', wrap:true, italic:!!row.noItems});
-      if (row.result) {
-        const rc = row.result==='O'?'16a34a':row.result==='X'?RD:DT;
-        curS.addText(row.result, {x:colX[2]+0.04, y:curY+0.04, w:colW[2]-0.06, h:rH-0.06, fontSize:11, bold:true, color:rc, align:'center', fontFace:FF, valign:'middle'});
+      // 도메인 그룹별 카테고리 셀 병합 렌더링
+      let ri = 0;
+      while (ri < pageRows.length) {
+        const curDom = pageRows[ri].domLabel;
+        let j = ri;
+        while (j < pageRows.length && pageRows[j].domLabel === curDom) j++;
+        const domRows = pageRows.slice(ri, j);
+        const totalH = domRows.reduce((sum, r) => sum + r.rH, 0);
+        const {domScore, domMax, domNum} = domRows[0];
+        const isLow = domScore / domMax < 0.5;
+        const catBg = isLow ? 'FEE2E2' : MG;
+        const catTx = isLow ? RD : KB;
+
+        // 카테고리 병합 셀 (세로 스팬)
+        s.addShape(pptx.shapes.RECTANGLE, {x:colX[0], y, w:colW[0], h:totalH, fill:{color:catBg}, line:{color:isLow?RD:LG, width:0.5}});
+        s.addText(`${domNum}. ${curDom}\n(${domScore}/${domMax})`, {x:colX[0]+0.05, y:y+0.04, w:colW[0]-0.08, h:totalH-0.06, fontSize:9, bold:true, color:catTx, align:'center', fontFace:FF, valign:'middle'});
+
+        domRows.forEach((row, rowIdx) => {
+          const bg = (globalRowIdx + rowIdx) % 2 === 0 ? WH : MG;
+          for (let ci = 1; ci < colW.length; ci++) {
+            s.addShape(pptx.shapes.RECTANGLE, {x:colX[ci], y, w:colW[ci], h:row.rH, fill:{color:bg}, line:{color:LG, width:0.5}});
+          }
+          s.addText(row.noItems?'해당사항 없음':row.label, {x:colX[1]+0.07, y:y+0.04, w:colW[1]-0.1, h:row.rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'middle', wrap:true, italic:!!row.noItems});
+          if (row.result) {
+            const isOX = row.result==='O' || row.result==='X';
+            const rc = row.result==='O'?'16a34a':row.result==='X'?RD:DT;
+            s.addText(row.result, {x:colX[2]+0.04, y:y+0.04, w:colW[2]-0.06, h:row.rH-0.06, fontSize:isOX?11:7.5, bold:isOX, color:rc, align:'center', fontFace:FF, valign:'middle', shrinkText:true});
+          }
+          if (row.note) s.addText(row.note, {x:colX[3]+0.07, y:y+0.04, w:colW[3]-0.1, h:row.rH-0.06, fontSize:9, color:row.isIssue?RD:DT, fontFace:FF, valign:'top', wrap:true});
+          if (row.opinion) s.addText(row.opinion, {x:colX[4]+0.07, y:y+0.04, w:colW[4]-0.1, h:row.rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'top', wrap:true});
+          y += row.rH;
+        });
+        globalRowIdx += domRows.length;
+        ri = j;
       }
-      if (row.note) curS.addText(row.note, {x:colX[3]+0.07, y:curY+0.04, w:colW[3]-0.1, h:rH-0.06, fontSize:9, color:row.isIssue?RD:DT, fontFace:FF, valign:'top', wrap:true});
-      if (row.opinion) curS.addText(row.opinion, {x:colX[4]+0.07, y:curY+0.04, w:colW[4]-0.1, h:rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'top', wrap:true});
-      curY += rH;
     });
 
     // 종합의견 + 첨부사진 (새 슬라이드)
