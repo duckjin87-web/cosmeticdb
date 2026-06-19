@@ -2606,8 +2606,9 @@ async function doExportReport() {
     // 의견 길이에 맞춰 칸 높이 동적 산정 (의견이 길수록 칸이 커짐)
     const noteW = sumW[1] - 0.25;
     const charsPerLine = Math.max(20, Math.floor(noteW / 0.16));
-    const noteLines = Math.max(1, Math.ceil((overallNote.length||1) / charsPerLine));
-    const totalRH = Math.max(0.5, noteLines * 0.24 + 0.22);
+    const rawLines = (overallNote || '').split('\n');
+    const noteLines = rawLines.reduce((sum, line) => sum + Math.max(1, Math.ceil((line.length||1)/charsPerLine)), 0);
+    const totalRH = Math.max(0.5, noteLines * 0.22 + 0.22);
     ov.addShape(pptx.shapes.RECTANGLE, {x:CX, y:oy, w:sumW[0], h:totalRH, fill:{color:MG}, line:{color:LG}});
     ov.addText(`총점\n(${sc.total}/100)`, {x:CX+0.06, y:oy+0.1, w:sumW[0]-0.1, h:totalRH-0.16, fontSize:10, bold:true, color:DT, align:'center', fontFace:FF, valign:'middle'});
     ov.addShape(pptx.shapes.RECTANGLE, {x:CX+sumW[0], y:oy, w:sumW[1], h:totalRH, fill:{color:WH}, line:{color:LG}});
@@ -2677,7 +2678,7 @@ async function doExportReport() {
         let py = TY;
         // 동선 바
         ps.addShape(pptx.shapes.RECTANGLE, {x:CX, y:py, w:CW, h:0.27, fill:{color:DN}, line:{color:DN}});
-        ps.addText(routeTxt, {x:CX+0.1, y:py+0.04, w:CW-0.15, h:0.2, fontSize:8.5, color:WH, fontFace:FF});
+        ps.addText(routeTxt, {x:CX+0.1, y:py+0.04, w:CW-0.15, h:0.2, fontSize:11, color:WH, fontFace:FF});
         py += 0.3;
         // 2×2 그리드
         const cellW = (CW-0.15)/2, cellH = (BOT-py-0.1)/2;
@@ -2688,7 +2689,7 @@ async function doExportReport() {
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:cellH, fill:{color:WH}, line:{color:LG}});
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:tH, fill:{color:KB}, line:{color:KB}});
           const label = blk.totalParts>1 ? `${blk.stepNum}. ${blk.name} (${blk.partIdx}/${blk.totalParts})` : `${blk.stepNum}. ${blk.name}`;
-          ps.addText(label, {x:bx+0.08, y:by+0.06, w:cellW-0.14, h:tH-0.08, fontSize:10.5, bold:true, color:WH, fontFace:FF, valign:'middle', shrinkText:true});
+          ps.addText(label, {x:bx+0.08, y:by+0.06, w:cellW-0.14, h:tH-0.08, fontSize:10, bold:true, color:WH, fontFace:FF, valign:'middle', shrinkText:true});
 
           let contentY = by + tH + 0.05;
           const bottomY = by + cellH - 0.06;
@@ -2697,7 +2698,7 @@ async function doExportReport() {
           if (blk.memo) {
             const memoH = Math.max(0.24, Math.ceil(blk.memo.length/36)*0.16+0.1);
             ps.addShape(pptx.shapes.RECTANGLE, {x:bx+0.06, y:contentY, w:cellW-0.12, h:memoH, fill:{color:DNL}, line:{color:DN, width:0.5}});
-            ps.addText([{text:'[특이사항] ', options:{bold:true, color:DN}}, {text:blk.memo, options:{color:DT}}], {x:bx+0.1, y:contentY+0.03, w:cellW-0.2, h:memoH-0.06, fontSize:8, fontFace:FF, valign:'middle', wrap:true});
+            ps.addText([{text:'[특이사항] ', options:{bold:true, color:DN}}, {text:blk.memo, options:{color:DT}}], {x:bx+0.1, y:contentY+0.03, w:cellW-0.2, h:memoH-0.06, fontSize:10, fontFace:FF, valign:'middle', wrap:true});
             contentY += memoH + 0.06;
           }
 
@@ -2708,14 +2709,11 @@ async function doExportReport() {
             ps.addText('사진 없음', {x:ia.x, y:ia.y+ia.h/2-0.15, w:ia.w, h:0.3, fontSize:10, color:'aaaaaa', align:'center', fontFace:FF});
           } else {
             const nc = photos.length; // 블록당 최대 2장이므로 1행 배치
-            const hasMemo = photos.some(p=>p?.memo?.trim());
-            const imgW=(ia.w-(nc-1)*0.06)/nc, imgH=ia.h*(hasMemo?0.82:0.97);
+            const imgW=(ia.w-(nc-1)*0.06)/nc, imgH=ia.h;
             photos.forEach((p,pi) => {
               const ix=ia.x+pi*(imgW+0.06), iy=ia.y;
               const src=(p&&typeof p==='object')?p.src:p;
-              const memo=(p&&typeof p==='object')?(p.memo||''):'';
               try{ps.addImage({data:src, x:ix, y:iy, w:imgW, h:imgH});}catch(e){}
-              if(memo) ps.addText(`사진메모: ${memo}`, {x:ix, y:iy+imgH+0.02, w:imgW, h:ia.h-imgH-0.04, fontSize:7, color:ST, fontFace:FF, wrap:true, italic:true});
             });
           }
         });
