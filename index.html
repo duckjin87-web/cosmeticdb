@@ -2319,6 +2319,49 @@ function loadPptxLib() {
   });
 }
 
+/* base64 데이터 URI에서 원본 이미지 가로/세로 픽셀 크기 추출 (PNG/JPEG) */
+function getImageDims(dataUri) {
+  try {
+    const base64 = String(dataUri).split(',')[1];
+    if (!base64) return null;
+    const bin = atob(base64);
+    const b = i => bin.charCodeAt(i);
+    if (b(0)===0x89 && b(1)===0x50 && b(2)===0x4E && b(3)===0x47) { // PNG
+      const w = (b(16)<<24)|(b(17)<<16)|(b(18)<<8)|b(19);
+      const h = (b(20)<<24)|(b(21)<<16)|(b(22)<<8)|b(23);
+      return (w>0 && h>0) ? {w, h} : null;
+    }
+    if (b(0)===0xFF && b(1)===0xD8) { // JPEG
+      let i = 2;
+      while (i < bin.length - 9) {
+        if (b(i) !== 0xFF) { i++; continue; }
+        const marker = b(i+1);
+        if (marker===0xC0||marker===0xC1||marker===0xC2||marker===0xC3||marker===0xC5||marker===0xC6||marker===0xC7||
+            marker===0xC9||marker===0xCA||marker===0xCB||marker===0xCD||marker===0xCE||marker===0xCF) {
+          const h = (b(i+5)<<8)|b(i+6);
+          const w = (b(i+7)<<8)|b(i+8);
+          return (w>0 && h>0) ? {w, h} : null;
+        }
+        if (marker===0xD8 || marker===0xD9) { i+=2; continue; }
+        const len = (b(i+2)<<8)|b(i+3);
+        i += 2 + len;
+      }
+    }
+  } catch(e) {}
+  return null;
+}
+
+/* 슬롯(slotW × slotH) 안에 원본 비율을 유지하며 가운데 정렬한 좌표/크기 계산 */
+function fitImageInSlot(src, slotX, slotY, slotW, slotH) {
+  const dims = getImageDims(src);
+  if (!dims) return {x:slotX, y:slotY, w:slotW, h:slotH};
+  const ratio = dims.w / dims.h, slotRatio = slotW / slotH;
+  let w, h;
+  if (ratio > slotRatio) { w = slotW; h = slotW / ratio; }
+  else { h = slotH; w = slotH * ratio; }
+  return {x: slotX + (slotW-w)/2, y: slotY + (slotH-h)/2, w, h};
+}
+
 async function exportInternalReport() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
   toast('PPTX 생성 중...');
@@ -2694,11 +2737,19 @@ async function doExportReport() {
           let contentY = by + tH + 0.05;
           const bottomY = by + cellH - 0.06;
 
-          // 동선 특이사항 — 사진별 메모와 구분되는 강조 박스로 별도 표기
+          // 동선 특이사항 — 사진별 메모와 구분되는 강조 박스로 별도 표기 (글자수에 맞춰 칸 높이 산정)
           if (blk.memo) {
-            const memoH = Math.max(0.24, Math.ceil(blk.memo.length/36)*0.16+0.1);
+            const memoTextW = cellW - 0.2;
+            const memoCharsPerLine = Math.max(8, Math.floor(memoTextW / 0.165));
+            const memoRawLines = blk.memo.split('\n');
+            const prefixLen = 6; // "[특이사항] " 만큼 첫 줄 여유 확보
+            const memoLines = memoRawLines.reduce((sum, line, idx) => {
+              const len = (line.length||1) + (idx===0 ? prefixLen : 0);
+              return sum + Math.max(1, Math.ceil(len / memoCharsPerLine));
+            }, 0);
+            const memoH = Math.max(0.26, memoLines * 0.19 + 0.14);
             ps.addShape(pptx.shapes.RECTANGLE, {x:bx+0.06, y:contentY, w:cellW-0.12, h:memoH, fill:{color:DNL}, line:{color:DN, width:0.5}});
-            ps.addText([{text:'[특이사항] ', options:{bold:true, color:DN}}, {text:blk.memo, options:{color:DT}}], {x:bx+0.1, y:contentY+0.03, w:cellW-0.2, h:memoH-0.06, fontSize:10, fontFace:FF, valign:'middle', wrap:true});
+            ps.addText([{text:'[특이사항] ', options:{bold:true, color:DN}}, {text:blk.memo, options:{color:DT}}], {x:bx+0.1, y:contentY+0.03, w:memoTextW, h:memoH-0.06, fontSize:10, fontFace:FF, valign:'middle', wrap:true});
             contentY += memoH + 0.06;
           }
 
@@ -2709,11 +2760,12 @@ async function doExportReport() {
             ps.addText('사진 없음', {x:ia.x, y:ia.y+ia.h/2-0.15, w:ia.w, h:0.3, fontSize:10, color:'aaaaaa', align:'center', fontFace:FF});
           } else {
             const nc = photos.length; // 블록당 최대 2장이므로 1행 배치
-            const imgW=(ia.w-(nc-1)*0.06)/nc, imgH=ia.h;
+            const slotW=(ia.w-(nc-1)*0.06)/nc, slotH=ia.h;
             photos.forEach((p,pi) => {
-              const ix=ia.x+pi*(imgW+0.06), iy=ia.y;
+              const sx=ia.x+pi*(slotW+0.06), sy=ia.y;
               const src=(p&&typeof p==='object')?p.src:p;
-              try{ps.addImage({data:src, x:ix, y:iy, w:imgW, h:imgH});}catch(e){}
+              const fit = fitImageInSlot(src, sx, sy, slotW, slotH);
+              try{ps.addImage({data:src, x:fit.x, y:fit.y, w:fit.w, h:fit.h});}catch(e){}
             });
           }
         });
