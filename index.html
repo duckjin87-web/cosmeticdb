@@ -2737,19 +2737,23 @@ async function doExportReport() {
           let contentY = by + tH + 0.05;
           const bottomY = by + cellH - 0.06;
 
-          // 동선 특이사항 — 사진별 메모와 구분되는 강조 박스로 별도 표기 (글자수에 맞춰 칸 높이 산정)
+          // 동선 특이사항 — 구분선(divider) 스타일 태그로 표기, 글자수에 맞춰 칸 높이 산정
           if (blk.memo) {
+            const items = blk.memo.split(/[,\n]/).map(s=>s.trim()).filter(Boolean);
             const memoTextW = cellW - 0.2;
             const memoCharsPerLine = Math.max(8, Math.floor(memoTextW / 0.165));
-            const memoRawLines = blk.memo.split('\n');
-            const prefixLen = 6; // "[특이사항] " 만큼 첫 줄 여유 확보
-            const memoLines = memoRawLines.reduce((sum, line, idx) => {
-              const len = (line.length||1) + (idx===0 ? prefixLen : 0);
-              return sum + Math.max(1, Math.ceil(len / memoCharsPerLine));
-            }, 0);
-            const memoH = Math.max(0.26, memoLines * 0.19 + 0.14);
+            const prefixLen = 7; // "[특이사항]  " 자리
+            const dividerLen = 5; // "   |   " 자리
+            const totalLen = prefixLen + items.reduce((s,it,idx) => s + it.length + (idx>0?dividerLen:0), 0);
+            const memoLines = Math.max(1, Math.ceil(totalLen / memoCharsPerLine));
+            const memoH = Math.max(0.3, memoLines * 0.19 + 0.14);
             ps.addShape(pptx.shapes.RECTANGLE, {x:bx+0.06, y:contentY, w:cellW-0.12, h:memoH, fill:{color:DNL}, line:{color:DN, width:0.5}});
-            ps.addText([{text:'[특이사항] ', options:{bold:true, color:DN}}, {text:blk.memo, options:{color:DT}}], {x:bx+0.1, y:contentY+0.03, w:memoTextW, h:memoH-0.06, fontSize:10, fontFace:FF, valign:'middle', wrap:true});
+            const runs = [{text:'[특이사항]  ', options:{bold:true, color:DN}}];
+            items.forEach((it, idx) => {
+              if (idx>0) runs.push({text:'   |   ', options:{color:'94A3B8'}});
+              runs.push({text:it, options:{color:DT}});
+            });
+            ps.addText(runs, {x:bx+0.1, y:contentY+0.03, w:memoTextW, h:memoH-0.06, fontSize:10, fontFace:FF, valign:'middle', wrap:true});
             contentY += memoH + 0.06;
           }
 
