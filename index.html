@@ -758,7 +758,7 @@ body{background:var(--s1);color:var(--txt);
                       <th style="min-width:90px;">종류</th>
                       <th style="min-width:70px;">용량</th>
                       <th>보유대수</th>
-                      <th style="min-width:130px;">보조가마</th>
+                      <th style="min-width:148px;width:148px;">보조가마</th>
                       <th style="min-width:100px;">비고</th>
                       <th style="width:28px;"></th>
                     </tr>
@@ -1616,10 +1616,10 @@ function renderMfgEquipTable(tbl) {
     <td><input list="mfg-capacity-list" value="${row.capacity||''}" onchange="updateMfgEquipRow(${i},'capacity',this.value)" placeholder="용량 선택/입력"></td>
     <td><input value="${row.cnt||''}" type="number" min="0" onchange="updateMfgEquipRow(${i},'cnt',+this.value)" placeholder="0"></td>
     <td>
-      <div style="display:flex;flex-wrap:nowrap;gap:8px;">
-        <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.oil?'checked':''} onchange="updateMfgEquipAux(${i},'oil',this.checked)">유상</label>
-        <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.water?'checked':''} onchange="updateMfgEquipAux(${i},'water',this.checked)">수상</label>
-        <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.cold?'checked':''} onchange="updateMfgEquipAux(${i},'cold',this.checked)">냉각</label>
+      <div style="display:flex;flex-wrap:nowrap;justify-content:center;gap:10px;">
+        <label style="display:inline-flex;align-items:center;gap:3px;font-size:10px;white-space:nowrap;"><input type="checkbox" style="margin:0;" ${aux.oil?'checked':''} onchange="updateMfgEquipAux(${i},'oil',this.checked)">유상</label>
+        <label style="display:inline-flex;align-items:center;gap:3px;font-size:10px;white-space:nowrap;"><input type="checkbox" style="margin:0;" ${aux.water?'checked':''} onchange="updateMfgEquipAux(${i},'water',this.checked)">수상</label>
+        <label style="display:inline-flex;align-items:center;gap:3px;font-size:10px;white-space:nowrap;"><input type="checkbox" style="margin:0;" ${aux.cold?'checked':''} onchange="updateMfgEquipAux(${i},'cold',this.checked)">냉각</label>
       </div>
     </td>
     <td><input value="${row.note||''}" onchange="updateMfgEquipRow(${i},'note',this.value)" placeholder="—"></td>
