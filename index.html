@@ -743,6 +743,50 @@ body{background:var(--s1);color:var(--txt);
           </div>
           <div id="mfg-content">
             <div class="eval-section">
+              <div class="eval-section-title">설비규격 <span class="pts-badge" style="background:#e2e8f0;color:#64748b;">참고정보 · 비점수</span></div>
+              <div class="num-row">
+                <span class="num-label">설비명</span>
+                <input class="num-input" id="f-mfg_equip_name" type="text" style="width:160px;"
+                  placeholder="예: Homo/Ultra mixer" oninput="patchCheck('mfg_equip_name',this.value)">
+              </div>
+              <div class="num-row">
+                <span class="num-label">보유대수 — 100kg</span>
+                <input class="num-input" id="f-mfg_equip_100kg" type="number" min="0"
+                  placeholder="0" oninput="patchCheck('mfg_equip_100kg',+this.value||null)">
+                <span class="num-unit">대</span>
+              </div>
+              <div class="num-row">
+                <span class="num-label">보유대수 — 500kg</span>
+                <input class="num-input" id="f-mfg_equip_500kg" type="number" min="0"
+                  placeholder="0" oninput="patchCheck('mfg_equip_500kg',+this.value||null)">
+                <span class="num-unit">대</span>
+              </div>
+              <div class="num-row">
+                <span class="num-label">보유대수 — 1T</span>
+                <input class="num-input" id="f-mfg_equip_1t" type="number" min="0"
+                  placeholder="0" oninput="patchCheck('mfg_equip_1t',+this.value||null)">
+                <span class="num-unit">대</span>
+              </div>
+              <div class="num-row">
+                <span class="num-label">보유대수 — 3T</span>
+                <input class="num-input" id="f-mfg_equip_3t" type="number" min="0"
+                  placeholder="0" oninput="patchCheck('mfg_equip_3t',+this.value||null)">
+                <span class="num-unit">대</span>
+              </div>
+              <div class="num-row">
+                <span class="num-label">보유대수 — 5T</span>
+                <input class="num-input" id="f-mfg_equip_5t" type="number" min="0"
+                  placeholder="0" oninput="patchCheck('mfg_equip_5t',+this.value||null)">
+                <span class="num-unit">대</span>
+              </div>
+              <div class="num-row">
+                <span class="num-label">집진기(칭량)</span>
+                <input class="num-input" id="f-mfg_equip_dust" type="number" min="0"
+                  placeholder="0" oninput="patchCheck('mfg_equip_dust',+this.value||null)">
+                <span class="num-unit">대</span>
+              </div>
+            </div>
+            <div class="eval-section">
               <div class="eval-section-title">제조관리 O/X 항목 <span class="pts-badge">30점 기준</span></div>
               <div id="yn-mfg"></div>
               <div id="custom-section-mfg"></div>
@@ -967,6 +1011,7 @@ const YN_DEF = {
     {key:'mat_q5', label:'자재불량 프로세스 보유',                pts:1},
     {key:'mat_q6', label:'잔량 환입조건',                         pts:1},
     {key:'mat_q7', label:'자재 책임자 지정',                      pts:1},
+    {key:'mat_q8', label:'자재관리 프로그램·실시간 관리 가능',    pts:1},
   ],
   pkg:[
     {key:'pkg_q1', label:'포장사양서·표준관리품 배치',            pts:1},
@@ -977,14 +1022,18 @@ const YN_DEF = {
     {key:'pkg_q6', label:'중량선별기·비전 보유',                  pts:3, heavy:true},
     {key:'pkg_q7', label:'품질 클레임 최근 12개월 있음',          pts:-1, neg:true},
     {key:'pkg_q8', label:'생산기록서 양식 보유',                  pts:1},
+    {key:'pkg_q9', label:'튜브 실링검사·리크테스트 진행',         pts:1},
+    {key:'pkg_q10', label:'용기 감압검사 진행',                   pts:1},
+    {key:'pkg_q11', label:'라벨 자체 발행 가능(바코드 등)',       pts:1},
+    {key:'pkg_q12', label:'특이 공정 가능여부',                   pts:1},
   ],
   fin:[
     {key:'fin_q1', label:'완제품창고 독립',                       pts:1},
     {key:'fin_q2', label:'완제품 보관 CAPA 여유',                 pts:1},
     {key:'fin_q3', label:'출고 품질검사 실시',                    pts:2},
+    {key:'fin_q4', label:'배차 자체규정 보유',                    pts:1},
   ],
   ops:[
-    {key:'ops_q1',  label:'배차 자체규정 보유',                   pts:1},
     {key:'ops_q3',  label:'타 OEM 전산 경험',                     pts:1},
     {key:'ops_q4',  label:'콜마 담당 인원 배정 가능',             pts:1},
     {key:'ops_q5',  label:'설비 증량·이전 계획',                  pts:1},
@@ -994,10 +1043,12 @@ const YN_DEF = {
     {key:'ops_q9',  label:'단가 협의 완료',                       pts:1},
     {key:'ops_q10', label:'긴급 단납기 대응',                     pts:1},
     {key:'ops_q11', label:'입차 제한 없음',                       pts:1},
+    {key:'ops_q12', label:'외부 도급사 운영 여부',                pts:1},
+    {key:'ops_q13', label:'인원추가 수급 대응 가능',              pts:1},
   ]
 };
 
-const REAL_MAX  = { mfg:12, mat:9, pkg:12, fin:4, ops:12 };
+const REAL_MAX  = { mfg:12, mat:10, pkg:16, fin:7, ops:11 };
 const SPEC_MAX  = { mfg:30, mat:20, pkg:25, fin:10, ops:15 };
 const PKG_BASE  = SPEC_MAX.mat + SPEC_MAX.pkg + SPEC_MAX.fin + SPEC_MAX.ops; // 70
 
@@ -1016,7 +1067,7 @@ const SAMPLE_RECORDS = [
       pkg_q1:'Y',pkg_q2:'Y',pkg_q3:'Y',pkg_q4:'Y',pkg_q5:'Y',pkg_q6:'N',pkg_q7:'N',pkg_q8:'Y',
       pkg_util:75, pkg_lt:7,
       fin_q1:'Y',fin_q2:'Y',fin_q3:'Y',
-      ops_q1:'Y',ops_q2:'BOTH',ops_q3:'Y',ops_q4:'Y',ops_q5:'N',
+      fin_q4:'Y',ops_q2:'BOTH',ops_q3:'Y',ops_q4:'Y',ops_q5:'N',
       ops_q6:'Y',ops_q7:'N',ops_q8:'Y',ops_q9:'Y',ops_q10:'Y',ops_q11:'Y',
       pkg_tbl:[
         {name:'튜브',daily:300000,monthly:6000000,kolma:150000,cnt:2,note:''},
@@ -1041,7 +1092,7 @@ const SAMPLE_RECORDS = [
       pkg_q1:'Y',pkg_q2:'N',pkg_q3:null,pkg_q4:null,pkg_q5:null,pkg_q6:null,
       pkg_q7:'N',pkg_q8:'Y',
       fin_q1:'Y',fin_q2:null,fin_q3:null,
-      ops_q1:null,ops_q2:'ONE',ops_q3:null,ops_q4:null,ops_q5:null,
+      fin_q4:null,ops_q2:'ONE',ops_q3:null,ops_q4:null,ops_q5:null,
       ops_q6:null,ops_q7:null,ops_q8:null,ops_q9:null,ops_q10:null,ops_q11:null,
       pkg_tbl:[{name:'단발',daily:200000,monthly:4000000,kolma:100000,cnt:2,note:'신규도입'}]
     },
@@ -1070,6 +1121,12 @@ function saveRecords(r) { localStorage.setItem(LS_KEY, JSON.stringify(r)); }
 function getRecord(id)  {
   const rec = loadRecords().find(r => r.id === id) || null;
   if (rec && !rec.privacy) rec.privacy = { consent:'Y', name:'', signature:'' };
+  if (rec && rec.checks && rec.checks.ops_q1 !== undefined && rec.checks.fin_q4 === undefined) {
+    rec.checks.fin_q4 = rec.checks.ops_q1;
+    rec.checks.fin_q4_note   = rec.checks.ops_q1_note;
+    rec.checks.fin_q4_photos = rec.checks.ops_q1_photos;
+    delete rec.checks.ops_q1; delete rec.checks.ops_q1_note; delete rec.checks.ops_q1_photos;
+  }
   return rec;
 }
 function upsertRecord(rec) {
@@ -1109,10 +1166,10 @@ function calcScores(record) {
   addDomainScore(raw, 'fin', YN_DEF.fin, c);
   addDomainScore(raw, 'ops', YN_DEF.ops, c);
 
-  // PLT 특수
+  // PLT 특수 (4.완제품 출고 항목)
   const plt = c['ops_q2'];
-  if (plt === 'BOTH') raw.ops += 2;
-  else if (plt === 'ONE') raw.ops += 1;
+  if (plt === 'BOTH') raw.fin += 2;
+  else if (plt === 'ONE') raw.fin += 1;
 
   // 환산: round(raw/realMax * specMax)
   const scores = { mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 };
@@ -1301,13 +1358,20 @@ function fillForm(rec) {
     btn.style.background  = on ? '#f0f9ff'    : '';
   });
 
-  ['mfg','mat','pkg','fin'].forEach(d => renderYN(d, c));
-  renderOps(c);
+  ['mfg','mat','pkg','fin','ops'].forEach(d => renderYN(d, c));
+  renderPLT(c);
   ['mfg','mat','pkg','fin','ops'].forEach(d => renderCustomSection(d, rec));
 
   setVal('f-mfg_loss',      c.mfg_loss      ?? '');
   setVal('f-mfg_capa',      c.mfg_capa      ?? '');
   setVal('f-mfg_headcount', c.mfg_headcount ?? '');
+  setVal('f-mfg_equip_name',  c.mfg_equip_name  ?? '');
+  setVal('f-mfg_equip_100kg', c.mfg_equip_100kg ?? '');
+  setVal('f-mfg_equip_500kg', c.mfg_equip_500kg ?? '');
+  setVal('f-mfg_equip_1t',    c.mfg_equip_1t    ?? '');
+  setVal('f-mfg_equip_3t',    c.mfg_equip_3t    ?? '');
+  setVal('f-mfg_equip_5t',    c.mfg_equip_5t    ?? '');
+  setVal('f-mfg_equip_dust',  c.mfg_equip_dust  ?? '');
   setVal('f-pkg_util',      c.pkg_util      ?? '');
   setVal('f-pkg_lt',        c.pkg_lt        ?? '');
 
@@ -1373,27 +1437,21 @@ function ynItemHtml(it, checks, num) {
   </div>`;
 }
 
-function renderOps(checks) {
-  const wrap = document.getElementById('yn-ops');
+function renderPLT(checks) {
+  const wrap = document.getElementById('yn-fin');
   if (!wrap) return;
-  let html = '';
-  const q1 = YN_DEF.ops[0];
-  html += ynRowHtml(q1, checks[q1.key], checks, 1);
-
   const plt = checks['ops_q2'] || null;
-  html += `
+  const num = YN_DEF.fin.length + 1;
+  wrap.insertAdjacentHTML('beforeend', `
   <div class="plt-group">
-    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">2.</span>거래 PLT (KPP/AJ)</span>
+    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>거래 PLT (KPP/AJ)</span>
     <span class="yn-pts">최대+2pt</span>
     <div class="plt-opts">
       <span class="plt-opt${plt==='NONE'?' on':''}" onclick="setPLT('NONE',this)">없음</span>
       <span class="plt-opt${plt==='ONE'?' on':''}" onclick="setPLT('ONE',this)">1개</span>
       <span class="plt-opt${plt==='BOTH'?' on both':''}" onclick="setPLT('BOTH',this)">KPP+AJ</span>
     </div>
-  </div>`;
-
-  for (let i = 1; i < YN_DEF.ops.length; i++) html += ynRowHtml(YN_DEF.ops[i], checks[YN_DEF.ops[i].key], checks, i+2);
-  wrap.innerHTML = html;
+  </div>`);
 }
 
 function ynRowHtml(it, cur, checks, num) {
@@ -1976,8 +2034,8 @@ async function handleItemPhotoUpload(input, key) {
   rec.checks[key + '_photos'] = existing;
   upsertRecord(rec);
   const domain = key.split('_')[0];
-  if (['mfg','mat','pkg','fin'].includes(domain)) renderYN(domain, rec.checks);
-  else renderOps(rec.checks);
+  if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
+  if (domain === 'fin') renderPLT(rec.checks);
   renderCustomSection(domain, rec);
   input.value = '';
   toast('항목 사진 추가 완료');
@@ -1991,8 +2049,8 @@ function deleteItemPhoto(key, pi) {
   rec.checks[key + '_photos'] = photos;
   upsertRecord(rec);
   const domain = key.split('_')[0];
-  if (['mfg','mat','pkg','fin'].includes(domain)) renderYN(domain, rec.checks);
-  else renderOps(rec.checks);
+  if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
+  if (domain === 'fin') renderPLT(rec.checks);
   renderCustomSection(domain, rec);
   toast('사진 삭제됨');
 }
@@ -2800,8 +2858,8 @@ async function doExportReport() {
     const issueRows = [];
     domainDefs.filter(d=>!d.skip).forEach(d => {
       const domNote = (rec.notes||{})[d.key]||'';
-      const allItems = d.key==='ops'
-        ? [...YN_DEF.ops.slice(0,1), {key:'_plt', label:'거래 PLT (KPP/AJ)', _plt:true}, ...YN_DEF.ops.slice(1)]
+      const allItems = d.key==='fin'
+        ? [...YN_DEF.fin, {key:'_plt', label:'거래 PLT (KPP/AJ)', _plt:true}]
         : YN_DEF[d.key];
       const domItems = [];
       allItems.forEach(it => {
@@ -3169,11 +3227,9 @@ async function doExportExcel() {
   ];
   domains.forEach(d => {
     if (d.skip) return;
-    // PLT 처리 (ops)
-    const allItems = d.key === 'ops'
-      ? [ ...d.items.slice(0,1),
-          { key:'ops_q2_display', label:'거래 PLT (KPP/AJ)', pts:2, _isPLT:true },
-          ...d.items.slice(1) ]
+    // PLT 처리 (4.완제품 출고)
+    const allItems = d.key === 'fin'
+      ? [ ...d.items, { key:'ops_q2_display', label:'거래 PLT (KPP/AJ)', pts:2, _isPLT:true } ]
       : d.items;
 
     let numOffset = 0;
@@ -3290,16 +3346,28 @@ function printChecklist() {
     <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;">현장 메모</th>
   </tr>`;
 
-  function domainSection(title, domain, specMax, bgColor) {
+  function pltRowHtml(num) {
+    const plt = c['ops_q2'] || null;
+    const pltLabel = plt==='BOTH'?'KPP+AJ':plt==='ONE'?'1개':plt==='NONE'?'없음':'—';
+    return `<tr>
+      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>거래 PLT (KPP/AJ)</td>
+      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
+      <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pltLabel}</td>
+      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
+    </tr>`;
+  }
+
+  function domainSection(title, domain, specMax, bgColor, withPlt) {
     const rows = YN_DEF[domain].map((it, i) => {
       const v      = c[it.key] || null;
       const note   = c[it.key+'_note'] || '';
       const photos = normalizePhotos(c[it.key+'_photos']);
       return ynRow(it, v, note, photos, i + 1);
     }).join('');
+    const pltRow = withPlt ? pltRowHtml(YN_DEF[domain].length + 1) : '';
 
     // 커스텀 항목 (기본 항목 수 이후 번호 연속)
-    const base = YN_DEF[domain].length;
+    const base = YN_DEF[domain].length + (withPlt ? 1 : 0);
     const customRows = (rec.customItems||[]).filter(ci=>ci.domain===domain).map((ci, idx) => {
       const fakeIt = { key:ci.id, label:ci.label, pts:ci.pts, neg:ci.pts<0, heavy:false };
       const v      = c[ci.id] || null;
@@ -3313,37 +3381,8 @@ function printChecklist() {
       <div style="background:${bgColor};color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;display:flex;justify-content:space-between;">
         <span>${title}</span><span style="opacity:.8;font-size:9px;">만점 ${specMax}pt</span>
       </div>
-      <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;">${TH}${rows}${customRows}</table>
+      <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;">${TH}${rows}${pltRow}${customRows}</table>
       ${domNote ? `<div style="padding:7px 10px;background:#f0f4ff;border:1px solid #cbd5e1;border-top:none;"><span style="font-size:10px;font-weight:700;color:#3b4f8a;">총평: </span><span style="font-size:12px;font-weight:700;color:#1e293b;">${domNote}</span></div>` : ''}
-    </div>`;
-  }
-
-  function opsSection() {
-    const plt = c['ops_q2'] || null;
-    const pltLabel = plt==='BOTH'?'KPP+AJ':plt==='ONE'?'1개':plt==='NONE'?'없음':'—';
-    const q1 = YN_DEF.ops[0];
-    const q1Photos = normalizePhotos(c[q1.key+'_photos']);
-    const q1row = ynRow(q1, c[q1.key]||null, c[q1.key+'_note']||'', q1Photos, 1);
-    const pltrow = `<tr>
-      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">2.</span>거래 PLT (KPP/AJ)</td>
-      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
-      <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pltLabel}</td>
-      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
-    </tr>`;
-    const restRows = YN_DEF.ops.slice(1).map((it, i) => {
-      const ph = normalizePhotos(c[it.key+'_photos']);
-      return ynRow(it, c[it.key]||null, c[it.key+'_note']||'', ph, i + 3);
-    }).join('');
-    const opsBase = YN_DEF.ops.length;
-    const customRows = (rec.customItems||[]).filter(ci=>ci.domain==='ops').map((ci, idx) => {
-      const fakeIt = { key:ci.id, label:ci.label, pts:ci.pts, neg:ci.pts<0, heavy:false };
-      return ynRow(fakeIt, c[ci.id]||null, c[ci.id+'_note']||'', normalizePhotos(c[ci.id+'_photos']), opsBase + idx + 1);
-    }).join('');
-    return `<div style="margin-bottom:10px;break-inside:avoid;">
-      <div style="background:#7c3aed;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;display:flex;justify-content:space-between;">
-        <span>5. 운영·거래조건</span><span style="opacity:.8;font-size:9px;">만점 15pt</span>
-      </div>
-      <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;">${TH}${q1row}${pltrow}${restRows}${customRows}</table>
     </div>`;
   }
 
@@ -3443,8 +3482,8 @@ function printChecklist() {
       <tbody>${capaRows}</tbody>
     </table>
   </div>
-  ${domainSection('4. 완제품관리','fin',10,'#be185d')}
-  ${opsSection()}
+  ${domainSection('4. 완제품관리','fin',10,'#be185d',true)}
+  ${domainSection('5. 운영·거래조건','ops',15,'#7c3aed')}
   <!-- 점수 요약 -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr) auto;gap:6px;margin-bottom:10px;">
     ${['mfg','mat','pkg','fin','ops'].map((d,i) => {
