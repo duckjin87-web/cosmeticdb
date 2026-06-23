@@ -878,6 +878,8 @@ body{background:var(--s1);color:var(--txt);
         <button class="btn" onclick="exportChecklistExcel()" title="Excel 파일로 체크리스트 다운로드">📊 Excel 저장</button>
         <button class="btn report" onclick="exportInternalReport()"
           title="내부보고용 PPTX 다운로드 (가로형 4슬라이드)">📄 내부보고용</button>
+        <button class="btn" onclick="fsaChooseSaveFolder()" title="원드라이브 동기화 폴더 등 저장 위치를 지정하면 Excel/PPTX가 다운로드 대신 해당 폴더에 바로 저장됩니다.">📁 저장 폴더 설정</button>
+        <span id="fsaStatus" style="font-size:12px;color:var(--muted);align-self:center;"></span>
         <button class="btn" onclick="exportEvalCSV()" style="margin-left:auto;">📥 CSV 내보내기</button>
         <button class="btn" style="border-color:var(--red);color:var(--red);"
           onclick="setEvalStatus(currentId,'DROP')">DROP</button>
@@ -2362,6 +2364,90 @@ function fitImageInSlot(src, slotX, slotY, slotW, slotH) {
   return {x: slotX + (slotW-w)/2, y: slotY + (slotH-h)/2, w, h};
 }
 
+/* ══ 16c. 원드라이브(File System Access API) 공용 폴더 저장 ══ */
+const FSA_SUPPORTED = typeof window.showDirectoryPicker === 'function';
+const FSA_DB_NAME = 'cosmedb_fsa', FSA_STORE = 'handles', FSA_DB_KEY = 'saveDir';
+
+function fsaOpenDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(FSA_DB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(FSA_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+async function fsaGetSavedDirHandle() {
+  try {
+    const db = await fsaOpenDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(FSA_STORE, 'readonly');
+      const req = tx.objectStore(FSA_STORE).get(FSA_DB_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror   = () => reject(req.error);
+    });
+  } catch(e) { return null; }
+}
+
+async function fsaSaveDirHandle(handle) {
+  const db = await fsaOpenDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(FSA_STORE, 'readwrite');
+    tx.objectStore(FSA_STORE).put(handle, FSA_DB_KEY);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function fsaEnsurePermission(handle) {
+  try {
+    if (await handle.queryPermission({mode:'readwrite'}) === 'granted') return true;
+    if (await handle.requestPermission({mode:'readwrite'}) === 'granted') return true;
+  } catch(e) {}
+  return false;
+}
+
+async function fsaChooseSaveFolder() {
+  if (!FSA_SUPPORTED) { toast('이 브라우저는 폴더 직접 저장을 지원하지 않습니다 (Chrome/Edge 사용 권장).', 'err'); return; }
+  try {
+    const handle = await window.showDirectoryPicker({mode:'readwrite'});
+    await fsaSaveDirHandle(handle);
+    updateFsaStatus();
+    toast('저장 폴더가 설정되었습니다: ' + handle.name, 'ok');
+  } catch(e) {
+    if (e.name !== 'AbortError') toast('폴더 선택 중 오류가 발생했습니다.', 'err');
+  }
+}
+
+/* blob을 지정된 폴더에 직접 저장. 폴더 미설정/권한 거부 시 일반 다운로드로 대체 */
+async function fsaSaveBlob(blob, fileName) {
+  if (FSA_SUPPORTED) {
+    const handle = await fsaGetSavedDirHandle();
+    if (handle && await fsaEnsurePermission(handle)) {
+      try {
+        const fileHandle = await handle.getFileHandle(fileName, {create:true});
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        toast('저장 완료: ' + handle.name + ' / ' + fileName, 'ok');
+        return;
+      } catch(e) { /* 폴더 저장 실패 시 일반 다운로드로 대체 */ }
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function updateFsaStatus() {
+  const el = document.getElementById('fsaStatus');
+  if (!el) return;
+  if (!FSA_SUPPORTED) { el.textContent = '폴더 직접저장 미지원 브라우저'; return; }
+  const handle = await fsaGetSavedDirHandle();
+  el.textContent = handle ? ('저장 폴더: ' + handle.name) : '저장 폴더 미설정 (다운로드로 저장됨)';
+}
 async function exportInternalReport() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
   toast('PPTX 생성 중...');
@@ -2778,8 +2864,8 @@ async function doExportReport() {
   }
 
   const fileName = `참관보고_${rec.companyName||'업체'}_${rec.visitDate||new Date().toISOString().slice(0,10)}.pptx`;
-  await pptx.writeFile({fileName});
-  toast('내부보고용 PPTX 다운로드 완료', 'ok');
+  const blob = await pptx.write({outputType:'blob'});
+  await fsaSaveBlob(blob, fileName);
 }
 
 
@@ -2801,7 +2887,7 @@ function exportChecklistExcel() {
   document.head.appendChild(s);
 }
 
-function doExportExcel() {
+async function doExportExcel() {
   const rec = getRecord(currentId);
   syncTourSteps(rec);
   const sc = calcScores(rec);
@@ -2924,8 +3010,9 @@ function doExportExcel() {
   }
 
   const fileName = `${rec.companyName||'평가'}_${rec.visitDate||'날짜미입력'}_체크리스트.xlsx`;
-  XLSX.writeFile(wb, fileName);
-  toast('Excel 파일 저장됨: ' + fileName, 'ok');
+  const buf = XLSX.write(wb, {type:'array', bookType:'xlsx'});
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  await fsaSaveBlob(blob, fileName);
 }
 
 function printChecklist() {
@@ -3259,7 +3346,7 @@ function toggleSidebar() {
 }
 
 /* ══ 20. 초기화 ══ */
-document.addEventListener('DOMContentLoaded', () => { renderEvalList(); });
+document.addEventListener('DOMContentLoaded', () => { renderEvalList(); updateFsaStatus(); });
 </script>
 </body>
 </html>
