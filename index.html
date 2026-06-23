@@ -1872,13 +1872,11 @@ async function saveEvalDone(id) {
   toast('평가완료 처리됨 — CONFIRMED 전환을 MOD02에서 진행하세요.', 'ok');
   renderEvalList(); updateScoreBar(rec);
 
-  // 평가완료 시 저장 폴더가 지정되어 있으면 체크리스트 결과를 자동으로 공용 폴더에 저장
-  if (FSA_SUPPORTED) {
-    const handle = await fsaGetSavedDirHandle();
-    if (handle) {
-      try { await loadXlsxLib(); await doExportExcel(); }
-      catch(e) { console.error(e); toast('자동 저장 실패: ' + e.message, 'err'); }
-    }
+  // 평가완료 시 체크리스트 결과를 자동으로 저장 폴더(데스크탑) 또는 공유 시트(모바일)로 전달
+  const handle = FSA_SUPPORTED ? await fsaGetSavedDirHandle() : null;
+  if (handle || !FSA_SUPPORTED) {
+    try { await loadXlsxLib(); await doExportExcel(); }
+    catch(e) { console.error(e); toast('자동 저장 실패: ' + e.message, 'err'); }
   }
 }
 
@@ -2653,6 +2651,7 @@ async function fsaSaveBlob(blob, fileName) {
   a.href = url; a.download = fileName;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  toast('파일 다운로드됨: ' + fileName, 'ok');
 }
 
 async function updateFsaStatus() {
