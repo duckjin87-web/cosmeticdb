@@ -305,6 +305,8 @@ body{background:var(--s1);color:var(--txt);
 /* 항목별 메모 패널 */
 .yn-item-wrap{margin-bottom:4px;}
 .yn-item-wrap .yn-row{margin-bottom:0;border-radius:4px 4px 0 0;}
+.yn-item-wrap.yn-item-locked .yn-row{opacity:.5;}
+.yn-item-wrap.yn-item-locked .yn-btn[disabled]{cursor:not-allowed;}
 .yn-item-wrap .yn-row.note-open{border-bottom-color:transparent;border-radius:4px 4px 0 0;}
 .yn-note-panel{
   display:none;padding:5px 10px 6px;
@@ -986,21 +988,20 @@ const YN_DEF = {
     {key:'mat_q5', label:'자재불량 프로세스 보유',                pts:1},
     {key:'mat_q6', label:'잔량 환입조건',                         pts:1},
     {key:'mat_q7', label:'자재 책임자 지정',                      pts:1},
-    {key:'mat_q8', label:'자재관리 프로그램·실시간 관리 가능 (임가공 단계보너스 항목)', pts:0, tierBonus:true},
+    {key:'mat_q8', label:'자재관리 프로그램(파일) / 실시간관리 가능', pts:1},
   ],
   pkg:[
     {key:'pkg_q1', label:'포장사양서·표준관리품 배치',            pts:1},
-    {key:'pkg_q2', label:'충전 샘플링 점검',                      pts:2},
+    {key:'pkg_q2', label:'샘플링 점검(누액,충전량,외관 등)',      pts:2},
     {key:'pkg_q3', label:'샘플링 기준 보유',                      pts:1},
     {key:'pkg_q4', label:'현장 운영인원 배치',                    pts:1},
     {key:'pkg_q5', label:'이물 검사 절차·장비 보유',              pts:2, heavy:true},
     {key:'pkg_q6', label:'중량선별기·비전 보유',                  pts:3, heavy:true},
     {key:'pkg_q7', label:'품질 클레임 최근 12개월 있음',          pts:-1, neg:true},
     {key:'pkg_q8', label:'생산기록서 양식 보유',                  pts:1},
-    {key:'pkg_q9', label:'튜브 실링검사·리크테스트 진행 (단계보너스 항목)', pts:0, tierBonus:true},
-    {key:'pkg_q10', label:'용기 감압검사 진행 (단계보너스 항목)', pts:0, tierBonus:true},
-    {key:'pkg_q11', label:'라벨 자체 발행 가능(바코드 등) (단계보너스 항목)', pts:0, tierBonus:true},
-    {key:'pkg_q12', label:'특이 공정 가능여부 (단계보너스 항목)', pts:0, tierBonus:true},
+    {key:'pkg_q9', label:'튜브 실링검사·리크테스트 진행',         pts:1, unlockBy:'pkg_q2'},
+    {key:'pkg_q10', label:'용기 감압검사 진행',                   pts:1, unlockBy:'pkg_q2'},
+    {key:'pkg_q11', label:'라벨 자체 발행 가능(바코드 등)',       pts:1},
   ],
   fin:[
     {key:'fin_q1', label:'완제품창고 독립',                       pts:1},
@@ -1023,11 +1024,35 @@ const YN_DEF = {
   ]
 };
 
-const REAL_MAX  = { mfg:12, mat:9, pkg:15, fin:7, ops:11 };
-const TIER_BONUS_KEYS = ['mat_q8','pkg_q9','pkg_q10','pkg_q11','pkg_q12'];
-function tierBonusScore(c) {
-  const cnt = TIER_BONUS_KEYS.filter(k => c[k] === 'Y').length;
-  return cnt >= 5 ? 3 : cnt >= 3 ? 2 : cnt >= 1 ? 1 : 0;
+const REAL_MAX  = { mfg:12, mat:10, pkg:17, fin:7, ops:11 };
+
+const PKG12_OPTS = [
+  {key:'shrink',  label:'수축'},
+  {key:'capsule', label:'캡슐제형'},
+  {key:'highVisc',label:'고점도'},
+  {key:'stir',    label:'교반충전'},
+  {key:'color',   label:'유색착인'},
+  {key:'other',   label:'기타'},
+];
+function pkg12Count(c) {
+  return PKG12_OPTS.filter(o => (c.pkg_q12_opts||{})[o.key]).length;
+}
+function pkg12Score(c) {
+  const cnt = pkg12Count(c);
+  return cnt >= 5 ? 2 : cnt >= 3 ? 1.5 : cnt >= 1 ? 1 : 0;
+}
+
+const PLT_OPTS = [
+  {key:'kpp',    label:'KPP'},
+  {key:'aju',    label:'아주'},
+  {key:'export', label:'수출용'},
+];
+function pltCount(c) {
+  return PLT_OPTS.filter(o => (c.fin_plt_opts||{})[o.key]).length;
+}
+function pltScore(c) {
+  const cnt = pltCount(c);
+  return cnt >= 3 ? 2 : cnt >= 2 ? 1.5 : cnt >= 1 ? 1 : 0;
 }
 const SPEC_MAX  = { mfg:30, mat:20, pkg:25, fin:10, ops:15 };
 const PKG_BASE  = SPEC_MAX.mat + SPEC_MAX.pkg + SPEC_MAX.fin + SPEC_MAX.ops; // 70
@@ -1047,7 +1072,7 @@ const SAMPLE_RECORDS = [
       pkg_q1:'Y',pkg_q2:'Y',pkg_q3:'Y',pkg_q4:'Y',pkg_q5:'Y',pkg_q6:'N',pkg_q7:'N',pkg_q8:'Y',
       pkg_util:75, pkg_lt:7,
       fin_q1:'Y',fin_q2:'Y',fin_q3:'Y',
-      fin_q4:'Y',ops_q2:'BOTH',ops_q3:'Y',ops_q4:'Y',ops_q5:'N',
+      fin_q4:'Y',fin_plt_opts:{kpp:true,aju:true},ops_q3:'Y',ops_q4:'Y',ops_q5:'N',
       ops_q6:'Y',ops_q7:'N',ops_q8:'Y',ops_q9:'Y',ops_q10:'Y',ops_q11:'Y',
       pkg_tbl:[
         {name:'튜브',daily:300000,monthly:6000000,kolma:150000,cnt:2,note:''},
@@ -1072,7 +1097,7 @@ const SAMPLE_RECORDS = [
       pkg_q1:'Y',pkg_q2:'N',pkg_q3:null,pkg_q4:null,pkg_q5:null,pkg_q6:null,
       pkg_q7:'N',pkg_q8:'Y',
       fin_q1:'Y',fin_q2:null,fin_q3:null,
-      fin_q4:null,ops_q2:'ONE',ops_q3:null,ops_q4:null,ops_q5:null,
+      fin_q4:null,fin_plt_opts:{kpp:true},ops_q3:null,ops_q4:null,ops_q5:null,
       ops_q6:null,ops_q7:null,ops_q8:null,ops_q9:null,ops_q10:null,ops_q11:null,
       pkg_tbl:[{name:'단발',daily:200000,monthly:4000000,kolma:100000,cnt:2,note:'신규도입'}]
     },
@@ -1106,6 +1131,11 @@ function getRecord(id)  {
     rec.checks.fin_q4_note   = rec.checks.ops_q1_note;
     rec.checks.fin_q4_photos = rec.checks.ops_q1_photos;
     delete rec.checks.ops_q1; delete rec.checks.ops_q1_note; delete rec.checks.ops_q1_photos;
+  }
+  if (rec && rec.checks && rec.checks.ops_q2 !== undefined && rec.checks.fin_plt_opts === undefined) {
+    const v = rec.checks.ops_q2;
+    rec.checks.fin_plt_opts = v === 'BOTH' ? {kpp:true,aju:true} : v === 'ONE' ? {kpp:true} : {};
+    delete rec.checks.ops_q2;
   }
   return rec;
 }
@@ -1142,15 +1172,13 @@ function calcScores(record) {
   if (record.type !== 'PKG') addDomainScore(raw, 'mfg', YN_DEF.mfg, c);
   addDomainScore(raw, 'mat', YN_DEF.mat, c);
   addDomainScore(raw, 'pkg', YN_DEF.pkg, c);
-  raw.pkg += tierBonusScore(c);
+  raw.pkg += pkg12Score(c);
   raw.pkg = Math.max(0, raw.pkg);
   addDomainScore(raw, 'fin', YN_DEF.fin, c);
   addDomainScore(raw, 'ops', YN_DEF.ops, c);
 
-  // PLT 특수 (4.완제품 출고 항목)
-  const plt = c['ops_q2'];
-  if (plt === 'BOTH') raw.fin += 2;
-  else if (plt === 'ONE') raw.fin += 1;
+  // 거래 PLT 특수 (4.완제품 출고 항목)
+  raw.fin += pltScore(c);
 
   // 환산: round(raw/realMax * specMax)
   const scores = { mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 };
@@ -1340,7 +1368,8 @@ function fillForm(rec) {
   });
 
   ['mfg','mat','pkg','fin','ops'].forEach(d => renderYN(d, c));
-  renderPLT(c);
+  renderPkg12(c);
+  renderTradePLT(c);
   ['mfg','mat','pkg','fin','ops'].forEach(d => renderCustomSection(d, rec));
 
   setVal('f-mfg_loss',      c.mfg_loss      ?? '');
@@ -1373,7 +1402,16 @@ function renderYN(domain, checks) {
   wrap.innerHTML = YN_DEF[domain].map((it, i) => ynItemHtml(it, checks, i+1)).join('');
 }
 
+function findYnLabel(key) {
+  for (const d in YN_DEF) {
+    const it = YN_DEF[d].find(x => x.key === key);
+    if (it) return it.label;
+  }
+  return key;
+}
+
 function ynItemHtml(it, checks, num) {
+  const locked   = it.unlockBy && checks[it.unlockBy] !== 'Y';
   const cur      = checks[it.key] || null;
   const noteVal  = checks[it.key + '_note'] || '';
   const hasNote  = noteVal.length > 0;
@@ -1384,14 +1422,15 @@ function ynItemHtml(it, checks, num) {
   const negCls   = it.neg ? 'neg-item' : '';
   const noteOpen = hasNote ? 'note-open' : '';
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
+  const lockNote = locked ? `<span style="font-size:10px;color:var(--txt3);margin-left:4px;">(${findYnLabel(it.unlockBy)} 'O' 선택 시 활성화)</span>` : '';
   return `
-  <div class="yn-item-wrap">
+  <div class="yn-item-wrap${locked?' yn-item-locked':''}">
     <div class="yn-row ${negCls} ${noteOpen}">
-      <span class="yn-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num||''}.</span>${it.label}${photoBadge}</span>
+      <span class="yn-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num||''}.</span>${it.label}${lockNote}${photoBadge}</span>
       <span class="yn-pts ${ptsClass}">${ptsSign}</span>
       <div class="yn-btns">
-        <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
-        <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
+        <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  ${locked?'disabled':''} onclick="setYN('${it.key}','Y',this)">O</button>
+        <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  ${locked?'disabled':''} onclick="setYN('${it.key}','N',this)">X</button>
         <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
           <input type="file" accept="image/*" style="display:none"
@@ -1412,20 +1451,39 @@ function ynItemHtml(it, checks, num) {
   </div>`;
 }
 
-function renderPLT(checks) {
+function renderTradePLT(checks) {
   const wrap = document.getElementById('yn-fin');
   if (!wrap) return;
-  const plt = checks['ops_q2'] || null;
-  const num = YN_DEF.fin.length + 1;
+  document.getElementById('plt-group-fin')?.remove();
+  const opts = checks.fin_plt_opts || {};
+  const num  = YN_DEF.fin.length + 1;
+  const score = pltScore(checks);
   wrap.insertAdjacentHTML('beforeend', `
-  <div class="plt-group">
-    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>거래 PLT (KPP/AJ)</span>
-    <span class="yn-pts">최대+2pt</span>
+  <div class="plt-group" id="plt-group-fin">
+    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>거래PLT</span>
+    <span class="yn-pts">${score>0?`+${score}pt`:'최대+2pt'}</span>
     <div class="plt-opts">
-      <span class="plt-opt${plt==='NONE'?' on':''}" onclick="setPLT('NONE',this)">없음</span>
-      <span class="plt-opt${plt==='ONE'?' on':''}" onclick="setPLT('ONE',this)">1개</span>
-      <span class="plt-opt${plt==='BOTH'?' on both':''}" onclick="setPLT('BOTH',this)">KPP+AJ</span>
+      ${PLT_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="togglePltOpt('${o.key}',this)">${o.label}</span>`).join('')}
     </div>
+  </div>`);
+}
+
+function renderPkg12(checks) {
+  const wrap = document.getElementById('yn-pkg');
+  if (!wrap) return;
+  document.getElementById('plt-group-pkg12')?.remove();
+  const opts = checks.pkg_q12_opts || {};
+  const num  = YN_DEF.pkg.length + 1;
+  const score = pkg12Score(checks);
+  wrap.insertAdjacentHTML('beforeend', `
+  <div class="plt-group" id="plt-group-pkg12">
+    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>특이 공정 가능여부</span>
+    <span class="yn-pts">${score>0?`+${score}pt`:'최대+2pt'}</span>
+    <div class="plt-opts">
+      ${PKG12_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="togglePkg12Opt('${o.key}',this)">${o.label}</span>`).join('')}
+    </div>
+    ${opts.other ? `<input class="num-input" style="margin-top:6px;width:220px;" placeholder="기타 공정 입력"
+      value="${escHtml(checks.pkg_q12_other_text||'')}" oninput="patchCheck('pkg_q12_other_text',this.value)">` : ''}
   </div>`);
 }
 
@@ -1750,6 +1808,12 @@ function setYN(key, v, btn) {
   const rec = getRecord(currentId);
   rec.checks[key] = rec.checks[key] === v ? null : v;
   upsertRecord(rec);
+  if (YN_DEF.pkg.some(it => it.unlockBy === key)) {
+    renderYN('pkg', rec.checks);
+    renderPkg12(rec.checks);
+    updateScoreBar(rec);
+    return;
+  }
   const cur = rec.checks[key];
   const row = btn.closest('.yn-row, .custom-yn-row');
   row.querySelectorAll('.yn-btn[data-v]').forEach(b => b.classList.remove('y-on','n-on'));
@@ -1759,17 +1823,23 @@ function setYN(key, v, btn) {
 }
 
 
-function setPLT(v, el) {
+function togglePltOpt(key, el) {
   if (!currentId) return;
   const rec = getRecord(currentId);
-  rec.checks['ops_q2'] = rec.checks['ops_q2'] === v ? null : v;
+  rec.checks.fin_plt_opts = rec.checks.fin_plt_opts || {};
+  rec.checks.fin_plt_opts[key] = !rec.checks.fin_plt_opts[key];
   upsertRecord(rec);
-  document.querySelectorAll('.plt-opt').forEach(o => {
-    o.classList.remove('on','both');
-    if (o.textContent.trim() === el.textContent.trim() && rec.checks['ops_q2'] === v) {
-      o.classList.add('on'); if (v === 'BOTH') o.classList.add('both');
-    }
-  });
+  renderTradePLT(rec.checks);
+  updateScoreBar(rec);
+}
+
+function togglePkg12Opt(key, el) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks.pkg_q12_opts = rec.checks.pkg_q12_opts || {};
+  rec.checks.pkg_q12_opts[key] = !rec.checks.pkg_q12_opts[key];
+  upsertRecord(rec);
+  renderPkg12(rec.checks);
   updateScoreBar(rec);
 }
 
@@ -2069,7 +2139,8 @@ async function handleItemPhotoUpload(input, key) {
   upsertRecord(rec);
   const domain = key.split('_')[0];
   if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
-  if (domain === 'fin') renderPLT(rec.checks);
+  if (domain === 'pkg') renderPkg12(rec.checks);
+  if (domain === 'fin') renderTradePLT(rec.checks);
   renderCustomSection(domain, rec);
   input.value = '';
   toast('항목 사진 추가 완료');
@@ -2084,7 +2155,8 @@ function deleteItemPhoto(key, pi) {
   upsertRecord(rec);
   const domain = key.split('_')[0];
   if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
-  if (domain === 'fin') renderPLT(rec.checks);
+  if (domain === 'pkg') renderPkg12(rec.checks);
+  if (domain === 'fin') renderTradePLT(rec.checks);
   renderCustomSection(domain, rec);
   toast('사진 삭제됨');
 }
@@ -2893,13 +2965,13 @@ async function doExportReport() {
     domainDefs.filter(d=>!d.skip).forEach(d => {
       const domNote = (rec.notes||{})[d.key]||'';
       const allItems = d.key==='fin'
-        ? [...YN_DEF.fin, {key:'_plt', label:'거래 PLT (KPP/AJ)', _plt:true}]
+        ? [...YN_DEF.fin, {key:'_plt', label:'거래PLT', _plt:true}]
         : YN_DEF[d.key];
       const domItems = [];
       allItems.forEach(it => {
         if (it._plt) {
-          const pv=c['ops_q2'];
-          if (pv) domItems.push({label:it.label, result:pv==='BOTH'?'KPP+AJ':pv==='ONE'?'1개':'없음', note:'', isIssue:false, isText:true});
+          const cnt = pltCount(c);
+          if (cnt > 0) domItems.push({label:it.label, result:PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+'), note:'', isIssue:false, isText:true});
           return;
         }
         const val=c[it.key]||null, note=c[it.key+'_note']||'';
@@ -3261,18 +3333,24 @@ async function doExportExcel() {
   ];
   domains.forEach(d => {
     if (d.skip) return;
-    // PLT 처리 (4.완제품 출고)
+    // PLT / 특이공정 처리 (체크박스형 가점 항목)
     const allItems = d.key === 'fin'
-      ? [ ...d.items, { key:'ops_q2_display', label:'거래 PLT (KPP/AJ)', pts:2, _isPLT:true } ]
+      ? [ ...d.items, { label:'거래PLT', _isPLT:true } ]
+      : d.key === 'pkg'
+      ? [ ...d.items, { label:'특이 공정 가능여부', _isPkg12:true } ]
       : d.items;
 
     let numOffset = 0;
     allItems.forEach((it, i) => {
       const num = i + 1;
       if (it._isPLT) {
-        const pltVal = c['ops_q2'];
-        const pltLabel = pltVal==='BOTH'?'KPP+AJ':pltVal==='ONE'?'1개':pltVal==='NONE'?'없음':'—';
+        const pltLabel = PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+') || '없음';
         ckRows.push([num, d.label, it.label, '최대+2', pltLabel, '']);
+        return;
+      }
+      if (it._isPkg12) {
+        const pkg12Label = PKG12_OPTS.filter(o=>(c.pkg_q12_opts||{})[o.key]).map(o=>o.label).join('+') || '없음';
+        ckRows.push([num, d.label, it.label, '최대+2', pkg12Label, c.pkg_q12_other_text||'']);
         return;
       }
       const val  = c[it.key] || '';
@@ -3381,27 +3459,36 @@ function printChecklist() {
   </tr>`;
 
   function pltRowHtml(num) {
-    const plt = c['ops_q2'] || null;
-    const pltLabel = plt==='BOTH'?'KPP+AJ':plt==='ONE'?'1개':plt==='NONE'?'없음':'—';
+    const pltLabel = PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+') || '없음';
     return `<tr>
-      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>거래 PLT (KPP/AJ)</td>
+      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>거래PLT</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
       <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pltLabel}</td>
       <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
     </tr>`;
   }
 
-  function domainSection(title, domain, specMax, bgColor, withPlt) {
+  function pkg12RowHtml(num) {
+    const pkg12Label = PKG12_OPTS.filter(o=>(c.pkg_q12_opts||{})[o.key]).map(o=>o.label).join('+') || '없음';
+    return `<tr>
+      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>특이 공정 가능여부</td>
+      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
+      <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pkg12Label}${c.pkg_q12_other_text?` (${c.pkg_q12_other_text})`:''}</td>
+      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
+    </tr>`;
+  }
+
+  function domainSection(title, domain, specMax, bgColor, extraRowFn) {
     const rows = YN_DEF[domain].map((it, i) => {
       const v      = c[it.key] || null;
       const note   = c[it.key+'_note'] || '';
       const photos = normalizePhotos(c[it.key+'_photos']);
       return ynRow(it, v, note, photos, i + 1);
     }).join('');
-    const pltRow = withPlt ? pltRowHtml(YN_DEF[domain].length + 1) : '';
+    const pltRow = extraRowFn ? extraRowFn(YN_DEF[domain].length + 1) : '';
 
     // 커스텀 항목 (기본 항목 수 이후 번호 연속)
-    const base = YN_DEF[domain].length + (withPlt ? 1 : 0);
+    const base = YN_DEF[domain].length + (extraRowFn ? 1 : 0);
     const customRows = (rec.customItems||[]).filter(ci=>ci.domain===domain).map((ci, idx) => {
       const fakeIt = { key:ci.id, label:ci.label, pts:ci.pts, neg:ci.pts<0, heavy:false };
       const v      = c[ci.id] || null;
@@ -3499,7 +3586,7 @@ function printChecklist() {
   </div>
   ${mfgSection}
   ${domainSection('2. 자재관리','mat',20,'#0369a1')}
-  ${domainSection('3. 임가공·충전','pkg',25,'#0f766e')}
+  ${domainSection('3. 임가공·충전','pkg',25,'#0f766e',pkg12RowHtml)}
   <!-- CAPA -->
   <div style="margin-bottom:10px;break-inside:avoid;">
     <div style="background:#0f766e;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">설비 CAPA 현황</div>
@@ -3516,7 +3603,7 @@ function printChecklist() {
       <tbody>${capaRows}</tbody>
     </table>
   </div>
-  ${domainSection('4. 완제품관리','fin',10,'#be185d',true)}
+  ${domainSection('4. 완제품관리','fin',10,'#be185d',pltRowHtml)}
   ${domainSection('5. 운영·거래조건','ops',15,'#7c3aed')}
   <!-- 점수 요약 -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr) auto;gap:6px;margin-bottom:10px;">
