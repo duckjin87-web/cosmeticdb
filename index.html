@@ -1011,7 +1011,7 @@ const YN_DEF = {
     {key:'mat_q5', label:'자재불량 프로세스 보유',                pts:1},
     {key:'mat_q6', label:'잔량 환입조건',                         pts:1},
     {key:'mat_q7', label:'자재 책임자 지정',                      pts:1},
-    {key:'mat_q8', label:'자재관리 프로그램·실시간 관리 가능',    pts:1},
+    {key:'mat_q8', label:'자재관리 프로그램·실시간 관리 가능 (임가공 단계보너스 항목)', pts:0, tierBonus:true},
   ],
   pkg:[
     {key:'pkg_q1', label:'포장사양서·표준관리품 배치',            pts:1},
@@ -1022,10 +1022,10 @@ const YN_DEF = {
     {key:'pkg_q6', label:'중량선별기·비전 보유',                  pts:3, heavy:true},
     {key:'pkg_q7', label:'품질 클레임 최근 12개월 있음',          pts:-1, neg:true},
     {key:'pkg_q8', label:'생산기록서 양식 보유',                  pts:1},
-    {key:'pkg_q9', label:'튜브 실링검사·리크테스트 진행',         pts:1},
-    {key:'pkg_q10', label:'용기 감압검사 진행',                   pts:1},
-    {key:'pkg_q11', label:'라벨 자체 발행 가능(바코드 등)',       pts:1},
-    {key:'pkg_q12', label:'특이 공정 가능여부',                   pts:1},
+    {key:'pkg_q9', label:'튜브 실링검사·리크테스트 진행 (단계보너스 항목)', pts:0, tierBonus:true},
+    {key:'pkg_q10', label:'용기 감압검사 진행 (단계보너스 항목)', pts:0, tierBonus:true},
+    {key:'pkg_q11', label:'라벨 자체 발행 가능(바코드 등) (단계보너스 항목)', pts:0, tierBonus:true},
+    {key:'pkg_q12', label:'특이 공정 가능여부 (단계보너스 항목)', pts:0, tierBonus:true},
   ],
   fin:[
     {key:'fin_q1', label:'완제품창고 독립',                       pts:1},
@@ -1048,7 +1048,12 @@ const YN_DEF = {
   ]
 };
 
-const REAL_MAX  = { mfg:12, mat:10, pkg:16, fin:7, ops:11 };
+const REAL_MAX  = { mfg:12, mat:9, pkg:15, fin:7, ops:11 };
+const TIER_BONUS_KEYS = ['mat_q8','pkg_q9','pkg_q10','pkg_q11','pkg_q12'];
+function tierBonusScore(c) {
+  const cnt = TIER_BONUS_KEYS.filter(k => c[k] === 'Y').length;
+  return cnt >= 5 ? 3 : cnt >= 3 ? 2 : cnt >= 1 ? 1 : 0;
+}
 const SPEC_MAX  = { mfg:30, mat:20, pkg:25, fin:10, ops:15 };
 const PKG_BASE  = SPEC_MAX.mat + SPEC_MAX.pkg + SPEC_MAX.fin + SPEC_MAX.ops; // 70
 
@@ -1162,6 +1167,7 @@ function calcScores(record) {
   if (record.type !== 'PKG') addDomainScore(raw, 'mfg', YN_DEF.mfg, c);
   addDomainScore(raw, 'mat', YN_DEF.mat, c);
   addDomainScore(raw, 'pkg', YN_DEF.pkg, c);
+  raw.pkg += tierBonusScore(c);
   raw.pkg = Math.max(0, raw.pkg);
   addDomainScore(raw, 'fin', YN_DEF.fin, c);
   addDomainScore(raw, 'ops', YN_DEF.ops, c);
@@ -1405,7 +1411,7 @@ function ynItemHtml(it, checks, num) {
   const photos   = normalizePhotos(checks[it.key + '_photos']);
   const hasPhoto = photos.length > 0;
   const ptsClass = it.neg ? 'neg' : it.heavy ? 'heavy' : '';
-  const ptsSign  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
+  const ptsSign  = it.tierBonus ? '보너스' : it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
   const negCls   = it.neg ? 'neg-item' : '';
   const noteOpen = hasNote ? 'note-open' : '';
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
@@ -1413,7 +1419,7 @@ function ynItemHtml(it, checks, num) {
   <div class="yn-item-wrap">
     <div class="yn-row ${negCls} ${noteOpen}">
       <span class="yn-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num||''}.</span>${it.label}${photoBadge}</span>
-      <span class="yn-pts ${ptsClass}">${ptsSign}pt</span>
+      <span class="yn-pts ${ptsClass}">${ptsSign}</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
@@ -3243,7 +3249,7 @@ async function doExportExcel() {
       }
       const val  = c[it.key] || '';
       const note = c[it.key+'_note'] || '';
-      const pts  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
+      const pts  = it.tierBonus ? '보너스' : it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
       const ox   = val === 'Y' ? 'O' : val === 'N' ? 'X' : '';
       ckRows.push([num, d.label, it.label, pts, ox, note]);
     });
@@ -3311,7 +3317,7 @@ function printChecklist() {
 
   /* YN 항목 행 (사진 포함) */
   function ynRow(it, v, note, photos, num) {
-    const pts  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
+    const pts  = it.tierBonus ? '보너스' : it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
     const pStyle = it.neg ? 'color:#dc2626' : it.heavy ? 'color:#f97316;font-weight:700' : 'color:#64748b';
     const numHtml = num != null ? `<span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>` : '';
     const photoCnt = photos.length;
