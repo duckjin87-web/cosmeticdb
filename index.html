@@ -873,7 +873,7 @@ body{background:var(--s1);color:var(--txt);
       <!-- 하단 버튼 -->
       <div class="eval-det-footer">
         <button class="btn" onclick="saveEvalDraft(currentId)">💾 임시저장</button>
-        <button class="btn grn" onclick="saveEvalDone(currentId)">✅ 평가완료</button>
+        <button class="btn grn" onclick="saveEvalDone(currentId)" title="평가완료 처리 시, 저장 폴더가 지정되어 있으면 체크리스트 Excel이 자동으로 공용 폴더에 저장됩니다.">✅ 평가완료</button>
         <button class="btn" onclick="printChecklist()" title="인쇄/PDF로 체크리스트 출력">📋 PDF 인쇄</button>
         <button class="btn" onclick="exportChecklistExcel()" title="Excel 파일로 체크리스트 다운로드">📊 Excel 저장</button>
         <button class="btn report" onclick="exportInternalReport()"
@@ -1647,7 +1647,7 @@ function saveEvalDraft(id) {
   upsertRecord(rec); toast('임시저장 완료'); renderEvalList();
 }
 
-function saveEvalDone(id) {
+async function saveEvalDone(id) {
   if (!id) return;
   const rec = getRecord(id);
   if (!rec.companyName.trim()) { toast('업체명을 입력하세요.', 'err'); return; }
@@ -1682,6 +1682,15 @@ function saveEvalDone(id) {
     ` <span style="font-size:10px;color:var(--txt3);">${rec.visitDate}</span>`;
   toast('평가완료 처리됨 — CONFIRMED 전환을 MOD02에서 진행하세요.', 'ok');
   renderEvalList(); updateScoreBar(rec);
+
+  // 평가완료 시 저장 폴더가 지정되어 있으면 체크리스트 결과를 자동으로 공용 폴더에 저장
+  if (FSA_SUPPORTED) {
+    const handle = await fsaGetSavedDirHandle();
+    if (handle) {
+      try { await loadXlsxLib(); await doExportExcel(); }
+      catch(e) { console.error(e); toast('자동 저장 실패: ' + e.message, 'err'); }
+    }
+  }
 }
 
 function setEvalStatus(id, status) {
@@ -2876,15 +2885,21 @@ async function doExportReport() {
 /* ══ Excel 체크리스트 내보내기 ══ */
 const XLSX_CDN = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
 
+function loadXlsxLib() {
+  return new Promise((resolve, reject) => {
+    if (typeof XLSX !== 'undefined') { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = XLSX_CDN;
+    s.onload  = resolve;
+    s.onerror = () => reject(new Error('Excel 라이브러리 로드 실패 — 네트워크를 확인하세요.'));
+    document.head.appendChild(s);
+  });
+}
+
 function exportChecklistExcel() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
-  if (typeof XLSX !== 'undefined') { doExportExcel(); return; }
   toast('Excel 라이브러리 로딩 중...');
-  const s = document.createElement('script');
-  s.src = XLSX_CDN;
-  s.onload = doExportExcel;
-  s.onerror = () => toast('라이브러리 로드 실패. 네트워크를 확인하세요.', 'err');
-  document.head.appendChild(s);
+  loadXlsxLib().then(doExportExcel).catch(e => toast(e.message, 'err'));
 }
 
 async function doExportExcel() {
