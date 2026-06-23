@@ -1532,19 +1532,22 @@ function ynRowHtml(it, cur, checks, num) {
 }
 
 /* ══ 10. CAPA 테이블 ══ */
-const CAPA_NAME_PRESETS = ['튜브','용기(멀티셀)','용기(단발)','파우치','마스크'];
+const CAPA_NAME_PRESETS = ['튜브','용기(멀티셀)','용기(단발)','파우치','마스크','기타'];
 
 function renderCapaTable(tbl) {
   const tbody = document.getElementById('capa-tbody');
   if (!tbody) return;
-  const presetOpts = CAPA_NAME_PRESETS.map(n=>`<option value="${n}">`).join('');
   tbody.innerHTML = (tbl || []).map((row, i) => {
     const autoDaily   = (row.daily||0) * (row.cnt||0);
     const autoMonthly = autoDaily * 20;
     return `
   <tr>
     <td>
-      <input list="capa-name-list" value="${row.name||''}" onchange="updateCapaRow(${i},'name',this.value)" placeholder="설비명 선택/입력">
+      <select onchange="updateCapaRow(${i},'name',this.value)">
+        <option value="">선택</option>
+        ${CAPA_NAME_PRESETS.map(o=>`<option value="${o}" ${row.name===o?'selected':''}>${o}</option>`).join('')}
+      </select>
+      ${row.name==='기타' ? `<input style="margin-top:4px;" value="${escHtml(row.nameOther||'')}" onchange="updateCapaRow(${i},'nameOther',this.value)" placeholder="직접입력">` : ''}
     </td>
     <td><input value="${row.daily||''}" type="number" onchange="updateCapaRowAuto(${i},'daily',+this.value)" placeholder="0"></td>
     <td><input value="${row.cnt||''}" type="number" onchange="updateCapaRowAuto(${i},'cnt',+this.value)" placeholder="0"></td>
@@ -1555,15 +1558,6 @@ function renderCapaTable(tbl) {
     <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
   </tr>`;
   }).join('');
-
-  // datalist 주입 (tbody 뒤 table 안에 한 번만)
-  let dl = document.getElementById('capa-name-list');
-  if (!dl) {
-    dl = document.createElement('datalist');
-    dl.id = 'capa-name-list';
-    document.getElementById('capa-table')?.appendChild(dl);
-  }
-  dl.innerHTML = presetOpts;
 }
 
 function addCapaRow() {
@@ -1578,6 +1572,7 @@ function updateCapaRow(idx, field, val) {
   const rec = getRecord(currentId);
   if (!rec.checks.pkg_tbl[idx]) return;
   rec.checks.pkg_tbl[idx][field] = val; upsertRecord(rec);
+  if (field === 'name') renderCapaTable(rec.checks.pkg_tbl);
 }
 function updateCapaRowAuto(idx, field, val) {
   if (!currentId) return;
@@ -1597,13 +1592,12 @@ function delCapaRow(idx) {
 }
 
 /* ══ 10-1. 제조 설비규격 테이블 ══ */
-const MFG_CAPACITY_PRESETS = ['100kg','500kg','1T','3T','5T'];
+const MFG_CAPACITY_PRESETS = ['100kg','500kg','1T','3T','5T','기타'];
 const MFG_TYPE_OPTS = ['Homo','Ultra','Homo+Ultra','기타'];
 
 function renderMfgEquipTable(tbl) {
   const tbody = document.getElementById('mfg-equip-tbody');
   if (!tbody) return;
-  const presetOpts = MFG_CAPACITY_PRESETS.map(n=>`<option value="${n}">`).join('');
   tbody.innerHTML = (tbl || []).map((row, i) => {
     const aux = row.aux || {};
     return `
@@ -1615,7 +1609,13 @@ function renderMfgEquipTable(tbl) {
       </select>
       ${row.type==='기타' ? `<input style="margin-top:4px;" value="${escHtml(row.typeOther||'')}" onchange="updateMfgEquipRow(${i},'typeOther',this.value)" placeholder="직접입력">` : ''}
     </td>
-    <td><input list="mfg-capacity-list" value="${row.capacity||''}" onchange="updateMfgEquipRow(${i},'capacity',this.value)" placeholder="용량 선택/입력"></td>
+    <td>
+      <select onchange="updateMfgEquipRow(${i},'capacity',this.value)">
+        <option value="">선택</option>
+        ${MFG_CAPACITY_PRESETS.map(o=>`<option value="${o}" ${row.capacity===o?'selected':''}>${o}</option>`).join('')}
+      </select>
+      ${row.capacity==='기타' ? `<input style="margin-top:4px;" value="${escHtml(row.capacityOther||'')}" onchange="updateMfgEquipRow(${i},'capacityOther',this.value)" placeholder="직접입력">` : ''}
+    </td>
     <td><input value="${row.cnt||''}" type="number" min="0" onchange="updateMfgEquipRow(${i},'cnt',+this.value)" placeholder="0"></td>
     <td>
       <div style="display:flex;flex-wrap:nowrap;justify-content:center;gap:10px;">
@@ -1628,14 +1628,6 @@ function renderMfgEquipTable(tbl) {
     <td><button class="capa-del-btn" onclick="delMfgEquipRow(${i})">✕</button></td>
   </tr>`;
   }).join('');
-
-  let dl = document.getElementById('mfg-capacity-list');
-  if (!dl) {
-    dl = document.createElement('datalist');
-    dl.id = 'mfg-capacity-list';
-    document.getElementById('mfg-equip-table')?.appendChild(dl);
-  }
-  dl.innerHTML = presetOpts;
 }
 
 function addMfgEquipRow() {
@@ -1650,7 +1642,7 @@ function updateMfgEquipRow(idx, field, val) {
   const rec = getRecord(currentId);
   if (!rec.checks.mfg_equip_tbl[idx]) return;
   rec.checks.mfg_equip_tbl[idx][field] = val; upsertRecord(rec);
-  if (field === 'type') renderMfgEquipTable(rec.checks.mfg_equip_tbl);
+  if (field === 'type' || field === 'capacity') renderMfgEquipTable(rec.checks.mfg_equip_tbl);
 }
 function updateMfgEquipAux(idx, field, val) {
   if (!currentId) return;
