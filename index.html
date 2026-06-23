@@ -744,47 +744,22 @@ body{background:var(--s1);color:var(--txt);
           <div id="mfg-content">
             <div class="eval-section">
               <div class="eval-section-title">설비규격 <span class="pts-badge" style="background:#e2e8f0;color:#64748b;">참고정보 · 비점수</span></div>
-              <div class="num-row">
-                <span class="num-label">설비명</span>
-                <input class="num-input" id="f-mfg_equip_name" type="text" style="width:160px;"
-                  placeholder="예: Homo/Ultra mixer" oninput="patchCheck('mfg_equip_name',this.value)">
+              <div class="capa-table-wrap">
+                <table class="capa-table" id="mfg-equip-table">
+                  <thead>
+                    <tr>
+                      <th style="min-width:90px;">종류</th>
+                      <th style="min-width:70px;">용량</th>
+                      <th>보유대수</th>
+                      <th style="min-width:130px;">보조가마</th>
+                      <th style="min-width:100px;">비고</th>
+                      <th style="width:28px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="mfg-equip-tbody"></tbody>
+                </table>
               </div>
-              <div class="num-row">
-                <span class="num-label">보유대수 — 100kg</span>
-                <input class="num-input" id="f-mfg_equip_100kg" type="number" min="0"
-                  placeholder="0" oninput="patchCheck('mfg_equip_100kg',+this.value||null)">
-                <span class="num-unit">대</span>
-              </div>
-              <div class="num-row">
-                <span class="num-label">보유대수 — 500kg</span>
-                <input class="num-input" id="f-mfg_equip_500kg" type="number" min="0"
-                  placeholder="0" oninput="patchCheck('mfg_equip_500kg',+this.value||null)">
-                <span class="num-unit">대</span>
-              </div>
-              <div class="num-row">
-                <span class="num-label">보유대수 — 1T</span>
-                <input class="num-input" id="f-mfg_equip_1t" type="number" min="0"
-                  placeholder="0" oninput="patchCheck('mfg_equip_1t',+this.value||null)">
-                <span class="num-unit">대</span>
-              </div>
-              <div class="num-row">
-                <span class="num-label">보유대수 — 3T</span>
-                <input class="num-input" id="f-mfg_equip_3t" type="number" min="0"
-                  placeholder="0" oninput="patchCheck('mfg_equip_3t',+this.value||null)">
-                <span class="num-unit">대</span>
-              </div>
-              <div class="num-row">
-                <span class="num-label">보유대수 — 5T</span>
-                <input class="num-input" id="f-mfg_equip_5t" type="number" min="0"
-                  placeholder="0" oninput="patchCheck('mfg_equip_5t',+this.value||null)">
-                <span class="num-unit">대</span>
-              </div>
-              <div class="num-row">
-                <span class="num-label">집진기(칭량)</span>
-                <input class="num-input" id="f-mfg_equip_dust" type="number" min="0"
-                  placeholder="0" oninput="patchCheck('mfg_equip_dust',+this.value||null)">
-                <span class="num-unit">대</span>
-              </div>
+              <button class="capa-add-btn" onclick="addMfgEquipRow()">+ 설비 행 추가</button>
             </div>
             <div class="eval-section">
               <div class="eval-section-title">제조관리 O/X 항목 <span class="pts-badge">30점 기준</span></div>
@@ -1371,13 +1346,7 @@ function fillForm(rec) {
   setVal('f-mfg_loss',      c.mfg_loss      ?? '');
   setVal('f-mfg_capa',      c.mfg_capa      ?? '');
   setVal('f-mfg_headcount', c.mfg_headcount ?? '');
-  setVal('f-mfg_equip_name',  c.mfg_equip_name  ?? '');
-  setVal('f-mfg_equip_100kg', c.mfg_equip_100kg ?? '');
-  setVal('f-mfg_equip_500kg', c.mfg_equip_500kg ?? '');
-  setVal('f-mfg_equip_1t',    c.mfg_equip_1t    ?? '');
-  setVal('f-mfg_equip_3t',    c.mfg_equip_3t    ?? '');
-  setVal('f-mfg_equip_5t',    c.mfg_equip_5t    ?? '');
-  setVal('f-mfg_equip_dust',  c.mfg_equip_dust  ?? '');
+  renderMfgEquipTable(c.mfg_equip_tbl || []);
   setVal('f-pkg_util',      c.pkg_util      ?? '');
   setVal('f-pkg_lt',        c.pkg_lt        ?? '');
 
@@ -1560,6 +1529,65 @@ function delCapaRow(idx) {
   if (!currentId) return;
   const rec = getRecord(currentId);
   rec.checks.pkg_tbl.splice(idx, 1); upsertRecord(rec); renderCapaTable(rec.checks.pkg_tbl);
+}
+
+/* ══ 10-1. 제조 설비규격 테이블 ══ */
+const MFG_CAPACITY_PRESETS = ['100kg','500kg','1T','3T','5T'];
+
+function renderMfgEquipTable(tbl) {
+  const tbody = document.getElementById('mfg-equip-tbody');
+  if (!tbody) return;
+  const presetOpts = MFG_CAPACITY_PRESETS.map(n=>`<option value="${n}">`).join('');
+  tbody.innerHTML = (tbl || []).map((row, i) => {
+    const aux = row.aux || {};
+    return `
+  <tr>
+    <td><input value="${row.type||''}" onchange="updateMfgEquipRow(${i},'type',this.value)" placeholder="예: Homo/Ultra mixer"></td>
+    <td><input list="mfg-capacity-list" value="${row.capacity||''}" onchange="updateMfgEquipRow(${i},'capacity',this.value)" placeholder="용량 선택/입력"></td>
+    <td><input value="${row.cnt||''}" type="number" min="0" onchange="updateMfgEquipRow(${i},'cnt',+this.value)" placeholder="0"></td>
+    <td>
+      <label style="margin-right:6px;font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.oil?'checked':''} onchange="updateMfgEquipAux(${i},'oil',this.checked)">유상</label>
+      <label style="margin-right:6px;font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.water?'checked':''} onchange="updateMfgEquipAux(${i},'water',this.checked)">수상</label>
+      <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.cold?'checked':''} onchange="updateMfgEquipAux(${i},'cold',this.checked)">냉각</label>
+    </td>
+    <td><input value="${row.note||''}" onchange="updateMfgEquipRow(${i},'note',this.value)" placeholder="—"></td>
+    <td><button class="capa-del-btn" onclick="delMfgEquipRow(${i})">✕</button></td>
+  </tr>`;
+  }).join('');
+
+  let dl = document.getElementById('mfg-capacity-list');
+  if (!dl) {
+    dl = document.createElement('datalist');
+    dl.id = 'mfg-capacity-list';
+    document.getElementById('mfg-equip-table')?.appendChild(dl);
+  }
+  dl.innerHTML = presetOpts;
+}
+
+function addMfgEquipRow() {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks.mfg_equip_tbl = rec.checks.mfg_equip_tbl || [];
+  rec.checks.mfg_equip_tbl.push({type:'',capacity:'',cnt:1,aux:{oil:false,water:false,cold:false},note:''});
+  upsertRecord(rec); renderMfgEquipTable(rec.checks.mfg_equip_tbl);
+}
+function updateMfgEquipRow(idx, field, val) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  if (!rec.checks.mfg_equip_tbl[idx]) return;
+  rec.checks.mfg_equip_tbl[idx][field] = val; upsertRecord(rec);
+}
+function updateMfgEquipAux(idx, field, val) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  if (!rec.checks.mfg_equip_tbl[idx]) return;
+  rec.checks.mfg_equip_tbl[idx].aux = rec.checks.mfg_equip_tbl[idx].aux || {};
+  rec.checks.mfg_equip_tbl[idx].aux[field] = val; upsertRecord(rec);
+}
+function delMfgEquipRow(idx) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks.mfg_equip_tbl.splice(idx, 1); upsertRecord(rec); renderMfgEquipTable(rec.checks.mfg_equip_tbl);
 }
 
 /* ══ 11. 필드 패치 ══ */
