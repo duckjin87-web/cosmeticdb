@@ -2608,7 +2608,7 @@ async function fsaEnsurePermission(handle) {
 }
 
 async function fsaChooseSaveFolder() {
-  if (!FSA_SUPPORTED) { toast('이 브라우저는 폴더 직접 저장을 지원하지 않습니다 (Chrome/Edge 사용 권장).', 'err'); return; }
+  if (!FSA_SUPPORTED) { toast('이 브라우저(모바일 등)는 폴더 직접저장을 지원하지 않습니다. 평가완료 시 공유 시트로 OneDrive에 저장하세요.', 'err'); return; }
   try {
     const handle = await window.showDirectoryPicker({mode:'readwrite'});
     await fsaSaveDirHandle(handle);
@@ -2619,7 +2619,8 @@ async function fsaChooseSaveFolder() {
   }
 }
 
-/* blob을 지정된 폴더에 직접 저장. 폴더 미설정/권한 거부 시 일반 다운로드로 대체 */
+/* blob을 지정된 폴더에 직접 저장. 데스크탑(폴더 미설정/권한 거부)·모바일(폴더쓰기 미지원)에서는
+   공유 시트(Web Share API)로 OneDrive 등에 바로 보낼 수 있게 하고, 그마저 안 되면 일반 다운로드로 대체 */
 async function fsaSaveBlob(blob, fileName) {
   if (FSA_SUPPORTED) {
     const handle = await fsaGetSavedDirHandle();
@@ -2631,9 +2632,22 @@ async function fsaSaveBlob(blob, fileName) {
         await writable.close();
         toast('저장 완료: ' + handle.name + ' / ' + fileName, 'ok');
         return;
-      } catch(e) { /* 폴더 저장 실패 시 일반 다운로드로 대체 */ }
+      } catch(e) { /* 폴더 저장 실패 시 공유/다운로드로 대체 */ }
     }
   }
+
+  try {
+    const file = new File([blob], fileName, {type: blob.type});
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      await navigator.share({files:[file], title: fileName});
+      toast('공유 시트에서 OneDrive를 선택해 공용 폴더에 저장하세요.', 'ok');
+      return;
+    }
+  } catch(e) {
+    if (e.name === 'AbortError') return; // 사용자가 공유 취소
+    /* 공유 실패 시 일반 다운로드로 대체 */
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = fileName;
@@ -2644,7 +2658,7 @@ async function fsaSaveBlob(blob, fileName) {
 async function updateFsaStatus() {
   const el = document.getElementById('fsaStatus');
   if (!el) return;
-  if (!FSA_SUPPORTED) { el.textContent = '폴더 직접저장 미지원 브라우저'; return; }
+  if (!FSA_SUPPORTED) { el.textContent = '모바일: 평가완료 시 공유 시트에서 OneDrive로 저장'; return; }
   const handle = await fsaGetSavedDirHandle();
   el.textContent = handle ? ('저장 폴더: ' + handle.name) : '저장 폴더 미설정 (다운로드로 저장됨)';
 }
