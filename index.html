@@ -1481,14 +1481,16 @@ function renderPkg12(checks) {
   const num  = YN_DEF.pkg.length + 1;
   const score = pkg12Score(checks);
   wrap.insertAdjacentHTML('beforeend', `
-  <div class="plt-group" id="plt-group-pkg12">
-    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>특이 공정 가능여부</span>
-    <span class="yn-pts">${score>0?`+${score}pt`:'최대+2pt'}</span>
-    <div class="plt-opts">
-      ${PKG12_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="togglePkg12Opt('${o.key}',this)">${o.label}</span>`).join('')}
+  <div class="plt-group" id="plt-group-pkg12" style="display:block;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>특이 공정 가능여부</span>
+      <span class="yn-pts">${score>0?`+${score}pt`:'최대+2pt'}</span>
     </div>
-    ${opts.other ? `<input class="num-input" style="margin-top:6px;width:220px;" placeholder="기타 공정 입력"
-      value="${escHtml(checks.pkg_q12_other_text||'')}" oninput="patchCheck('pkg_q12_other_text',this.value)">` : ''}
+    <div class="plt-opts" style="flex-wrap:nowrap;margin-top:6px;">
+      ${PKG12_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="togglePkg12Opt('${o.key}',this)">${o.label}</span>`).join('')}
+      ${opts.other ? `<input class="num-input" style="width:140px;flex:1;" placeholder="기타 공정 직접입력"
+        value="${escHtml(checks.pkg_q12_other_text||'')}" oninput="patchCheck('pkg_q12_other_text',this.value)">` : ''}
+    </div>
   </div>`);
 }
 
