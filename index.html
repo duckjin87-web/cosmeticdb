@@ -204,7 +204,7 @@ body{background:var(--s1);color:var(--txt);
   display:flex;gap:6px;padding:6px 10px;background:var(--s2);
   border-radius:4px;margin-bottom:4px;align-items:center;border:1px solid var(--bd);
 }
-.plt-label{font-size:11px;color:var(--txt2);flex:1;}
+.plt-label{font-size:14px;color:var(--txt2);flex:1;}
 .plt-opts{display:flex;gap:4px;}
 .plt-opt{
   padding:2px 9px;border-radius:3px;border:1px solid var(--bd);
@@ -229,6 +229,11 @@ body{background:var(--s1);color:var(--txt);
 }
 .capa-table td input:focus{background:#f0f9ff;}
 .capa-table td:first-child input{text-align:left;}
+.capa-table td select{
+  width:100%;background:transparent;border:none;color:var(--txt);
+  font-size:10px;padding:2px 4px;outline:none;font-family:inherit;
+}
+.capa-table td select:focus{background:#f0f9ff;}
 .capa-add-btn{font-size:10px;padding:3px 10px;border-radius:3px;border:1px dashed var(--cyn);background:transparent;color:var(--cyn);cursor:pointer;}
 .capa-add-btn:hover{background:#e0f2fe;}
 .capa-del-btn{width:20px;height:20px;border-radius:3px;border:1px solid var(--bd);background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;}
@@ -1591,6 +1596,7 @@ function delCapaRow(idx) {
 
 /* ══ 10-1. 제조 설비규격 테이블 ══ */
 const MFG_CAPACITY_PRESETS = ['100kg','500kg','1T','3T','5T'];
+const MFG_TYPE_OPTS = ['Homo','Ultra','Homo+Ultra','기타'];
 
 function renderMfgEquipTable(tbl) {
   const tbody = document.getElementById('mfg-equip-tbody');
@@ -1600,13 +1606,21 @@ function renderMfgEquipTable(tbl) {
     const aux = row.aux || {};
     return `
   <tr>
-    <td><input value="${row.type||''}" onchange="updateMfgEquipRow(${i},'type',this.value)" placeholder="예: Homo/Ultra mixer"></td>
+    <td>
+      <select onchange="updateMfgEquipRow(${i},'type',this.value)">
+        <option value="">선택</option>
+        ${MFG_TYPE_OPTS.map(o=>`<option value="${o}" ${row.type===o?'selected':''}>${o}</option>`).join('')}
+      </select>
+      ${row.type==='기타' ? `<input style="margin-top:4px;" value="${escHtml(row.typeOther||'')}" onchange="updateMfgEquipRow(${i},'typeOther',this.value)" placeholder="직접입력">` : ''}
+    </td>
     <td><input list="mfg-capacity-list" value="${row.capacity||''}" onchange="updateMfgEquipRow(${i},'capacity',this.value)" placeholder="용량 선택/입력"></td>
     <td><input value="${row.cnt||''}" type="number" min="0" onchange="updateMfgEquipRow(${i},'cnt',+this.value)" placeholder="0"></td>
     <td>
-      <label style="margin-right:6px;font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.oil?'checked':''} onchange="updateMfgEquipAux(${i},'oil',this.checked)">유상</label>
-      <label style="margin-right:6px;font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.water?'checked':''} onchange="updateMfgEquipAux(${i},'water',this.checked)">수상</label>
-      <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.cold?'checked':''} onchange="updateMfgEquipAux(${i},'cold',this.checked)">냉각</label>
+      <div style="display:flex;flex-wrap:nowrap;gap:8px;">
+        <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.oil?'checked':''} onchange="updateMfgEquipAux(${i},'oil',this.checked)">유상</label>
+        <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.water?'checked':''} onchange="updateMfgEquipAux(${i},'water',this.checked)">수상</label>
+        <label style="font-size:10px;white-space:nowrap;"><input type="checkbox" ${aux.cold?'checked':''} onchange="updateMfgEquipAux(${i},'cold',this.checked)">냉각</label>
+      </div>
     </td>
     <td><input value="${row.note||''}" onchange="updateMfgEquipRow(${i},'note',this.value)" placeholder="—"></td>
     <td><button class="capa-del-btn" onclick="delMfgEquipRow(${i})">✕</button></td>
@@ -1634,6 +1648,7 @@ function updateMfgEquipRow(idx, field, val) {
   const rec = getRecord(currentId);
   if (!rec.checks.mfg_equip_tbl[idx]) return;
   rec.checks.mfg_equip_tbl[idx][field] = val; upsertRecord(rec);
+  if (field === 'type') renderMfgEquipTable(rec.checks.mfg_equip_tbl);
 }
 function updateMfgEquipAux(idx, field, val) {
   if (!currentId) return;
