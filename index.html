@@ -116,6 +116,16 @@ body{background:var(--s1);color:var(--txt);
 }
 .eval-det-header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
 .eval-det-name{font-size:16px;font-weight:700;color:var(--navy);}
+.eval-det-name-row{display:flex;align-items:center;gap:10px;}
+.det-total-badge{
+  display:inline-flex;align-items:center;gap:4px;cursor:pointer;
+  padding:3px 10px;border-radius:14px;background:var(--navy);color:#fff;
+  font-size:12px;font-weight:700;user-select:none;
+}
+.det-total-badge:hover{opacity:.88;}
+.det-total-badge .dtb-val{font-size:15px;font-weight:900;}
+.det-total-badge .dtb-arrow{font-size:9px;opacity:.8;transition:transform .2s;}
+.det-total-badge.open .dtb-arrow{transform:rotate(180deg);}
 .eval-det-meta{display:flex;gap:6px;align-items:center;margin-top:3px;}
 .eval-det-close{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:18px;line-height:1;}
 .eval-det-close:hover{color:var(--txt);}
@@ -558,7 +568,13 @@ body{background:var(--s1);color:var(--txt);
       <div class="eval-det-header">
         <div class="eval-det-header-top">
           <div>
-            <div class="eval-det-name" id="det-name">—</div>
+            <div class="eval-det-name-row">
+              <div class="eval-det-name" id="det-name">—</div>
+              <span class="det-total-badge" id="det-total-badge" onclick="toggleScoreBar()" title="클릭하여 영역별 점수 보기/숨기기">
+                총점 <span class="dtb-val" id="det-total-val">0</span><span id="det-total-pkg-note"></span>
+                <span class="dtb-arrow">▾</span>
+              </span>
+            </div>
             <div class="eval-det-meta" id="det-meta"></div>
           </div>
           <button class="eval-det-close" onclick="closeDet()">✕</button>
@@ -575,8 +591,8 @@ body{background:var(--s1);color:var(--txt);
         </div>
       </div>
 
-      <!-- 점수 미니바 -->
-      <div class="eval-score-bar" id="eval-score-bar"></div>
+      <!-- 점수 미니바 (총점 배지 클릭 시 표시/숨김) -->
+      <div class="eval-score-bar" id="eval-score-bar" style="display:none;"></div>
       <!-- 체크 완료율 상태바 -->
       <!-- eval-check-status merged into score bar -->
 
@@ -1305,6 +1321,8 @@ function openEvalDet(id) {
   document.getElementById('det-meta').innerHTML   =
     `${statusTag(rec.status)} <span class="eval-type-pill ${rec.type==='PKG'?'PKG':''}">${typeLabel(rec.type)}</span>` +
     (rec.visitDate ? ` <span style="font-size:10px;color:var(--txt3);">${rec.visitDate}</span>` : '');
+  document.getElementById('eval-score-bar').style.display = 'none';
+  document.getElementById('det-total-badge')?.classList.remove('open');
 
   updateMfgTabState(rec.type);
   fillForm(rec);
@@ -1883,7 +1901,6 @@ function updateScoreBar(rec) {
     {key:'fin',label:'완제품', max:SPEC_MAX.fin,  items:YN_DEF.fin},
     {key:'ops',label:'운영',   max:SPEC_MAX.ops,  items:YN_DEF.ops},
   ];
-  const pkgNote = rec.type === 'PKG' ? '<span class="pkg-note">70→100</span>' : '';
   bar.innerHTML = domains.map((d, i) => {
     if (d.skip) return `
     ${i > 0 ? '<div class="esb-sep"></div>' : ''}
@@ -1905,13 +1922,21 @@ function updateScoreBar(rec) {
       <span class="esb-num" style="color:${color};">${sc[d.key]}</span>
       <span class="esb-cnt" style="color:${cntColor};">(${checked}/${total}${done?'✓':''})</span>
     </div>`;
-  }).join('') +
-  `<div class="esb-sep"></div>
-   <div class="esb-item">
-     <span style="font-size:11px;color:var(--navy);font-weight:700;">총점</span>
-     <span style="font-size:16px;font-weight:900;color:var(--navy);margin-left:3px;">${sc.total}</span>
-     ${pkgNote}
-   </div>`;
+  }).join('');
+
+  const totalValEl = document.getElementById('det-total-val');
+  if (totalValEl) totalValEl.textContent = sc.total;
+  const pkgNoteEl = document.getElementById('det-total-pkg-note');
+  if (pkgNoteEl) pkgNoteEl.innerHTML = rec.type === 'PKG' ? '<span class="pkg-note">70→100</span>' : '';
+}
+
+function toggleScoreBar() {
+  const bar   = document.getElementById('eval-score-bar');
+  const badge = document.getElementById('det-total-badge');
+  if (!bar) return;
+  const open = bar.style.display !== 'none';
+  bar.style.display = open ? 'none' : 'flex';
+  if (badge) badge.classList.toggle('open', !open);
 }
 
 function updateCheckStatus(rec) {
