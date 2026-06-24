@@ -2958,7 +2958,7 @@ async function doExportReport() {
       capaTbl.forEach((r,ri) => {
         const ad=(r.daily||0)*(r.cnt||0), am=ad*20;
         const bg = ri%2===0?WH:MG;
-        const vals=[r.name||'',(r.daily||0).toLocaleString(),String(r.cnt||0),ad.toLocaleString(),am.toLocaleString(),(r.kolma||0).toLocaleString(),r.note||''];
+        const vals=[(r.name==='기타'?(r.nameOther||'기타'):r.name)||'',(r.daily||0).toLocaleString(),String(r.cnt||0),ad.toLocaleString(),am.toLocaleString(),(r.kolma||0).toLocaleString(),r.note||''];
         let cx3=CX;
         cCW.forEach((w,ci) => {
           s.addShape(pptx.shapes.RECTANGLE, {x:cx3, y, w, h:0.32, fill:{color:bg}, line:{color:LG}});
@@ -3400,7 +3400,7 @@ async function doExportExcel() {
     const capaRows = [['설비명','설비CAPA','보유대수','일CAPA','월CAPA(20일)','콜마배정','비고']];
     capaTbl.forEach(r => {
       const ad = (r.daily||0)*(r.cnt||0);
-      capaRows.push([r.name||'', r.daily||0, r.cnt||0, ad, ad*20, r.kolma||0, r.note||'']);
+      capaRows.push([(r.name==='기타'?(r.nameOther||'기타'):r.name)||'', r.daily||0, r.cnt||0, ad, ad*20, r.kolma||0, r.note||'']);
     });
     const ws3 = XLSX.utils.aoa_to_sheet(capaRows);
     ws3['!cols'] = [{wch:14},{wch:12},{wch:10},{wch:12},{wch:14},{wch:12},{wch:16}];
@@ -3534,7 +3534,7 @@ function printChecklist() {
     const autoDaily = (r.daily||0)*(r.cnt||0);
     const autoMonthly = autoDaily * 20;
     return `<tr>
-    <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;">${r.name||''}</td>
+    <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;">${(r.name==='기타'?(r.nameOther||'기타'):r.name)||''}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${(r.daily||0).toLocaleString()}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:center;">${r.cnt||0}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${autoDaily.toLocaleString()}</td>
