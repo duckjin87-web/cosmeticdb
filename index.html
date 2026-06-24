@@ -2591,7 +2591,7 @@ function openTourStepPanel(idx) {
       <button class="btn sm" onclick="moveTourStep(${idx},1)" ${idx===steps.length-1?'disabled':''} title="뒤로 이동">뒤로 ▶</button>
       <label class="btn sm" style="cursor:pointer;border-color:var(--cyn);color:var(--cyn);">
         📷 사진추가
-        <input type="file" accept="image/*" capture="environment"
+        <input type="file" accept="image/*"
           style="display:none" onchange="handlePhotoUpload(this)">
       </label>
       <button class="btn sm" style="border-color:var(--red);color:var(--red);" onclick="deleteTourStep(${idx})" title="이 구간 삭제">🗑 삭제</button>`;
@@ -3686,7 +3686,7 @@ function printChecklist() {
               const src  = (p&&typeof p==='object') ? p.src : p;
               const memo = (p&&typeof p==='object') ? (p.memo||'') : '';
               return `<div>
-                <img src="${src}" style="width:100%;height:130px;object-fit:cover;border-radius:3px;border:1px solid #e2e8f0;display:block;">
+                <img src="${src}" style="width:100%;max-height:130px;object-fit:contain;border-radius:3px;border:1px solid #e2e8f0;display:block;">
                 ${memo ? `<div style="font-size:8px;color:#475569;margin-top:3px;padding:2px 4px;background:#f8fafc;border-radius:3px;">${memo}</div>` : ''}
               </div>`;
             }).join('')}
@@ -3698,7 +3698,7 @@ function printChecklist() {
   <!-- 종합의견 -->
   <div style="border:1px solid #e2e8f0;border-radius:4px;padding:8px 10px;min-height:50px;background:#f8fafc;margin-bottom:10px;">
     <div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:4px;text-transform:uppercase;">종합의견</div>
-    <div style="font-size:10px;color:#1e293b;line-height:1.6;">${rec.notes?.overall||''}</div>
+    <div style="font-size:10px;color:#1e293b;line-height:1.6;white-space:pre-wrap;">${escHtml(rec.notes?.overall||'')}</div>
   </div>
   <!-- 서명란 -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
