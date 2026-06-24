@@ -1794,21 +1794,21 @@ function printPrivacyConsent() {
     <button onclick="window.print()" style="padding:6px 16px;background:#3b4f8a;color:#fff;border:none;border-radius:5px;font-size:12px;cursor:pointer;">🖨️ PDF 저장 (인쇄)</button>
   </div>
   <div style="font-size:16px;font-weight:900;text-align:center;margin-bottom:18px;">개인정보 수집·이용 동의서</div>
-  <div style="line-height:1.8;margin-bottom:18px;">
+  <div style="line-height:1.8;margin-bottom:18px;text-align:center;">
     당사는 협력업체 방문 점검 및 관리 목적으로 아래와 같이 개인정보를 수집·이용하고자 합니다.<br>
     <b>수집 항목</b>: 업체명, 담당자 이름, 연락처<br>
     <b>수집 목적</b>: 협력업체 방문 점검 이력 관리, 업무 연락 대응<br>
     <b>보유 및 이용 기간</b>: 수집일로부터 12개월 (또는 목적 달성 시까지)<br>
     <span style="font-size:11px;color:#64748b;">※ 귀하는 개인정보 수집·이용에 대한 동의를 거부할 권리가 있으며, 동의 거부시 등록평가절차에 일부 제한이 발생될 수 있습니다.</span>
   </div>
-  <div style="margin-bottom:18px;font-size:14px;">
+  <div style="margin-bottom:18px;font-size:14px;text-align:center;">
     ${consentY ? '☑' : '☐'} 동의합니다 &nbsp;&nbsp;&nbsp; ${!consentY ? '☑' : '☐'} 동의하지 않습니다
   </div>
   <table style="width:100%;border-collapse:collapse;font-size:13px;">
-    <tr><td style="padding:6px 0;width:110px;font-weight:700;">업  체  명</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;">${rec.companyName||''}</td></tr>
-    <tr><td style="padding:6px 0;font-weight:700;">이      름</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;">${name}</td></tr>
-    <tr><td style="padding:6px 0;font-weight:700;">작  성  일</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;">${rec.visitDate||''}</td></tr>
-    <tr><td style="padding:6px 0;font-weight:700;vertical-align:middle;">서      명</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;">${sigHtml}</td></tr>
+    <tr><td style="padding:6px 0;width:110px;font-weight:700;">업  체  명</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;text-align:right;">${rec.companyName||''}</td></tr>
+    <tr><td style="padding:6px 0;font-weight:700;">이      름</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;text-align:right;">${name}</td></tr>
+    <tr><td style="padding:6px 0;font-weight:700;">작  성  일</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;text-align:right;">${rec.visitDate||''}</td></tr>
+    <tr><td style="padding:6px 0;font-weight:700;vertical-align:middle;">서      명</td><td style="padding:6px 0;border-bottom:1px solid #94a3b8;text-align:right;">${sigHtml}</td></tr>
   </table>
   </body></html>`;
   const w = window.open('', '_blank');
