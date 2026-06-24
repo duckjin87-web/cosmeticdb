@@ -3668,31 +3668,48 @@ function printChecklist() {
       <div style="display:inline-block;font-size:10px;font-weight:700;padding:1px 8px;border-radius:10px;background:${g.bg};color:${g.color};margin-top:2px;">${g.label}</div>
     </div>
   </div>
-  <!-- 동선별 현장 사진 (2분할) -->
+  <!-- 동선별 현장 사진 (사진 2장 단위로 분할, 많은 경우 카테고리명에 번호 부여) -->
   ${(rec.tourSteps||[]).length > 0 ? `
   <div style="margin-bottom:10px;">
     <div style="background:#3b4f8a;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">동선별 현장 사진</div>
     <div style="border:1px solid #cbd5e1;border-top:none;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      ${(rec.tourSteps||[]).map((s,i) => `
+      ${(() => {
+        const blocks = [];
+        (rec.tourSteps||[]).forEach((s,i) => {
+          const photos = s.photos || [];
+          if (!photos.length) {
+            blocks.push({stepNum:i+1, name:s.name, photos:[], partIdx:1});
+          } else {
+            const totalParts = Math.ceil(photos.length/2);
+            for (let pi=0; pi<totalParts; pi++) {
+              blocks.push({stepNum:i+1, name:s.name, photos:photos.slice(pi*2,pi*2+2), partIdx:pi+1});
+            }
+          }
+        });
+        return blocks.map(blk => {
+          const label = blk.partIdx===1 ? blk.name : `${blk.name}(${blk.partIdx})`;
+          return `
       <div style="border:1px solid #e2e8f0;border-radius:5px;overflow:hidden;break-inside:avoid;">
         <div style="background:#eef2ff;padding:5px 10px;font-size:10px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;">
-          ${i+1}. ${s.name}
-          ${s.photos?.length>0 ? `<span style="font-size:9px;color:#0ea5e9;margin-left:5px;">📷${s.photos.length}</span>` : ''}
+          ${blk.stepNum}. ${label}
+          ${blk.photos.length>0 ? `<span style="font-size:9px;color:#0ea5e9;margin-left:5px;">📷${blk.photos.length}</span>` : ''}
         </div>
         <div style="padding:8px;">
-          ${s.photos?.length > 0 ? `
-          <div style="display:grid;grid-template-columns:${s.photos.length===1?'1fr':'1fr 1fr'};gap:6px;margin-bottom:4px;">
-            ${s.photos.map(p => {
+          ${blk.photos.length > 0 ? `
+          <div style="display:grid;grid-template-columns:${blk.photos.length===1?'1fr':'1fr 1fr'};gap:6px;margin-bottom:4px;">
+            ${blk.photos.map(p => {
               const src  = (p&&typeof p==='object') ? p.src : p;
               const memo = (p&&typeof p==='object') ? (p.memo||'') : '';
               return `<div>
-                <img src="${src}" style="width:100%;max-height:130px;object-fit:contain;border-radius:3px;border:1px solid #e2e8f0;display:block;">
+                <img src="${src}" style="width:100%;max-height:240px;object-fit:contain;border-radius:3px;border:1px solid #e2e8f0;display:block;">
                 ${memo ? `<div style="font-size:8px;color:#475569;margin-top:3px;padding:2px 4px;background:#f8fafc;border-radius:3px;">${memo}</div>` : ''}
               </div>`;
             }).join('')}
           </div>` : `<div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:9px;">사진 없음</div>`}
         </div>
-      </div>`).join('')}
+      </div>`;
+        }).join('');
+      })()}
     </div>
   </div>` : ''}
   <!-- 종합의견 -->
