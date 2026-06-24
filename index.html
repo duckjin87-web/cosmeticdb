@@ -2991,7 +2991,7 @@ async function doExportReport() {
       allItems.forEach(it => {
         if (it._plt) {
           const cnt = pltCount(c);
-          if (cnt > 0) domItems.push({label:it.label, result:PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+'), note:'', isIssue:false, isText:true});
+          if (cnt > 0) domItems.push({label:it.label, result:'', note:PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+'), isIssue:false, isText:true});
           return;
         }
         const val=c[it.key]||null, note=c[it.key+'_note']||'';
@@ -3203,8 +3203,8 @@ async function doExportReport() {
         const ps = pptx.addSlide(); addHeader(ps, '현장사진 및 특이사항');
         let py = TY;
         // 동선 바
-        ps.addShape(pptx.shapes.RECTANGLE, {x:CX, y:py, w:CW, h:0.27, fill:{color:DN}, line:{color:DN}});
-        ps.addText(routeTxt, {x:CX+0.1, y:py+0.04, w:CW-0.15, h:0.2, fontSize:11, color:WH, fontFace:FF});
+        ps.addShape(pptx.shapes.RECTANGLE, {x:CX, y:py, w:CW, h:0.27, fill:{color:WH}, line:{color:LG}});
+        ps.addText(routeTxt, {x:CX+0.1, y:py+0.04, w:CW-0.15, h:0.2, fontSize:11, bold:true, color:DT, fontFace:FF});
         py += 0.3;
         // 2×2 그리드
         const cellW = (CW-0.15)/2, cellH = (BOT-py-0.1)/2;
