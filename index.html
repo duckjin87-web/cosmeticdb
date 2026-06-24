@@ -3261,7 +3261,8 @@ async function doExportReport() {
   }
 
   const fileName = `참관보고_${rec.companyName||'업체'}_${rec.visitDate||new Date().toISOString().slice(0,10)}.pptx`;
-  const blob = await pptx.write({outputType:'blob'});
+  const rawBlob = await pptx.write({outputType:'blob'});
+  const blob = new Blob([rawBlob], {type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
   await fsaSaveBlob(blob, fileName);
 }
 
