@@ -1136,14 +1136,62 @@ const SAMPLE_RECORDS = [
   }
 ];
 
-/* ══ 3. localStorage ══ */
-const LS_KEY = 'cosmedb_eval_records';
-function loadRecords() {
-  try { const r = localStorage.getItem(LS_KEY); if (r) return JSON.parse(r); } catch(e) {}
-  localStorage.setItem(LS_KEY, JSON.stringify(SAMPLE_RECORDS));
-  return SAMPLE_RECORDS;
+/* ══ 3. 저장소 (IndexedDB, localStorage에서 마이그레이션) ══ */
+const LS_KEY  = 'cosmedb_eval_records';
+const IDB_NAME  = 'cosmedb_store';
+const IDB_STORE = 'kv';
+const IDB_KEY   = 'records';
+let _recordsCache = null; // 메모리 캐시 - loadRecords()는 항상 이 캐시를 동기 반환
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
 }
-function saveRecords(r) { localStorage.setItem(LS_KEY, JSON.stringify(r)); }
+function idbGet(key) {
+  return idbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  }));
+}
+function idbSet(key, value) {
+  return idbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror    = () => reject(tx.error);
+  }));
+}
+
+// 앱 시작 시 1회 호출: IndexedDB에서 캐시를 채우고, 없으면 localStorage 데이터를 마이그레이션
+async function initStorage() {
+  try {
+    const idbData = await idbGet(IDB_KEY);
+    if (idbData) { _recordsCache = idbData; return; }
+  } catch (e) { console.error('IndexedDB 읽기 실패', e); }
+
+  // IndexedDB에 데이터가 없으면 localStorage(구 저장소)에서 이전
+  let migrated = null;
+  try { const r = localStorage.getItem(LS_KEY); if (r) migrated = JSON.parse(r); } catch (e) {}
+  _recordsCache = migrated || SAMPLE_RECORDS;
+  try { await idbSet(IDB_KEY, _recordsCache); } catch (e) { console.error('IndexedDB 저장 실패', e); }
+}
+
+function loadRecords() {
+  return _recordsCache || SAMPLE_RECORDS;
+}
+function saveRecords(r) {
+  _recordsCache = r;
+  idbSet(IDB_KEY, r).catch(e => {
+    console.error('IndexedDB 저장 실패', e);
+    toast('저장 실패: ' + (e && e.message ? e.message : '알 수 없는 오류'), 'err');
+  });
+}
 function getRecord(id)  {
   const rec = loadRecords().find(r => r.id === id) || null;
   if (rec && !rec.privacy) rec.privacy = { consent:'Y', name:'', signature:'' };
@@ -3783,7 +3831,11 @@ function toggleSidebar() {
 }
 
 /* ══ 20. 초기화 ══ */
-document.addEventListener('DOMContentLoaded', () => { renderEvalList(); updateFsaStatus(); });
+document.addEventListener('DOMContentLoaded', async () => {
+  await initStorage();
+  renderEvalList();
+  updateFsaStatus();
+});
 </script>
 </body>
 </html>
