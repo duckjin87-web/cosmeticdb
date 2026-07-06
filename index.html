@@ -1866,8 +1866,8 @@ function printPrivacyConsent() {
   </div>
   <hr class="divider">
   <div style="font-size:14px;line-height:2.4;">
-    □ 동의합니다<br>
-    □ 동의하지 않습니다
+    ${consentY  ? '■' : '□'} 동의합니다<br>
+    ${!consentY ? '■' : '□'} 동의하지 않습니다
   </div>
   <hr class="divider">
   <div style="display:flex;flex-direction:column;align-items:flex-end;margin-top:36px;gap:10px;">
