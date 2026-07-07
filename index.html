@@ -722,10 +722,10 @@ body{background:var(--s1);color:var(--txt);
 
             <div style="display:flex;gap:20px;margin-bottom:18px;">
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
-                <input type="radio" name="privacyConsent" id="f-privacyConsentY" onchange="patchPrivacyField('consent','Y')"> 동의합니다
+                <input type="radio" name="privacyConsent" id="f-privacyConsentY" onclick="patchPrivacyField('consent','Y')"> 동의합니다
               </label>
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
-                <input type="radio" name="privacyConsent" id="f-privacyConsentN" onchange="patchPrivacyField('consent','N')"> 동의하지 않습니다
+                <input type="radio" name="privacyConsent" id="f-privacyConsentN" onclick="patchPrivacyField('consent','N')"> 동의하지 않습니다
               </label>
             </div>
 
@@ -1827,7 +1827,9 @@ function printPrivacyConsent() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
   const rec = getRecord(currentId);
   const p = rec.privacy || { consent:'Y', name:'', signature:'' };
-  const consentY = p.consent !== 'N';
+  // 저장값 + 화면 라디오 상태 둘 다 확인해서 최신값 사용
+  const radioN = document.getElementById('f-privacyConsentN');
+  const consentY = radioN ? !radioN.checked : (p.consent !== 'N');
   const name = p.name || rec.contactName || '';
   const sigHtml = p.signature
     ? `<img src="${p.signature}" style="height:44px;vertical-align:middle;">`
