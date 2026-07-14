@@ -3302,79 +3302,63 @@ async function doExportReport() {
     if (steps.length) {
       const routeTxt = steps.map((st,i)=>`${i+1}. ${st.name}`).join(' → ');
 
-      // 동선당 사진을 2장 단위로 분할 — 사진이 많은 동선은 여러 블록(페이지)로 이어짐
+      // 사진 1장 = 1블록, 페이지당 2장 좌우 배치
       const blocks = [];
       steps.forEach((step, si) => {
-        const photos = normalizePhotos(step.photos||[]).filter(p=>p&&((p.src)||p));
-        if (!photos.length) {
-          blocks.push({stepNum:si+1, name:step.name, memo:step.memo, photos:[], partIdx:1, totalParts:1});
-        } else {
-          const totalParts = Math.ceil(photos.length/2);
-          for (let pi=0; pi<totalParts; pi++) {
-            blocks.push({
-              stepNum:si+1, name:step.name,
-              memo: pi===0 ? step.memo : '', // 동선 특이사항은 첫 블록에만 표기 (중복 방지)
-              photos: photos.slice(pi*2, pi*2+2),
-              partIdx: pi+1, totalParts,
-            });
-          }
-        }
+        const photos = normalizePhotos(step.photos||[]).filter(p=>p&&p.src);
+        if (!photos.length) return; // 사진 없는 동선은 슬라이드에서 제외
+        photos.forEach((p, pi) => {
+          blocks.push({
+            stepNum: si+1, name: step.name,
+            photo: p,
+            partIdx: pi+1, totalParts: photos.length,
+            memo: pi === 0 ? (step.memo || '') : '',
+          });
+        });
       });
 
       for (let bi = 0; bi < blocks.length; bi += 2) {
         const pg = blocks.slice(bi, bi+2);
         const ps = pptx.addSlide(); addHeader(ps, '현장사진 및 특이사항');
         let py = TY;
-        // 2열 1행 그리드 (좌우 나란히, 사진 최대 크기)
+        // 2열 1행 (사진 1장씩 좌우 나란히, 최대 크기)
         const gap = 0.12;
         const cellW = (CW - gap) / 2, cellH = BOT - py - 0.06;
         pg.forEach((blk, idx) => {
-          const col=idx, row=0;
-          const bx=CX+col*(cellW+gap), by=py;
-          const tH=0.28;
+          const bx = CX + idx * (cellW + gap), by = py;
+          const tH = 0.28;
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:cellH, fill:{color:WH}, line:{color:LG}});
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:tH, fill:{color:KB}, line:{color:KB}});
-          const label = blk.totalParts>1 ? `${blk.stepNum}. ${blk.name} (${blk.partIdx}/${blk.totalParts})` : `${blk.stepNum}. ${blk.name}`;
+          const label = blk.totalParts > 1
+            ? `${blk.stepNum}. ${blk.name} (${blk.partIdx}/${blk.totalParts})`
+            : `${blk.stepNum}. ${blk.name}`;
           ps.addText(label, {x:bx+0.08, y:by+0.06, w:cellW-0.14, h:tH-0.08, fontSize:10, bold:true, color:WH, fontFace:FF, valign:'middle', shrinkText:true});
 
           let contentY = by + tH + 0.05;
           const bottomY = by + cellH - 0.06;
 
-          // 동선 특이사항 — 구분선(divider) 스타일 태그로 표기, 글자수에 맞춰 칸 높이 산정
+          // 동선 특이사항 (첫 번째 사진에만 표기)
           if (blk.memo) {
             const items = blk.memo.split(/[,\n]/).map(s=>s.trim()).filter(Boolean);
             const memoTextW = cellW - 0.2;
             const memoCharsPerLine = Math.max(8, Math.floor(memoTextW / 0.165));
-            const prefixLen = 7; // "[특이사항]  " 자리
-            const dividerLen = 5; // "   |   " 자리
-            const totalLen = prefixLen + items.reduce((s,it,idx) => s + it.length + (idx>0?dividerLen:0), 0);
-            const memoLines = Math.max(1, Math.ceil(totalLen / memoCharsPerLine));
-            const memoH = Math.max(0.3, memoLines * 0.19 + 0.14);
+            const totalLen = 7 + items.reduce((s,it,i) => s + it.length + (i>0?5:0), 0);
+            const memoH = Math.max(0.3, Math.max(1, Math.ceil(totalLen/memoCharsPerLine)) * 0.19 + 0.14);
             ps.addShape(pptx.shapes.RECTANGLE, {x:bx+0.06, y:contentY, w:cellW-0.12, h:memoH, fill:{color:DNL}, line:{color:DN, width:0.5}});
             const runs = [{text:'[특이사항]  ', options:{bold:true, color:DN}}];
-            items.forEach((it, idx) => {
-              if (idx>0) runs.push({text:'   |   ', options:{color:'94A3B8'}});
+            items.forEach((it,i) => {
+              if (i>0) runs.push({text:'   |   ', options:{color:'94A3B8'}});
               runs.push({text:it, options:{color:DT}});
             });
             ps.addText(runs, {x:bx+0.1, y:contentY+0.03, w:memoTextW, h:memoH-0.06, fontSize:10, fontFace:FF, valign:'middle', wrap:true});
             contentY += memoH + 0.06;
           }
 
+          // 사진 1장을 셀 전체에 표시
           const ia = {x:bx+0.07, y:contentY, w:cellW-0.14, h:bottomY-contentY};
-          const photos = blk.photos;
-          if (!photos.length) {
-            ps.addShape(pptx.shapes.RECTANGLE, {x:ia.x, y:ia.y, w:ia.w, h:ia.h, fill:{color:MG}, line:{color:LG, dashType:'dash'}});
-            ps.addText('사진 없음', {x:ia.x, y:ia.y+ia.h/2-0.15, w:ia.w, h:0.3, fontSize:10, color:'aaaaaa', align:'center', fontFace:FF});
-          } else {
-            const nc = photos.length; // 블록당 최대 2장이므로 1행 배치
-            const slotW=(ia.w-(nc-1)*0.06)/nc, slotH=ia.h;
-            photos.forEach((p,pi) => {
-              const sx=ia.x+pi*(slotW+0.06), sy=ia.y;
-              const src=(p&&typeof p==='object')?p.src:p;
-              const fit = fitImageInSlot(src, sx, sy, slotW, slotH);
-              try{ps.addImage({data:src, x:fit.x, y:fit.y, w:fit.w, h:fit.h});}catch(e){}
-            });
-          }
+          const src = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
+          const fit = fitImageInSlot(src, ia.x, ia.y, ia.w, ia.h);
+          try { ps.addImage({data:src, x:fit.x, y:fit.y, w:fit.w, h:fit.h}); } catch(e) {}
         });
       }
     }
