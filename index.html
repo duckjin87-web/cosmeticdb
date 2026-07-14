@@ -3110,14 +3110,14 @@ async function doExportReport() {
         const isIssue=(!it.neg&&val==='N')||(it.neg&&val==='Y');
         // X 결과이거나, O이지만 메모/사진이 있는 경우만 표시
         if (!isIssue && !note && !photos.length) return;
-        domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue});
+        domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue, photos});
       });
       (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach(ci => {
         const val=c[ci.id]||null, note=c[ci.id+'_note']||'';
         const ciPhotos=normalizePhotos(c[ci.id+'_photos']).filter(p=>p&&p.src);
         const ciIsIssue = ci.pts>0 && val==='N';
         if (!ciIsIssue && !note && !ciPhotos.length) return;
-        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ciIsIssue});
+        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ciIsIssue, photos:ciPhotos});
       });
       if (!domItems.length) {
         issueRows.push({domLabel:d.label, domNum:d.num, domScore:sc[d.key], domMax:d.max, label:'해당사항 없음', result:'', note:'', opinion:domNote, isIssue:false, noItems:true});
@@ -3137,8 +3137,10 @@ async function doExportReport() {
     // 행 높이 사전 계산
     const rowsWithH = issueRows.map(row => {
       const noteLen=(row.note||'').length, lblLen=(row.label||'').length, opLen=(row.opinion||'').length;
-      const rH=Math.max(0.35, Math.max(Math.ceil(lblLen/24), Math.ceil(noteLen/26), Math.ceil(opLen/40))*0.26+0.1);
-      return {...row, rH};
+      const textH=Math.max(0.35, Math.max(Math.ceil(lblLen/24), Math.ceil(noteLen/26), Math.ceil(opLen/40))*0.26+0.1);
+      const photoRows=Math.ceil(((row.photos||[]).length)/2);
+      const photoH=photoRows>0?photoRows*1.35:0;
+      return {...row, rH:textH+photoH, textH, photoH};
     });
 
     // 페이지에 행 배분 (같은 도메인 행이 가능하면 함께 유지)
@@ -3226,7 +3228,20 @@ async function doExportReport() {
             const rc = row.result==='O'?'16a34a':row.result==='X'?RD:DT;
             s.addText(row.result, {x:colX[2]+0.04, y:y+0.04, w:colW[2]-0.06, h:row.rH-0.06, fontSize:isOX?11:7.5, bold:isOX, color:rc, align:'center', fontFace:FF, valign:'middle', shrinkText:true});
           }
-          if (row.note) s.addText(row.note, {x:colX[3]+0.07, y:y+0.04, w:colW[3]-0.1, h:row.rH-0.06, fontSize:9, color:row.isIssue?RD:DT, fontFace:FF, valign:'top', wrap:true});
+          if (row.note) s.addText(row.note, {x:colX[3]+0.07, y:y+0.04, w:colW[3]-0.1, h:row.textH-0.06, fontSize:9, color:row.isIssue?RD:DT, fontFace:FF, valign:'top', wrap:true});
+          const rowPhotos=(row.photos||[]).filter(p=>p&&p.src);
+          if (rowPhotos.length) {
+            const npW=(colW[3]-0.18)/2, npH=1.2, nx0=colX[3]+0.07;
+            const phStartY=y+row.textH;
+            rowPhotos.forEach((p,pi)=>{
+              const pc=pi%2, pr=Math.floor(pi/2);
+              const phX=nx0+pc*(npW+0.07), phY=phStartY+pr*(npH+0.07);
+              const src=(p&&typeof p==='object')?p.src:p;
+              try{s.addImage({data:src,x:phX,y:phY,w:npW,h:npH});}catch(e){}
+              const memo=p&&p.memo;
+              if(memo) s.addText(memo,{x:phX,y:phY+npH+0.01,w:npW,h:0.15,fontSize:7,color:ST,fontFace:FF,shrinkText:true});
+            });
+          }
           y += row.rH;
         });
         globalRowIdx += domRows.length;
@@ -3234,14 +3249,8 @@ async function doExportReport() {
       }
     });
 
-    // 종합의견 + 첨부사진 (새 슬라이드)
+    // 종합의견 (새 슬라이드)
     const overallNote = (rec.notes||{}).overall||'';
-    const attachPhotos = [];
-    domainDefs.filter(d=>!d.skip).forEach(d => {
-      YN_DEF[d.key].forEach(it => {
-        normalizePhotos(c[it.key+'_photos']).forEach(p => attachPhotos.push({label:`${d.label} – ${it.label}`, src:(p&&p.src)||p, memo:(p&&p.memo)||''}));
-      });
-    });
 
     const ov = pptx.addSlide(); addHeader(ov, '점검 특이사항');
     let oy = TY;
@@ -3264,36 +3273,6 @@ async function doExportReport() {
     if (overallNote) ov.addText(overallNote, {x:CX+sumW[0]+0.1, y:oy+0.07, w:sumW[1]-0.15, h:totalRH-0.1, fontSize:9.5, color:DT, fontFace:FF, valign:'top', wrap:true});
     oy += totalRH + 0.12;
 
-    // 첨부사진 (4개씩 페이지) — 종합의견이 길어 공간이 부족하면 새 슬라이드로
-    if (attachPhotos.length) {
-      const photoW = (CW - 0.3) / 4, photoH = 1.9;
-      const minPhotoBlockH = 0.32 + photoH + 0.2;
-      let curPhSl = ov, phY = oy;
-      if (oy + minPhotoBlockH > BOT) {
-        curPhSl = pptx.addSlide(); addHeader(curPhSl, '점검 특이사항');
-        phY = TY;
-      }
-      attachPhotos.forEach((ap, api) => {
-        if (api > 0 && api % 4 === 0) {
-          curPhSl = pptx.addSlide(); addHeader(curPhSl, '점검 특이사항');
-          phY = TY;
-          curPhSl.addShape(pptx.shapes.RECTANGLE, {x:CX, y:phY, w:CW, h:0.27, fill:{color:MG}, line:{color:LG}});
-          curPhSl.addText('첨부사진 (계속)', {x:CX+0.1, y:phY+0.04, w:4, h:0.21, fontSize:10, bold:true, color:DT, fontFace:FF});
-          phY += 0.32;
-        }
-        if (api === 0) {
-          curPhSl.addShape(pptx.shapes.RECTANGLE, {x:CX, y:phY, w:CW, h:0.27, fill:{color:MG}, line:{color:LG}});
-          curPhSl.addText('첨부사진', {x:CX+0.1, y:phY+0.04, w:4, h:0.21, fontSize:10, bold:true, color:DT, fontFace:FF});
-          phY += 0.32;
-        }
-        const col = api % 4;
-        const px = CX + col * (photoW + 0.1);
-        curPhSl.addShape(pptx.shapes.RECTANGLE, {x:px, y:phY, w:photoW, h:0.24, fill:{color:KB}, line:{color:KB}});
-        curPhSl.addText(ap.label, {x:px+0.04, y:phY+0.04, w:photoW-0.06, h:0.18, fontSize:7.5, color:WH, fontFace:FF, shrinkText:true});
-        try { curPhSl.addImage({data:ap.src, x:px, y:phY+0.25, w:photoW, h:photoH}); } catch(e){}
-        if (ap.memo) curPhSl.addText(ap.memo, {x:px, y:phY+0.25+photoH+0.02, w:photoW, h:0.2, fontSize:7, color:ST, fontFace:FF});
-      });
-    }
   }
 
   /* ── 현장사진 및 특이사항 (투어 구간, 사진 최대 2장 단위로 분할 / 4블록당 페이지) ── */
