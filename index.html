@@ -1028,7 +1028,7 @@ const YN_DEF = {
     {key:'fin_q1', label:'완제품창고 독립',                       pts:1},
     {key:'fin_q2', label:'완제품 보관 CAPA 여유',                 pts:1},
     {key:'fin_q3', label:'출고 품질검사 실시',                    pts:2},
-    {key:'fin_q4', label:'배차 자체규정 보유',                    pts:1},
+    {key:'fin_q4', label:'배차 자체규정 보유(출고/직출 배차가능)',  pts:1},
   ],
   ops:[
     {key:'ops_q3',  label:'타 OEM 전산 경험',                     pts:1},
@@ -2675,7 +2675,7 @@ function openTourStepPanel(idx) {
       <button class="btn sm" onclick="moveTourStep(${idx},1)" ${idx===steps.length-1?'disabled':''} title="뒤로 이동">뒤로 ▶</button>
       <label class="btn sm" style="cursor:pointer;border-color:var(--cyn);color:var(--cyn);">
         📷 사진추가
-        <input type="file" accept="image/*"
+        <input type="file" accept="image/*" multiple
           style="display:none" onchange="handlePhotoUpload(this)">
       </label>
       <button class="btn sm" style="border-color:var(--red);color:var(--red);" onclick="deleteTourStep(${idx})" title="이 구간 삭제">🗑 삭제</button>`;
@@ -2776,19 +2776,21 @@ async function handlePhotoUpload(input) {
   if (!input.files.length || !currentId || activeTourStep < 0) return;
   if (isUploading) { toast('이전 사진 처리 중입니다. 잠시 후 다시 시도하세요.', 'err'); return; }
   isUploading = true;
+  const files = Array.from(input.files);
   try {
-    const file    = input.files[0];
-    const dataUrl = await resizeImage(file, 800, 0.75);
     const rec = getRecord(currentId);
     syncTourSteps(rec);
     const step = rec.tourSteps[activeTourStep];
     if (!step) return;
     step.photos = step.photos || [];
-    step.photos.push({ src: dataUrl, memo: '' });
+    for (const file of files) {
+      const dataUrl = await resizeImage(file, 800, 0.75);
+      step.photos.push({ src: dataUrl, memo: '' });
+    }
     upsertRecord(rec);
     renderTourPhotos(step.photos, activeTourStep);
     renderTourBar(rec);
-    toast(`사진 추가 완료 (${step.name})`);
+    toast(`사진 ${files.length}장 추가 완료 (${step.name})`);
   } catch(e) {
     toast('사진 처리 중 오류가 발생했습니다.', 'err');
   } finally {
@@ -3106,8 +3108,8 @@ async function doExportReport() {
         const val=c[it.key]||null, note=c[it.key+'_note']||'';
         const photos=normalizePhotos(c[it.key+'_photos']);
         const isIssue=(!it.neg&&val==='N')||(it.neg&&val==='Y');
-        if (!val && !note && !photos.length) return;
-        if (!isIssue && !note && !photos.length) return;
+        const isOkWithEvidence = !isIssue && (note || photos.length > 0);
+        if (!isIssue && !isOkWithEvidence) return;
         domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue});
       });
       (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach(ci => {
@@ -3157,15 +3159,20 @@ async function doExportReport() {
       let y = TY;
 
       // 점수 요약 바
+      // PKG 업체: 카테고리 만점 100점 환산 표기용 가중치 (mat:30 pkg:35 fin:15 ops:20)
+      const PKG_DISP_MAX = {mat:30, pkg:35, fin:15, ops:20};
       const activeDoms = domainDefs.filter(d=>!d.skip);
       const sW = CW / (activeDoms.length + 2);
       let sx = CX;
       activeDoms.forEach(d => {
-        const isLow = sc[d.key] / d.max < 0.5;
+        const dispMax = (rec.type==='PKG' && PKG_DISP_MAX[d.key]) ? PKG_DISP_MAX[d.key] : d.max;
+        const dispScore = (rec.type==='PKG' && PKG_DISP_MAX[d.key])
+          ? Math.round(sc[d.key] / d.max * dispMax) : sc[d.key];
+        const isLow = dispScore / dispMax < 0.5;
         const sBg = isLow ? 'FEE2E2' : MG;
         const sTx = isLow ? RD : DT;
         s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:sBg}, line:{color:isLow?RD:LG}});
-        s.addText(`${d.num}. ${d.label}\n(${sc[d.key]}/${d.max})`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:8, bold:isLow, color:sTx, align:'center', fontFace:FF});
+        s.addText(`${d.num}. ${d.label}\n(${dispScore}/${dispMax})`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:8, bold:isLow, color:sTx, align:'center', fontFace:FF});
         sx += sW;
       });
       s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:KB}, line:{color:KB}});
@@ -3200,9 +3207,15 @@ async function doExportReport() {
         s.addShape(pptx.shapes.RECTANGLE, {x:colX[0], y, w:colW[0], h:totalH, fill:{color:catBg}, line:{color:isLow?RD:LG, width:0.5}});
         s.addText(`${domNum}. ${curDom}\n(${domScore}/${domMax})`, {x:colX[0]+0.05, y:y+0.04, w:colW[0]-0.08, h:totalH-0.06, fontSize:9, bold:true, color:catTx, align:'center', fontFace:FF, valign:'middle'});
 
+        // 평가의견 병합 셀 (도메인 전체 높이)
+        const domOpinion = domRows[0].opinion || '';
+        s.addShape(pptx.shapes.RECTANGLE, {x:colX[4], y, w:colW[4], h:totalH, fill:{color:MG}, line:{color:LG, width:0.5}});
+        if (domOpinion) s.addText(domOpinion, {x:colX[4]+0.07, y:y+0.04, w:colW[4]-0.12, h:totalH-0.08, fontSize:9, color:DT, fontFace:FF, valign:'middle', align:'center', wrap:true});
+
+        const opinionStartY = y;
         domRows.forEach((row, rowIdx) => {
           const bg = (globalRowIdx + rowIdx) % 2 === 0 ? WH : MG;
-          for (let ci = 1; ci < colW.length; ci++) {
+          for (let ci = 1; ci < colW.length - 1; ci++) {
             s.addShape(pptx.shapes.RECTANGLE, {x:colX[ci], y, w:colW[ci], h:row.rH, fill:{color:bg}, line:{color:LG, width:0.5}});
           }
           s.addText(row.noItems?'해당사항 없음':row.label, {x:colX[1]+0.07, y:y+0.04, w:colW[1]-0.1, h:row.rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'middle', wrap:true, italic:!!row.noItems});
@@ -3212,7 +3225,6 @@ async function doExportReport() {
             s.addText(row.result, {x:colX[2]+0.04, y:y+0.04, w:colW[2]-0.06, h:row.rH-0.06, fontSize:isOX?11:7.5, bold:isOX, color:rc, align:'center', fontFace:FF, valign:'middle', shrinkText:true});
           }
           if (row.note) s.addText(row.note, {x:colX[3]+0.07, y:y+0.04, w:colW[3]-0.1, h:row.rH-0.06, fontSize:9, color:row.isIssue?RD:DT, fontFace:FF, valign:'top', wrap:true});
-          if (row.opinion) s.addText(row.opinion, {x:colX[4]+0.07, y:y+0.04, w:colW[4]-0.1, h:row.rH-0.06, fontSize:9, color:DT, fontFace:FF, valign:'top', wrap:true});
           y += row.rH;
         });
         globalRowIdx += domRows.length;
@@ -3307,19 +3319,15 @@ async function doExportReport() {
         }
       });
 
-      for (let bi = 0; bi < blocks.length; bi += 4) {
-        const pg = blocks.slice(bi, bi+4);
+      for (let bi = 0; bi < blocks.length; bi += 2) {
+        const pg = blocks.slice(bi, bi+2);
         const ps = pptx.addSlide(); addHeader(ps, '현장사진 및 특이사항');
         let py = TY;
-        // 동선 바
-        ps.addShape(pptx.shapes.RECTANGLE, {x:CX, y:py, w:CW, h:0.27, fill:{color:WH}, line:{color:LG}});
-        ps.addText(routeTxt, {x:CX+0.1, y:py+0.04, w:CW-0.15, h:0.2, fontSize:11, bold:true, color:DT, fontFace:FF});
-        py += 0.3;
-        // 2×2 그리드
-        const cellW = (CW-0.15)/2, cellH = (BOT-py-0.1)/2;
+        // 1열 2행 그리드 (페이지당 2장, 사진 크게)
+        const cellW = CW, cellH = (BOT-py-0.1)/2;
         pg.forEach((blk, idx) => {
-          const col=idx%2, row=Math.floor(idx/2);
-          const bx=CX+col*(cellW+0.15), by=py+row*(cellH+0.08);
+          const col=0, row=idx;
+          const bx=CX, by=py+row*(cellH+0.06);
           const tH=0.28;
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:cellH, fill:{color:WH}, line:{color:LG}});
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:tH, fill:{color:KB}, line:{color:KB}});
@@ -3558,25 +3566,24 @@ function printChecklist() {
     const numHtml = num != null ? `<span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>` : '';
     const photoCnt = photos.length;
     const photoHtml = photoCnt > 0
-      ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;padding-left:2px;">
+      ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;">
           ${photos.map(p => {
             const src = (p&&typeof p==='object') ? p.src : p;
             const m   = (p&&typeof p==='object') ? (p.memo||'') : '';
             return `<div style="display:inline-block;">
-              <img src="${src}" style="width:60px;height:45px;object-fit:cover;border-radius:3px;border:1px solid #e2e8f0;display:block;">
-              ${m ? `<div style="font-size:7px;color:#475569;max-width:60px;word-break:break-all;">${m}</div>` : ''}
+              <img src="${src}" style="width:90px;height:68px;object-fit:cover;border-radius:3px;border:1px solid #e2e8f0;display:block;">
+              ${m ? `<div style="font-size:7px;color:#475569;max-width:90px;word-break:break-all;">${m}</div>` : ''}
             </div>`;
           }).join('')}
         </div>` : '';
     return `<tr>
       <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;">
-        ${numHtml}${it.label}${photoCnt>0?`<span style="font-size:8px;color:#0ea5e9;margin-left:3px;">📷${photoCnt}</span>`:''}
-        ${photoHtml}
+        ${numHtml}${it.label}
       </td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;${pStyle}">${pts}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'Y')}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'N')}</td>
-      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#1e293b;min-width:90px;">${note}</td>
+      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#1e293b;min-width:90px;">${note}${photoHtml}</td>
     </tr>`;
   }
 
@@ -3599,12 +3606,22 @@ function printChecklist() {
   }
 
   function pkg12RowHtml(num) {
-    const pkg12Label = PKG12_OPTS.filter(o=>(c.pkg_q12_opts||{})[o.key]).map(o=>o.label).join('+') || '없음';
+    const opts = c.pkg_q12_opts || {};
+    const checkboxes = PKG12_OPTS.map(o => {
+      const checked = !!opts[o.key];
+      const box = checked
+        ? `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #1d4ed8;border-radius:2px;background:#1d4ed8;vertical-align:middle;margin-right:2px;text-align:center;line-height:13px;font-size:9px;color:#fff;">✓</span>`
+        : `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #cbd5e1;border-radius:2px;background:#fff;vertical-align:middle;margin-right:2px;"></span>`;
+      return `<span style="display:inline-flex;align-items:center;margin-right:8px;font-size:9px;color:${checked?'#1d4ed8':'#94a3b8'};">${box}${o.label}</span>`;
+    }).join('');
+    const otherText = c.pkg_q12_other_text ? `<div style="margin-top:3px;font-size:8px;color:#475569;">기타: ${c.pkg_q12_other_text}</div>` : '';
     return `<tr>
       <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#eff6ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>특이 공정 가능여부</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
-      <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pkg12Label}${c.pkg_q12_other_text?` (${c.pkg_q12_other_text})`:''}</td>
-      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
+      <td colspan="3" style="padding:4px 8px;border:1px solid #e2e8f0;background:#eff6ff;">
+        <div style="display:flex;flex-wrap:wrap;gap:2px;">${checkboxes}</div>
+        ${otherText}
+      </td>
     </tr>`;
   }
 
@@ -3756,35 +3773,27 @@ function printChecklist() {
   ${(rec.tourSteps||[]).length > 0 ? `
   <div style="margin-bottom:10px;">
     <div style="background:#3b4f8a;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">동선별 현장 사진</div>
-    <div style="border:1px solid #cbd5e1;border-top:none;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div style="border:1px solid #cbd5e1;border-top:none;padding:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
       ${(() => {
         const blocks = [];
         (rec.tourSteps||[]).forEach((s,i) => {
           const photos = s.photos || [];
-          if (!photos.length) {
-            blocks.push({stepNum:i+1, name:s.name, photos:[], partIdx:1});
-          } else {
-            photos.forEach((p,pi) => {
-              blocks.push({stepNum:i+1, name:s.name, photos:[p], partIdx:pi+1});
-            });
-          }
+          photos.forEach((p,pi) => {
+            blocks.push({stepNum:i+1, name:s.name, photo:p, partIdx:pi+1, total:photos.length});
+          });
         });
         return blocks.map(blk => {
-          const label = blk.partIdx===1 ? blk.name : `${blk.name}(${blk.partIdx})`;
+          const label = blk.total > 1 ? `${blk.name}(${blk.partIdx})` : blk.name;
+          const src  = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
+          const memo = (blk.photo&&typeof blk.photo==='object') ? (blk.photo.memo||'') : '';
           return `
-      <div style="border:1px solid #e2e8f0;border-radius:5px;overflow:hidden;break-inside:avoid;">
-        <div style="background:#eef2ff;padding:5px 10px;font-size:10px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;">
+      <div style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;break-inside:avoid;">
+        <div style="background:#eef2ff;padding:3px 7px;font-size:8px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
           ${blk.stepNum}. ${label}
         </div>
-        <div style="padding:8px;">
-          ${blk.photos.length > 0 ? blk.photos.map(p => {
-              const src  = (p&&typeof p==='object') ? p.src : p;
-              const memo = (p&&typeof p==='object') ? (p.memo||'') : '';
-              return `<div>
-                <img src="${src}" style="width:100%;height:320px;object-fit:contain;border-radius:3px;border:1px solid #e2e8f0;display:block;">
-                ${memo ? `<div style="font-size:8px;color:#475569;margin-top:3px;padding:2px 4px;background:#f8fafc;border-radius:3px;">${memo}</div>` : ''}
-              </div>`;
-            }).join('') : `<div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:9px;">사진 없음</div>`}
+        <div style="padding:4px;">
+          <img src="${src}" style="width:100%;height:200px;object-fit:contain;border-radius:2px;border:1px solid #e2e8f0;display:block;">
+          ${memo ? `<div style="font-size:7px;color:#475569;margin-top:2px;padding:1px 3px;background:#f8fafc;border-radius:2px;">${memo}</div>` : ''}
         </div>
       </div>`;
         }).join('');
