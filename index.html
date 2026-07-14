@@ -248,6 +248,11 @@ body{background:var(--s1);color:var(--txt);
 .capa-add-btn:hover{background:#e0f2fe;}
 .capa-del-btn{width:20px;height:20px;border-radius:3px;border:1px solid var(--bd);background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;}
 .capa-del-btn:hover{border-color:var(--red);color:var(--red);}
+.capa-stepper{display:flex;align-items:center;gap:2px;justify-content:center;}
+.capa-stepper input{width:32px!important;text-align:center;-moz-appearance:textfield;}
+.capa-stepper input::-webkit-outer-spin-button,.capa-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.capa-step-btn{width:18px;height:18px;border:1px solid var(--bd);border-radius:3px;background:var(--s3);color:var(--txt2);font-size:14px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.capa-step-btn:hover{background:var(--cyn);color:#fff;border-color:var(--cyn);}
 
 /* 점수 미니바 */
 .eval-score-bar{
@@ -1615,10 +1620,17 @@ function renderCapaTable(tbl) {
       </select>
       ${row.name==='기타' ? `<input style="margin-top:4px;" value="${escHtml(row.nameOther||'')}" onchange="updateCapaRow(${i},'nameOther',this.value)" placeholder="직접입력">` : ''}
     </td>
-    <td><input value="${row.daily||''}" type="number" onchange="updateCapaRowAuto(${i},'daily',+this.value)" placeholder="0"></td>
-    <td><input value="${row.cnt||''}" type="number" onchange="updateCapaRowAuto(${i},'cnt',+this.value)" placeholder="0"></td>
-    <td><input value="${autoDaily||''}" type="number" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="설비CAPA × 보유대수 자동계산" placeholder="자동"></td>
-    <td><input value="${autoMonthly||''}" type="number" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="일CAPA × 20일 자동계산" placeholder="자동"></td>
+    <td><input value="${row.daily ? Number(row.daily).toLocaleString('ko-KR') : ''}" type="text" inputmode="numeric"
+      oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,',')"
+      onchange="updateCapaRowAuto(${i},'daily',+(this.value.replace(/,/g,'')||0))" placeholder="0"></td>
+    <td><div class="capa-stepper">
+      <button class="capa-step-btn" onclick="stepCapa(${i},-1)">−</button>
+      <input value="${row.cnt||1}" type="number" min="1"
+        onchange="updateCapaRowAuto(${i},'cnt',Math.max(1,+this.value||1))">
+      <button class="capa-step-btn" onclick="stepCapa(${i},1)">+</button>
+    </div></td>
+    <td><input value="${autoDaily ? Number(autoDaily).toLocaleString('ko-KR') : ''}" type="text" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="설비CAPA × 보유대수 자동계산" placeholder="자동"></td>
+    <td><input value="${autoMonthly ? Number(autoMonthly).toLocaleString('ko-KR') : ''}" type="text" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="일CAPA × 20일 자동계산" placeholder="자동"></td>
     <td><input value="${row.kolma||''}" type="number" onchange="updateCapaRow(${i},'kolma',+this.value)" placeholder="0"></td>
     <td><input value="${row.note||''}" onchange="updateCapaRow(${i},'note',this.value)" placeholder="—"></td>
     <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
@@ -1650,6 +1662,12 @@ function updateCapaRowAuto(idx, field, val) {
   r.monthly2 = r.monthly * 20;                      // 월CAPA (20일기준)
   upsertRecord(rec);
   renderCapaTable(rec.checks.pkg_tbl);
+}
+function stepCapa(idx, delta) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  if (!rec.checks.pkg_tbl[idx]) return;
+  updateCapaRowAuto(idx, 'cnt', Math.max(1, (rec.checks.pkg_tbl[idx].cnt || 1) + delta));
 }
 function delCapaRow(idx) {
   if (!currentId) return;
