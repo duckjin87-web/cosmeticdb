@@ -3106,16 +3106,18 @@ async function doExportReport() {
           return;
         }
         const val=c[it.key]||null, note=c[it.key+'_note']||'';
-        const photos=normalizePhotos(c[it.key+'_photos']);
+        const photos=normalizePhotos(c[it.key+'_photos']).filter(p=>p&&p.src);
         const isIssue=(!it.neg&&val==='N')||(it.neg&&val==='Y');
-        const isOkWithEvidence = !isIssue && (note || photos.length > 0);
-        if (!isIssue && !isOkWithEvidence) return;
+        // X 결과이거나, O이지만 메모/사진이 있는 경우만 표시
+        if (!isIssue && !note && !photos.length) return;
         domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue});
       });
       (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach(ci => {
         const val=c[ci.id]||null, note=c[ci.id+'_note']||'';
-        if (!val && !note) return;
-        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ci.pts>0&&val==='N'});
+        const ciPhotos=normalizePhotos(c[ci.id+'_photos']).filter(p=>p&&p.src);
+        const ciIsIssue = ci.pts>0 && val==='N';
+        if (!ciIsIssue && !note && !ciPhotos.length) return;
+        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ciIsIssue});
       });
       if (!domItems.length) {
         issueRows.push({domLabel:d.label, domNum:d.num, domScore:sc[d.key], domMax:d.max, label:'해당사항 없음', result:'', note:'', opinion:domNote, isIssue:false, noItems:true});
@@ -3210,7 +3212,7 @@ async function doExportReport() {
         // 평가의견 병합 셀 (도메인 전체 높이)
         const domOpinion = domRows[0].opinion || '';
         s.addShape(pptx.shapes.RECTANGLE, {x:colX[4], y, w:colW[4], h:totalH, fill:{color:MG}, line:{color:LG, width:0.5}});
-        if (domOpinion) s.addText(domOpinion, {x:colX[4]+0.07, y:y+0.04, w:colW[4]-0.12, h:totalH-0.08, fontSize:9, color:DT, fontFace:FF, valign:'middle', align:'center', wrap:true});
+        if (domOpinion) s.addText(domOpinion, {x:colX[4]+0.07, y:y+0.04, w:colW[4]-0.12, h:totalH-0.08, fontSize:10, bold:true, color:DT, fontFace:FF, valign:'middle', align:'left', wrap:true});
 
         const opinionStartY = y;
         domRows.forEach((row, rowIdx) => {
@@ -3323,11 +3325,12 @@ async function doExportReport() {
         const pg = blocks.slice(bi, bi+2);
         const ps = pptx.addSlide(); addHeader(ps, '현장사진 및 특이사항');
         let py = TY;
-        // 1열 2행 그리드 (페이지당 2장, 사진 크게)
-        const cellW = CW, cellH = (BOT-py-0.1)/2;
+        // 2열 1행 그리드 (좌우 나란히, 사진 최대 크기)
+        const gap = 0.12;
+        const cellW = (CW - gap) / 2, cellH = BOT - py - 0.06;
         pg.forEach((blk, idx) => {
-          const col=0, row=idx;
-          const bx=CX, by=py+row*(cellH+0.06);
+          const col=idx, row=0;
+          const bx=CX+col*(cellW+gap), by=py;
           const tH=0.28;
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:cellH, fill:{color:WH}, line:{color:LG}});
           ps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:tH, fill:{color:KB}, line:{color:KB}});
