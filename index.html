@@ -3769,37 +3769,42 @@ function printChecklist() {
       <div style="display:inline-block;font-size:10px;font-weight:700;padding:1px 8px;border-radius:10px;background:${g.bg};color:${g.color};margin-top:2px;">${g.label}</div>
     </div>
   </div>
-  <!-- 동선별 현장 사진 (사진 2장 단위로 분할, 많은 경우 카테고리명에 번호 부여) -->
-  ${(rec.tourSteps||[]).length > 0 ? `
-  <div style="margin-bottom:10px;">
-    <div style="background:#3b4f8a;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">동선별 현장 사진</div>
-    <div style="border:1px solid #cbd5e1;border-top:none;padding:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-      ${(() => {
-        const blocks = [];
-        (rec.tourSteps||[]).forEach((s,i) => {
-          const photos = s.photos || [];
-          photos.forEach((p,pi) => {
-            blocks.push({stepNum:i+1, name:s.name, photo:p, partIdx:pi+1, total:photos.length});
-          });
-        });
-        return blocks.map(blk => {
-          const label = blk.total > 1 ? `${blk.name}(${blk.partIdx})` : blk.name;
-          const src  = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
-          const memo = (blk.photo&&typeof blk.photo==='object') ? (blk.photo.memo||'') : '';
-          return `
-      <div style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;break-inside:avoid;">
-        <div style="background:#eef2ff;padding:3px 7px;font-size:8px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          ${blk.stepNum}. ${label}
-        </div>
-        <div style="padding:4px;">
-          <img src="${src}" style="width:100%;height:200px;object-fit:contain;border-radius:2px;border:1px solid #e2e8f0;display:block;">
-          ${memo ? `<div style="font-size:7px;color:#475569;margin-top:2px;padding:1px 3px;background:#f8fafc;border-radius:2px;">${memo}</div>` : ''}
-        </div>
+  <!-- 동선별 현장 사진 -->
+  ${(() => {
+    const blocks = [];
+    (rec.tourSteps||[]).forEach((s,i) => {
+      (s.photos||[]).forEach((p,pi) => {
+        blocks.push({stepNum:i+1, name:s.name, photo:p, partIdx:pi+1, total:(s.photos||[]).length});
+      });
+    });
+    if (!blocks.length) return '';
+    // 6장씩 페이지 분할 (2열 3행) — 사진이 적으면 자연스럽게 더 크게 보임
+    const PAGE = 6;
+    const chunks = [];
+    for (let i = 0; i < blocks.length; i += PAGE) chunks.push(blocks.slice(i, i+PAGE));
+    const chunkHtml = chunks.map((chunk, ci) => {
+      const isLast = ci === chunks.length - 1;
+      const cards = chunk.map(blk => {
+        const label = blk.total > 1 ? `${blk.name}(${blk.partIdx})` : blk.name;
+        const src  = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
+        const memo = (blk.photo&&typeof blk.photo==='object') ? (blk.photo.memo||'') : '';
+        return `<div style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;break-inside:avoid;">
+          <div style="background:#eef2ff;padding:3px 8px;font-size:9px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${blk.stepNum}. ${label}</div>
+          <div style="padding:5px;">
+            <img src="${src}" style="width:100%;height:260px;object-fit:contain;border-radius:2px;border:1px solid #e2e8f0;display:block;">
+            ${memo ? `<div style="font-size:7px;color:#475569;margin-top:2px;padding:1px 4px;background:#f8fafc;border-radius:2px;">${memo}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+      return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;border:1px solid #cbd5e1;border-top:none;${isLast?'':'break-after:page;'}">
+        ${cards}
       </div>`;
-        }).join('');
-      })()}
-    </div>
-  </div>` : ''}
+    }).join('');
+    return `<div style="margin-bottom:10px;">
+      <div style="background:#3b4f8a;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">동선별 현장 사진</div>
+      ${chunkHtml}
+    </div>`;
+  })()}
   <!-- 종합의견 -->
   <div style="border:1px solid #e2e8f0;border-radius:4px;padding:8px 10px;min-height:50px;background:#f8fafc;margin-bottom:10px;">
     <div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:4px;text-transform:uppercase;">종합의견</div>
