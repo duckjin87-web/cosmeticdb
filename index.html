@@ -1841,6 +1841,40 @@ function saveSignaturePad() {
   toast('서명이 저장되었습니다.', 'ok');
 }
 
+/* iOS Safari는 팝업 window에서 window.print()가 동작하지 않음.
+   DOM에 인쇄용 레이어를 삽입한 뒤 메인 창에서 직접 print()를 호출하는 방식으로 처리. */
+function _printHtml(html) {
+  // <style> 블록 추출
+  const styles = [];
+  html.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, s) => styles.push(s));
+  // <body> 내용 추출, 화면용 버튼(.no-print) 제거
+  const bm = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  const body = (bm ? bm[1] : html)
+    .replace(/<div[^>]+class="no-print"[^>]*>[\s\S]*?<\/div>/i, '');
+
+  const wrap = document.createElement('div');
+  wrap.id = '__pf__';
+  wrap.innerHTML = body;
+  document.body.appendChild(wrap);
+
+  const st = document.createElement('style');
+  st.id = '__pf_st__';
+  st.textContent = styles.join('\n')
+    + '\n@media screen{#__pf__{display:none!important}}'
+    + '\n@media print{body>*:not(#__pf__){display:none!important}#__pf__{display:block!important}}';
+  document.head.appendChild(st);
+
+  function cleanup() {
+    document.getElementById('__pf__')?.remove();
+    document.getElementById('__pf_st__')?.remove();
+    window.removeEventListener('afterprint', cleanup);
+  }
+  window.addEventListener('afterprint', cleanup);
+  setTimeout(cleanup, 60000); // afterprint 미발생 시 1분 후 자동 정리
+
+  window.print();
+}
+
 function printPrivacyConsent() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
   const rec = getRecord(currentId);
@@ -1913,10 +1947,7 @@ function printPrivacyConsent() {
     </div>
   </div>
   </body></html>`;
-  const w = window.open('', '_blank');
-  if (!w) { toast('팝업 차단을 해제하세요.', 'err'); return; }
-  w.document.write(html);
-  w.document.close();
+  _printHtml(html);
 }
 function patchCheck(key, val) {
   if (!currentId) return;
@@ -3811,10 +3842,7 @@ function printChecklist() {
   </div>
   </body></html>`;
 
-  const w = window.open('', '_blank');
-  if (!w) { toast('팝업 차단을 해제하세요.', 'err'); return; }
-  w.document.write(html);
-  w.document.close();
+  _printHtml(html);
 }
 
 
