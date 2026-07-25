@@ -1842,27 +1842,45 @@ function saveSignaturePad() {
 }
 
 /* PDF 인쇄 공통 함수.
-   Blob URL 방식: 생성된 HTML을 완전한 파일로 만들어 새 탭에서 열기.
-   - window.open('','_blank') + document.write: iOS에서 print() 차단
-   - 오버레이(@media print): Android에서 앱 화면이 그대로 출력되는 버그
-   - Blob URL: 독립적인 HTML 문서 → 버튼의 onclick=window.print()가 iOS/Android 모두 정상 동작 */
-function _printHtml(html) {
+   iOS Safari: window.open()은 사용자 제스처 직후 즉시 호출해야 허용됨.
+   → 각 인쇄 함수에서 버튼 클릭 직후 빈 창(pw)을 먼저 열고,
+     HTML 생성 완료 후 _printHtml(html, pw)로 해당 창에 내용을 밀어넣는다. */
+function _printPrepareWindow() {
+  const pw = window.open('', '_blank');
+  if (!pw) {
+    toast('팝업이 차단되어 있습니다. Safari → 설정 → 팝업 차단 해제 후 다시 시도하세요.', 'err');
+    return null;
+  }
+  // 로딩 화면 표시 (HTML 생성 중 빈 탭 방지)
+  pw.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;'
+    + 'height:100vh;margin:0;color:#475569;font-size:15px;}</style></head>'
+    + '<body>PDF 준비 중...</body></html>');
+  pw.document.close();
+  return pw;
+}
+
+function _printHtml(html, pw) {
   try {
     const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
     const url  = URL.createObjectURL(blob);
-    const w    = window.open(url, '_blank');
-    if (!w) {
-      toast('팝업이 차단되었습니다. 브라우저 팝업 허용 후 다시 시도하세요.', 'err');
+    if (pw && !pw.closed) {
+      pw.location.href = url;          // 이미 열린 창에 내용 교체
+    } else {
+      const w = window.open(url, '_blank');
+      if (!w) { toast('팝업이 차단되어 있습니다.', 'err'); return; }
     }
-    // 5분 후 blob URL 메모리 해제
     setTimeout(() => URL.revokeObjectURL(url), 300000);
   } catch (e) {
+    if (pw && !pw.closed) try { pw.close(); } catch(e2) {}
     toast('PDF 생성 오류: ' + (e && e.message ? e.message : '알 수 없는 오류'), 'err');
   }
 }
 
 function printPrivacyConsent() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
+  const _pw = _printPrepareWindow(); if (!_pw) return; // 창 먼저 열기 (iOS 제스처 컨텍스트 보존)
   const rec = getRecord(currentId);
   const p = rec.privacy || { consent:'Y', name:'', signature:'' };
   // 저장값 + 화면 라디오 상태 둘 다 확인해서 최신값 사용
@@ -1933,7 +1951,7 @@ function printPrivacyConsent() {
     </div>
   </div>
   </body></html>`;
-  _printHtml(html);
+  _printHtml(html, _pw);
 }
 function patchCheck(key, val) {
   if (!currentId) return;
@@ -3543,6 +3561,7 @@ async function doExportExcel() {
 
 function printChecklist() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
+  const _pw = _printPrepareWindow(); if (!_pw) return; // 창 먼저 열기 (iOS 제스처 컨텍스트 보존)
   const rec = getRecord(currentId);
   syncTourSteps(rec);
   const sc  = calcScores(rec);
@@ -3828,7 +3847,7 @@ function printChecklist() {
   </div>
   </body></html>`;
 
-  _printHtml(html);
+  _printHtml(html, _pw);
 }
 
 
