@@ -1841,38 +1841,77 @@ function saveSignaturePad() {
   toast('서명이 저장되었습니다.', 'ok');
 }
 
-/* iOS Safari는 팝업 window에서 window.print()가 동작하지 않음.
-   DOM에 인쇄용 레이어를 삽입한 뒤 메인 창에서 직접 print()를 호출하는 방식으로 처리. */
+/* PDF 인쇄 공통 함수.
+   iOS Safari: 자동 window.print() 호출은 사용자 제스처로 인정되지 않아 차단됨.
+   전체화면 오버레이를 띄우고 사용자가 직접 버튼을 탭할 때만 print()를 호출. */
 function _printHtml(html) {
+  // 기존 오버레이 중복 방지
+  document.getElementById('__pf_ov__')?.remove();
+  document.getElementById('__pf_st__')?.remove();
+
   // <style> 블록 추출
   const styles = [];
   html.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, s) => styles.push(s));
   // <body> 내용 추출, 화면용 버튼(.no-print) 제거
   const bm = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const body = (bm ? bm[1] : html)
+  const bodyContent = (bm ? bm[1] : html)
     .replace(/<div[^>]+class="no-print"[^>]*>[\s\S]*?<\/div>/i, '');
 
-  const wrap = document.createElement('div');
-  wrap.id = '__pf__';
-  wrap.innerHTML = body;
-  document.body.appendChild(wrap);
-
+  // 인쇄용 스타일 (오버레이 외 모든 요소 숨김)
   const st = document.createElement('style');
   st.id = '__pf_st__';
   st.textContent = styles.join('\n')
-    + '\n@media screen{#__pf__{display:none!important}}'
-    + '\n@media print{body>*:not(#__pf__){display:none!important}#__pf__{display:block!important}}';
+    + '\n@media print{'
+    + 'body>*:not(#__pf_ov__){display:none!important}'
+    + '#__pf_ov__{position:static!important;height:auto!important;overflow:visible!important}'
+    + '#__pf_bar__{display:none!important}'
+    + '}';
   document.head.appendChild(st);
 
+  // 전체화면 오버레이
+  const ov = document.createElement('div');
+  ov.id = '__pf_ov__';
+  ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;'
+    + 'z-index:99999;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;';
+
+  // 상단 고정 액션 바
+  const bar = document.createElement('div');
+  bar.id = '__pf_bar__';
+  bar.style.cssText = 'position:sticky;top:0;background:#3b4f8a;padding:10px 14px;'
+    + 'display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:1;';
+
+  const btnPrint = document.createElement('button');
+  btnPrint.textContent = '🖨️ PDF 저장 (인쇄)';
+  btnPrint.style.cssText = 'padding:9px 20px;background:#fff;color:#3b4f8a;border:none;'
+    + 'border-radius:4px;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;';
+  // 사용자가 직접 탭 → window.print() 호출 (iOS 허용)
+  btnPrint.addEventListener('click', function() { window.print(); });
+
+  const btnClose = document.createElement('button');
+  btnClose.textContent = '✕ 닫기';
+  btnClose.style.cssText = 'padding:9px 14px;background:transparent;color:#fff;'
+    + 'border:1px solid rgba(255,255,255,.55);border-radius:4px;font-size:13px;cursor:pointer;'
+    + '-webkit-tap-highlight-color:transparent;';
+  btnClose.addEventListener('click', function() { cleanup(); });
+
+  bar.appendChild(btnPrint);
+  bar.appendChild(btnClose);
+
+  // 본문
+  const content = document.createElement('div');
+  content.style.cssText = 'padding:16px;';
+  content.innerHTML = bodyContent;
+
+  ov.appendChild(bar);
+  ov.appendChild(content);
+  document.body.appendChild(ov);
+
   function cleanup() {
-    document.getElementById('__pf__')?.remove();
+    document.getElementById('__pf_ov__')?.remove();
     document.getElementById('__pf_st__')?.remove();
     window.removeEventListener('afterprint', cleanup);
   }
   window.addEventListener('afterprint', cleanup);
-  setTimeout(cleanup, 60000); // afterprint 미발생 시 1분 후 자동 정리
-
-  window.print();
 }
 
 function printPrivacyConsent() {
