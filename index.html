@@ -1842,76 +1842,23 @@ function saveSignaturePad() {
 }
 
 /* PDF 인쇄 공통 함수.
-   iOS Safari: 자동 window.print() 호출은 사용자 제스처로 인정되지 않아 차단됨.
-   전체화면 오버레이를 띄우고 사용자가 직접 버튼을 탭할 때만 print()를 호출. */
+   Blob URL 방식: 생성된 HTML을 완전한 파일로 만들어 새 탭에서 열기.
+   - window.open('','_blank') + document.write: iOS에서 print() 차단
+   - 오버레이(@media print): Android에서 앱 화면이 그대로 출력되는 버그
+   - Blob URL: 독립적인 HTML 문서 → 버튼의 onclick=window.print()가 iOS/Android 모두 정상 동작 */
 function _printHtml(html) {
-  // 기존 오버레이 중복 방지
-  document.getElementById('__pf_ov__')?.remove();
-  document.getElementById('__pf_st__')?.remove();
-
-  // <style> 블록 추출
-  const styles = [];
-  html.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, s) => styles.push(s));
-  // <body> 내용 추출, 화면용 버튼(.no-print) 제거
-  const bm = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const bodyContent = (bm ? bm[1] : html)
-    .replace(/<div[^>]+class="no-print"[^>]*>[\s\S]*?<\/div>/i, '');
-
-  // 인쇄용 스타일 (오버레이 외 모든 요소 숨김)
-  const st = document.createElement('style');
-  st.id = '__pf_st__';
-  st.textContent = styles.join('\n')
-    + '\n@media print{'
-    + 'body>*:not(#__pf_ov__){display:none!important}'
-    + '#__pf_ov__{position:static!important;height:auto!important;overflow:visible!important}'
-    + '#__pf_bar__{display:none!important}'
-    + '}';
-  document.head.appendChild(st);
-
-  // 전체화면 오버레이
-  const ov = document.createElement('div');
-  ov.id = '__pf_ov__';
-  ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;'
-    + 'z-index:99999;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;';
-
-  // 상단 고정 액션 바
-  const bar = document.createElement('div');
-  bar.id = '__pf_bar__';
-  bar.style.cssText = 'position:sticky;top:0;background:#3b4f8a;padding:10px 14px;'
-    + 'display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:1;';
-
-  const btnPrint = document.createElement('button');
-  btnPrint.textContent = '🖨️ PDF 저장 (인쇄)';
-  btnPrint.style.cssText = 'padding:9px 20px;background:#fff;color:#3b4f8a;border:none;'
-    + 'border-radius:4px;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;';
-  // 사용자가 직접 탭 → window.print() 호출 (iOS 허용)
-  btnPrint.addEventListener('click', function() { window.print(); });
-
-  const btnClose = document.createElement('button');
-  btnClose.textContent = '✕ 닫기';
-  btnClose.style.cssText = 'padding:9px 14px;background:transparent;color:#fff;'
-    + 'border:1px solid rgba(255,255,255,.55);border-radius:4px;font-size:13px;cursor:pointer;'
-    + '-webkit-tap-highlight-color:transparent;';
-  btnClose.addEventListener('click', function() { cleanup(); });
-
-  bar.appendChild(btnPrint);
-  bar.appendChild(btnClose);
-
-  // 본문
-  const content = document.createElement('div');
-  content.style.cssText = 'padding:16px;';
-  content.innerHTML = bodyContent;
-
-  ov.appendChild(bar);
-  ov.appendChild(content);
-  document.body.appendChild(ov);
-
-  function cleanup() {
-    document.getElementById('__pf_ov__')?.remove();
-    document.getElementById('__pf_st__')?.remove();
-    window.removeEventListener('afterprint', cleanup);
+  try {
+    const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+    const url  = URL.createObjectURL(blob);
+    const w    = window.open(url, '_blank');
+    if (!w) {
+      toast('팝업이 차단되었습니다. 브라우저 팝업 허용 후 다시 시도하세요.', 'err');
+    }
+    // 5분 후 blob URL 메모리 해제
+    setTimeout(() => URL.revokeObjectURL(url), 300000);
+  } catch (e) {
+    toast('PDF 생성 오류: ' + (e && e.message ? e.message : '알 수 없는 오류'), 'err');
   }
-  window.addEventListener('afterprint', cleanup);
 }
 
 function printPrivacyConsent() {
@@ -1943,7 +1890,7 @@ function printPrivacyConsent() {
     .divider{border:none;border-top:1px solid #1e293b;margin:22px 0;}
   </style></head><body>
   <div class="no-print" style="text-align:right;margin-bottom:20px;">
-    <button onclick="window.print()" style="padding:6px 16px;background:#3b4f8a;color:#fff;border:none;border-radius:5px;font-size:12px;cursor:pointer;">🖨️ PDF 저장 (인쇄)</button>
+    <button onclick="window.print()" style="padding:12px 24px;background:#3b4f8a;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🖨️ PDF 저장 (인쇄)</button>
   </div>
   <div style="font-size:15px;font-weight:900;text-align:center;margin-bottom:24px;">[등록 평가를 위한 개인정보 수집·이용 동의]</div>
   <div style="line-height:1.9;margin-bottom:20px;">
@@ -3744,7 +3691,7 @@ function printChecklist() {
   </style>
   </head><body>
   <div class="no-print" style="text-align:right;margin-bottom:12px;">
-    <button onclick="window.print()" style="padding:6px 16px;background:#3b4f8a;color:#fff;border:none;border-radius:5px;font-size:12px;cursor:pointer;">🖨️ PDF 저장 (인쇄)</button>
+    <button onclick="window.print()" style="padding:12px 24px;background:#3b4f8a;color:#fff;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">🖨️ PDF 저장 (인쇄)</button>
   </div>
   <!-- 헤더 -->
   <div style="border:2px solid #1e293b;border-radius:6px;padding:12px 16px;margin-bottom:10px;">
