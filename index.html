@@ -54,7 +54,7 @@ body{background:var(--s1);color:var(--txt);
   background:var(--s2);border-right:1px solid var(--bd);
   display:flex;flex-direction:column;overflow:hidden;
   box-shadow:2px 0 8px rgba(59,79,138,.08);
-  transition:width .25s ease, min-width .25s ease;
+  transition:width .25s ease, min-width .25s ease, transform .25s ease;
   flex-shrink:0;
 }
 .eval-list-panel.collapsed{width:0;min-width:0;border-right:none;}
@@ -69,6 +69,37 @@ body{background:var(--s1);color:var(--txt);
   color:var(--txt3);font-size:18px;flex-shrink:0;transition:background .15s;
 }
 .sidebar-toggle:hover{background:var(--s1);color:var(--navy);}
+
+/* ══ 모바일 레이아웃 (≤ 640px) ══ */
+@media (max-width:640px){
+  /* 리스트 패널: 오버레이 방식 (화면 위에 떠 있음) */
+  .eval-list-panel{
+    position:fixed;top:0;left:0;height:100%;z-index:400;
+    width:82vw;min-width:260px;max-width:320px;
+    box-shadow:4px 0 20px rgba(0,0,0,.18);
+    transform:translateX(0);
+  }
+  .eval-list-panel.collapsed{
+    width:82vw;min-width:260px; /* 너비 유지 */
+    transform:translateX(-100%);  /* 화면 밖으로 밀기 */
+  }
+  .eval-list-panel.collapsed > *{display:flex;} /* 내용 유지 (transform으로 숨김) */
+  /* 사이드바 열릴 때 뒤 배경 딤 처리 */
+  #mob-dim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:399;}
+  #mob-dim.on{display:block;}
+  /* 토글 버튼: 좌상단 플로팅 */
+  .sidebar-toggle{
+    position:fixed;top:10px;left:10px;z-index:500;
+    width:40px;height:40px;min-width:40px;
+    border-radius:8px;background:var(--navy);color:#fff;
+    font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.25);
+    border:none;
+  }
+  /* 우측 패널이 전체 폭 사용 */
+  .eval-det-wrap{width:100%;}
+  /* 헤더에 왼쪽 여백 (토글 버튼 공간) */
+  .eval-det-header{padding-left:54px!important;}
+}
 .eval-list-head{padding:10px 12px 8px;border-bottom:1px solid var(--bd);flex-shrink:0;}
 .eval-list-head-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .eval-list-title{font-size:14px;font-weight:700;color:var(--navy);}
@@ -534,6 +565,7 @@ body{background:var(--s1);color:var(--txt);
 </head>
 <body>
 
+<div id="mob-dim" onclick="toggleSidebar()"></div>
 <div id="page-eval">
 
   <!-- 좌측: 리스트 패널 -->
@@ -1362,6 +1394,16 @@ function openEvalDet(id) {
   currentId = id;
   const rec = getRecord(id);
   if (!rec) return;
+  // 모바일: 항목 선택 시 리스트 패널 자동 닫기
+  if (window.innerWidth <= 640) {
+    const panel = document.getElementById('eval-list-panel');
+    const dim   = document.getElementById('mob-dim');
+    if (panel && !panel.classList.contains('collapsed')) {
+      panel.classList.add('collapsed');
+      document.getElementById('sidebar-toggle').textContent = '☰';
+      if (dim) dim.classList.remove('on');
+    }
+  }
 
   document.getElementById('eval-empty').style.display = 'none';
   const view = document.getElementById('eval-det-view');
@@ -3891,14 +3933,27 @@ function toast(msg, type) {
 
 /* ══ 19. 사이드바 토글 ══ */
 function toggleSidebar() {
+  const panel    = document.getElementById('eval-list-panel');
+  const toggle   = document.getElementById('sidebar-toggle');
+  const dim      = document.getElementById('mob-dim');
+  const isMobile = window.innerWidth <= 640;
+  const collapsed = panel.classList.toggle('collapsed');
+  toggle.textContent = collapsed ? '☰' : '✕';
+  if (isMobile && dim) dim.classList.toggle('on', !collapsed);
+}
+
+function _initMobileLayout() {
+  if (window.innerWidth > 640) return;
+  // 모바일: 처음에 리스트 패널 접기
   const panel  = document.getElementById('eval-list-panel');
   const toggle = document.getElementById('sidebar-toggle');
-  const collapsed = panel.classList.toggle('collapsed');
-  toggle.textContent = collapsed ? '▶' : '◀';
+  panel.classList.add('collapsed');
+  toggle.textContent = '☰';
 }
 
 /* ══ 20. 초기화 ══ */
 document.addEventListener('DOMContentLoaded', async () => {
+  _initMobileLayout();
   await initStorage();
   renderEvalList();
   updateFsaStatus();
