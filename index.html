@@ -575,6 +575,11 @@ body{background:var(--s1);color:var(--txt);
         <span class="eval-list-title">신규처 등록평가</span>
         <button class="btn sm acc" onclick="openEvalAdd()">+ 신규평가</button>
       </div>
+      <div style="display:flex;gap:4px;margin-bottom:6px;">
+        <button class="btn sm" onclick="exportBackupJson()" title="전체 데이터를 JSON 파일로 백업" style="flex:1;font-size:10px;">💾 백업</button>
+        <button class="btn sm" onclick="document.getElementById('restoreFileInp').click()" title="JSON 백업 파일에서 복원" style="flex:1;font-size:10px;">📂 복원</button>
+        <input type="file" id="restoreFileInp" accept=".json" style="display:none" onchange="importBackupJson(this)">
+      </div>
       <div class="eval-filter-tabs">
         <span class="eval-ftab on" data-f="ALL" onclick="setFilter(this,'ALL')">전체</span>
         <span class="eval-ftab" data-f="WAIT" onclick="setFilter(this,'WAIT')">평가대기</span>
@@ -3931,7 +3936,60 @@ function toast(msg, type) {
   setTimeout(() => el.remove(), 3000);
 }
 
-/* ══ 19. 사이드바 토글 ══ */
+/* ══ 19. 데이터 백업 / 복원 ══ */
+function exportBackupJson() {
+  const records = loadRecords();
+  const payload = {
+    _version: 1,
+    _exportedAt: new Date().toISOString(),
+    _count: records.length,
+    records
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], {type: 'application/json;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0,10);
+  const a = document.createElement('a');
+  a.href = url; a.download = `cosmedb_backup_${date}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  toast(`백업 완료 — ${records.length}개 업체 데이터`, 'ok');
+}
+
+function importBackupJson(input) {
+  if (!input.files.length) return;
+  const file = input.files[0];
+  input.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const obj = JSON.parse(e.target.result);
+      // 배열 직접 또는 {records:[...]} 형식 모두 지원
+      const incoming = Array.isArray(obj) ? obj : (obj.records || []);
+      if (!Array.isArray(incoming) || !incoming.length) {
+        toast('유효한 백업 파일이 아닙니다.', 'err'); return;
+      }
+      const current = loadRecords();
+      // 기존 데이터와 병합 (id 기준 — 백업 파일이 더 최신이면 덮어씀)
+      const merged = [...current];
+      let added = 0, updated = 0;
+      incoming.forEach(rec => {
+        const idx = merged.findIndex(r => r.id === rec.id);
+        if (idx >= 0) { merged[idx] = rec; updated++; }
+        else { merged.unshift(rec); added++; }
+      });
+      saveRecords(merged);
+      renderEvalList();
+      toast(`복원 완료 — 신규 ${added}개, 갱신 ${updated}개 (총 ${merged.length}개)`, 'ok');
+    } catch(err) {
+      toast('파일 읽기 오류: ' + (err.message || ''), 'err');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+/* ══ 20. 사이드바 토글 ══ */
 function toggleSidebar() {
   const panel    = document.getElementById('eval-list-panel');
   const toggle   = document.getElementById('sidebar-toggle');
