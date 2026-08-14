@@ -208,19 +208,20 @@ body{background:var(--s1);color:var(--txt);
 /* Y/N 체크 행 */
 .yn-row{
   display:flex;justify-content:space-between;align-items:center;
-  padding:6px 10px;background:var(--s2);border-radius:4px;
+  padding:9px 12px;background:var(--s2);border-radius:4px;
   margin-bottom:4px;border:1px solid var(--bd);transition:.15s;
 }
 .yn-row:hover{border-color:#93c5fd;background:#fafcff;}
-.yn-label{font-size:14px;color:var(--txt2);flex:1;}
-.yn-pts{font-size:11px;color:var(--txt3);margin:0 8px;flex-shrink:0;}
+.yn-label{font-size:16px;line-height:1.45;color:var(--txt2);flex:1;}
+.yn-pts{font-size:13px;color:var(--txt3);margin:0 10px;flex-shrink:0;}
 .yn-pts.neg{color:var(--red);}
 .yn-pts.heavy{color:var(--acc);font-weight:700;}
-.yn-btns{display:flex;gap:3px;flex-shrink:0;}
+.yn-btns{display:flex;gap:5px;flex-shrink:0;}
 .yn-btn{
-  width:36px;height:30px;border-radius:3px;border:1px solid var(--bd);
-  background:var(--s3);color:var(--txt3);font-size:13px;font-weight:700;
+  width:46px;height:40px;border-radius:5px;border:1px solid var(--bd);
+  background:var(--s3);color:var(--txt3);font-size:17px;font-weight:700;
   cursor:pointer;transition:.15s;
+  display:inline-flex;align-items:center;justify-content:center;
 }
 .yn-btn:hover{border-color:var(--cyn);color:var(--cyn);}
 .yn-btn.y-on  {border-color:#16a34a;background:#dcfce7;color:#16a34a;}
@@ -245,11 +246,11 @@ body{background:var(--s1);color:var(--txt);
   display:flex;gap:6px;padding:6px 10px;background:var(--s2);
   border-radius:4px;margin-bottom:4px;align-items:center;border:1px solid var(--bd);
 }
-.plt-label{font-size:14px;color:var(--txt2);flex:1;}
-.plt-opts{display:flex;gap:4px;}
+.plt-label{font-size:16px;color:var(--txt2);flex:1;}
+.plt-opts{display:flex;gap:5px;}
 .plt-opt{
-  padding:2px 9px;border-radius:3px;border:1px solid var(--bd);
-  background:var(--s3);color:var(--txt3);font-size:10px;cursor:pointer;transition:.15s;
+  padding:6px 14px;border-radius:4px;border:1px solid var(--bd);
+  background:var(--s3);color:var(--txt3);font-size:13px;cursor:pointer;transition:.15s;
 }
 .plt-opt:hover{border-color:var(--cyn);}
 .plt-opt.on{border-color:var(--cyn);background:#e0f2fe;color:var(--cyn);}
@@ -360,13 +361,13 @@ body{background:var(--s1);color:var(--txt);
 .yn-item-wrap.yn-item-locked .yn-btn[disabled]{cursor:not-allowed;}
 .yn-item-wrap .yn-row.note-open{border-bottom-color:transparent;border-radius:4px 4px 0 0;}
 .yn-note-panel{
-  display:none;padding:5px 10px 6px;
+  display:none;padding:7px 12px 9px;
   background:#f8fafc;border:1px solid var(--bd);border-top:none;
   border-radius:0 0 4px 4px;
 }
 .yn-note-panel input{
   width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:4px;
-  color:var(--txt);padding:4px 8px;font-size:10px;outline:none;font-family:inherit;transition:.15s;
+  color:var(--txt);padding:8px 10px;font-size:14px;outline:none;font-family:inherit;transition:.15s;
 }
 .yn-note-panel input:focus{border-color:var(--cyn);}
 .yn-btn.note-on{border-color:var(--cyn);background:#e0f2fe;color:var(--cyn);}
@@ -471,14 +472,14 @@ body{background:var(--s1);color:var(--txt);
 }
 /* 커스텀 항목 행 */
 .custom-yn-row{
-  display:flex;align-items:center;gap:4px;padding:4px 6px;
+  display:flex;align-items:center;gap:5px;padding:8px 10px;
   background:#fffbeb;border:1px solid #fde68a;border-radius:4px;margin-bottom:2px;
 }
-.custom-yn-label{flex:1;font-size:11px;color:#1e293b;}
-.custom-yn-pts{font-size:9px;color:#d97706;background:#fef3c7;
-  padding:1px 5px;border-radius:4px;white-space:nowrap;}
-.custom-yn-del{width:16px;height:16px;border:none;background:transparent;
-  color:var(--txt3);font-size:10px;cursor:pointer;border-radius:50%;
+.custom-yn-label{flex:1;font-size:16px;line-height:1.45;color:#1e293b;}
+.custom-yn-pts{font-size:12px;color:#d97706;background:#fef3c7;
+  padding:2px 7px;border-radius:4px;white-space:nowrap;}
+.custom-yn-del{width:26px;height:26px;border:none;background:transparent;
+  color:var(--txt3);font-size:14px;cursor:pointer;border-radius:50%;
   display:inline-flex;align-items:center;justify-content:center;}
 .custom-yn-del:hover{background:var(--red);color:#fff;}
 
@@ -515,13 +516,13 @@ body{background:var(--s1);color:var(--txt);
 }
 .yn-photo-thumb-wrap{position:relative;}
 .yn-photo-thumb{
-  width:60px;height:45px;object-fit:cover;border-radius:3px;
+  width:96px;height:72px;object-fit:cover;border-radius:3px;
   border:1px solid var(--bd);cursor:pointer;display:block;
 }
 .yn-photo-del{
-  position:absolute;top:1px;right:1px;
-  width:13px;height:13px;border-radius:50%;border:none;
-  background:rgba(0,0,0,.55);color:#fff;font-size:8px;cursor:pointer;
+  position:absolute;top:2px;right:2px;
+  width:20px;height:20px;border-radius:50%;border:none;
+  background:rgba(0,0,0,.6);color:#fff;font-size:11px;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;
 }
 .yn-photo-add-btn{
@@ -532,8 +533,8 @@ body{background:var(--s1);color:var(--txt);
 
 /* 사진 뱃지 (YN 항목) */
 .yn-photo-badge{
-  font-size:8px;color:var(--cyn);background:#e0f2fe;
-  padding:0 4px;border-radius:5px;margin-left:2px;
+  font-size:11px;color:var(--cyn);background:#e0f2fe;
+  padding:1px 6px;border-radius:6px;margin-left:4px;
 }
   border-color:var(--navy);color:var(--navy);font-weight:700;
 }
@@ -1037,10 +1038,8 @@ const YN_DEF = {
     {key:'mfg_q3',  label:'배합기록 작성',                       pts:1},
     {key:'mfg_q4',  label:'자체 판정기준 보유',                  pts:2},
     {key:'mfg_q5',  label:'자체 성적서 공유 가능',               pts:2},
-    {key:'mfg_q6',  label:'배합 샘플링 SOP 보유',                pts:1},
     {key:'mfg_q7',  label:'샘플 발송 가능',                      pts:1},
     {key:'mfg_q8',  label:'벌크 보관 온습도 유지',               pts:1},
-    {key:'mfg_q9',  label:'환입 조건',                           pts:1},
     {key:'mfg_q10', label:'작업인원 근속 3년↑',                  pts:1},
   ],
   mat:[
@@ -1048,7 +1047,6 @@ const YN_DEF = {
     {key:'mat_q2', label:'적재공간 CAPA 여유',                    pts:1},
     {key:'mat_q3', label:'자재관리 체계(구획/고객사별/환입/폐기)', pts:1},
     {key:'mat_q4', label:'현장 소분투입',                         pts:2},
-    {key:'mat_q5', label:'자재불량 프로세스 보유',                pts:1},
     {key:'mat_q6', label:'잔량 환입조건',                         pts:1},
     {key:'mat_q7', label:'자재 책임자 지정',                      pts:1},
     {key:'mat_q8', label:'자재관리 프로그램(파일) / 실시간관리 가능', pts:1},
@@ -1065,6 +1063,7 @@ const YN_DEF = {
     {key:'pkg_q9', label:'튜브 실링검사·리크테스트 진행',         pts:1, unlockBy:'pkg_q2'},
     {key:'pkg_q10', label:'용기 감압검사 진행',                   pts:1, unlockBy:'pkg_q2'},
     {key:'pkg_q11', label:'라벨 자체 발행 가능(바코드 등)',       pts:1},
+    {key:'pkg_q13', label:'기술인력의 경력 및 기술수준 우수',     pts:1},
   ],
   fin:[
     {key:'fin_q1', label:'완제품창고 독립',                       pts:1},
@@ -1084,10 +1083,11 @@ const YN_DEF = {
     {key:'ops_q11', label:'입차 제한 없음',                       pts:1},
     {key:'ops_q12', label:'외부 도급사 운영 여부',                pts:1},
     {key:'ops_q13', label:'인원추가 수급 대응 가능',              pts:1},
+    {key:'ops_q14', label:'타 제조사/브랜드사 거래 경험',         pts:1},
   ]
 };
 
-const REAL_MAX  = { mfg:12, mat:10, pkg:17, fin:7, ops:11 };
+const REAL_MAX  = { mfg:10, mat:9, pkg:18, fin:7, ops:15 };
 
 const PKG12_OPTS = [
   {key:'shrink',  label:'수축'},
@@ -1116,6 +1116,32 @@ function pltCount(c) {
 function pltScore(c) {
   const cnt = pltCount(c);
   return cnt >= 3 ? 2 : cnt >= 2 ? 1.5 : cnt >= 1 ? 1 : 0;
+}
+
+/* 인증 취득여부 (5.운영) — 모두 3pt / 3건↑ 2pt / 2건 1pt / 1건 0.5pt / 0건 -1pt, CGMP 단독 2pt */
+const ISO_OPTS = [
+  {key:'iso',   label:'ISO'},
+  {key:'cgmp',  label:'CGMP'},
+  {key:'vegan', label:'VEGAN'},
+  {key:'halal', label:'할랄'},
+  {key:'etc',   label:'기타'},
+];
+function isoCount(c) {
+  return ISO_OPTS.filter(o => (c.ops_cert_opts||{})[o.key]).length;
+}
+function isoScore(c) {
+  const o   = c.ops_cert_opts || {};
+  const cnt = isoCount(c);
+  if (cnt === 0) return -1;                 // 미보유 → 마이너스
+  if (cnt === 1 && o.cgmp) return 2;        // CGMP 단독 보유
+  if (cnt >= ISO_OPTS.length) return 3;     // 전체 보유
+  if (cnt >= 3) return 2;
+  if (cnt >= 2) return 1;
+  return 0.5;                               // 1건 보유 (기본)
+}
+function isoLabelStr(c) {
+  const o = c.ops_cert_opts || {};
+  return ISO_OPTS.filter(x => o[x.key]).map(x => x.label).join('+');
 }
 const SPEC_MAX  = { mfg:30, mat:20, pkg:25, fin:10, ops:15 };
 const PKG_BASE  = SPEC_MAX.mat + SPEC_MAX.pkg + SPEC_MAX.fin + SPEC_MAX.ops; // 70
@@ -1287,6 +1313,7 @@ function calcScores(record) {
   raw.pkg = Math.max(0, raw.pkg);
   addDomainScore(raw, 'fin', YN_DEF.fin, c);
   addDomainScore(raw, 'ops', YN_DEF.ops, c);
+  raw.ops += isoScore(c);   // 인증 취득여부 (5.운영)
 
   // 거래 PLT 특수 (4.완제품 출고 항목)
   raw.fin += pltScore(c);
@@ -1493,6 +1520,7 @@ function fillForm(rec) {
   ['mfg','mat','pkg','fin','ops'].forEach(d => renderYN(d, c));
   renderPkg12(c);
   renderTradePLT(c);
+  renderIsoCert(c);
   ['mfg','mat','pkg','fin','ops'].forEach(d => renderCustomSection(d, rec));
 
   setVal('f-mfg_loss',      c.mfg_loss      ?? '');
@@ -1549,7 +1577,7 @@ function ynItemHtml(it, checks, num) {
   return `
   <div class="yn-item-wrap${locked?' yn-item-locked':''}">
     <div class="yn-row ${negCls} ${noteOpen}">
-      <span class="yn-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num||''}.</span>${it.label}${lockNote}${photoBadge}</span>
+      <span class="yn-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num||''}.</span>${it.label}${lockNote}${photoBadge}</span>
       <span class="yn-pts ${ptsClass}">${ptsSign}</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  ${locked?'disabled':''} onclick="setYN('${it.key}','Y',this)">O</button>
@@ -1583,7 +1611,7 @@ function renderTradePLT(checks) {
   const score = pltScore(checks);
   wrap.insertAdjacentHTML('beforeend', `
   <div class="plt-group" id="plt-group-fin">
-    <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>거래PLT</span>
+    <span class="plt-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num}.</span>거래PLT</span>
     <span class="yn-pts">${score>0?`+${score}pt`:'최대+2pt'}</span>
     <div class="plt-opts">
       ${PLT_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="togglePltOpt('${o.key}',this)">${o.label}</span>`).join('')}
@@ -1601,7 +1629,7 @@ function renderPkg12(checks) {
   wrap.insertAdjacentHTML('beforeend', `
   <div class="plt-group" id="plt-group-pkg12" style="display:block;">
     <div style="display:flex;align-items:center;gap:6px;">
-      <span class="plt-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num}.</span>특이 공정 가능여부</span>
+      <span class="plt-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num}.</span>특이 공정 가능여부</span>
       <span class="yn-pts">${score>0?`+${score}pt`:'최대+2pt'}</span>
     </div>
     <div class="plt-opts" style="flex-wrap:nowrap;margin-top:6px;">
@@ -1610,6 +1638,40 @@ function renderPkg12(checks) {
     ${opts.other ? `<input class="num-input" style="margin-top:6px;width:100%;" placeholder="기타 공정 직접입력"
       value="${escHtml(checks.pkg_q12_other_text||'')}" oninput="patchCheck('pkg_q12_other_text',this.value)">` : ''}
   </div>`);
+}
+
+function renderIsoCert(checks) {
+  const wrap = document.getElementById('yn-ops');
+  if (!wrap) return;
+  document.getElementById('plt-group-iso')?.remove();
+  const opts  = checks.ops_cert_opts || {};
+  const num   = YN_DEF.ops.length + 1;
+  const score = isoScore(checks);
+  const scoreTxt = score > 0 ? `+${score}pt` : `${score}pt`;
+  const scoreCls = score < 0 ? 'neg' : '';
+  wrap.insertAdjacentHTML('beforeend', `
+  <div class="plt-group" id="plt-group-iso" style="display:block;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="plt-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num}.</span>인증 취득여부</span>
+      <span class="yn-pts ${scoreCls}">${scoreTxt}</span>
+    </div>
+    <div class="plt-opts" style="flex-wrap:wrap;margin-top:6px;">
+      ${ISO_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="toggleIsoOpt('${o.key}',this)">${o.label}</span>`).join('')}
+    </div>
+    ${opts.etc ? `<input class="num-input" style="margin-top:6px;width:100%;text-align:left;" placeholder="기타 인증 직접입력"
+      value="${escHtml(checks.ops_cert_other_text||'')}" oninput="patchCheck('ops_cert_other_text',this.value)">` : ''}
+    <div style="margin-top:5px;font-size:11px;color:var(--txt3);">전체 +3 · 3건↑ +2 · 2건 +1 · 1건 +0.5 · 미보유 −1 (CGMP 단독 +2)</div>
+  </div>`);
+}
+
+function toggleIsoOpt(key, el) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks.ops_cert_opts = rec.checks.ops_cert_opts || {};
+  rec.checks.ops_cert_opts[key] = !rec.checks.ops_cert_opts[key];
+  upsertRecord(rec);
+  renderIsoCert(rec.checks);
+  updateScoreBar(rec);
 }
 
 function ynRowHtml(it, cur, checks, num) {
@@ -1624,7 +1686,7 @@ function ynRowHtml(it, cur, checks, num) {
   return `
   <div class="yn-item-wrap">
     <div class="yn-row ${negCls} ${noteOpen}">
-      <span class="yn-label"><span style="font-size:11px;color:var(--txt3);margin-right:4px;">${num||''}.</span>${it.label}${photoBadge}</span>
+      <span class="yn-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num||''}.</span>${it.label}${photoBadge}</span>
       <span class="yn-pts">${ptsSign}pt</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
@@ -1723,7 +1785,7 @@ function delCapaRow(idx) {
 }
 
 /* ══ 10-1. 제조 설비규격 테이블 ══ */
-const MFG_CAPACITY_PRESETS = ['100kg','500kg','1T','3T','5T','기타'];
+const MFG_CAPACITY_PRESETS = ['100kg','500kg','1T','2T','3T','5T','기타'];
 const MFG_TYPE_OPTS = ['Homo','Ultra','Homo+Ultra','기타'];
 
 function renderMfgEquipTable(tbl) {
@@ -1747,7 +1809,11 @@ function renderMfgEquipTable(tbl) {
       </select>
       ${row.capacity==='기타' ? `<input style="margin-top:4px;" value="${escHtml(row.capacityOther||'')}" onchange="updateMfgEquipRow(${i},'capacityOther',this.value)" placeholder="직접입력">` : ''}
     </td>
-    <td><input value="${row.cnt||''}" type="number" min="0" onchange="updateMfgEquipRow(${i},'cnt',+this.value)" placeholder="0"></td>
+    <td><div class="capa-stepper">
+      <button class="capa-step-btn" onclick="stepMfgEquip(${i},-1)">−</button>
+      <input value="${row.cnt||0}" type="number" min="0" onchange="updateMfgEquipRow(${i},'cnt',Math.max(0,+this.value||0))">
+      <button class="capa-step-btn" onclick="stepMfgEquip(${i},1)">+</button>
+    </div></td>
     <td>
       <div style="display:flex;flex-wrap:nowrap;justify-content:center;gap:10px;">
         <label style="display:inline-flex;align-items:center;gap:3px;font-size:10px;white-space:nowrap;"><input type="checkbox" style="margin:0;" ${aux.oil?'checked':''} onchange="updateMfgEquipAux(${i},'oil',this.checked)">유상</label>
@@ -1782,6 +1848,16 @@ function updateMfgEquipAux(idx, field, val) {
   rec.checks.mfg_equip_tbl[idx].aux = rec.checks.mfg_equip_tbl[idx].aux || {};
   rec.checks.mfg_equip_tbl[idx].aux[field] = val; upsertRecord(rec);
 }
+function stepMfgEquip(idx, delta) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  if (!rec.checks.mfg_equip_tbl || !rec.checks.mfg_equip_tbl[idx]) return;
+  const next = Math.max(0, (rec.checks.mfg_equip_tbl[idx].cnt || 0) + delta);
+  rec.checks.mfg_equip_tbl[idx].cnt = next;
+  upsertRecord(rec);
+  renderMfgEquipTable(rec.checks.mfg_equip_tbl);
+}
+
 function delMfgEquipRow(idx) {
   if (!currentId) return;
   const rec = getRecord(currentId);
@@ -2360,6 +2436,7 @@ async function handleItemPhotoUpload(input, key) {
     if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
     if (domain === 'pkg') renderPkg12(rec.checks);
     if (domain === 'fin') renderTradePLT(rec.checks);
+    if (domain === 'ops') renderIsoCert(rec.checks);
     renderCustomSection(domain, rec);
     toast('항목 사진 추가 완료');
   } catch(e) {
@@ -2382,6 +2459,7 @@ function deleteItemPhoto(key, pi) {
   if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
   if (domain === 'pkg') renderPkg12(rec.checks);
   if (domain === 'fin') renderTradePLT(rec.checks);
+  if (domain === 'ops') renderIsoCert(rec.checks);
   renderCustomSection(domain, rec);
   toast('사진 삭제됨');
 }
@@ -2432,7 +2510,7 @@ function renderCustomSection(domain, recArg) {
     const ptsSign  = ci.pts > 0 ? `+${ci.pts}` : `${ci.pts}`;
     const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
     const baseNum  = (YN_DEF[domain]||[]).length + idx + 1;
-    const numBadge = `<span style="font-size:11px;font-weight:700;color:#f97316;margin-right:4px;">${baseNum}.</span>`;
+    const numBadge = `<span style="font-size:13px;font-weight:700;color:#f97316;margin-right:5px;">${baseNum}.</span>`;
     return `<div class="yn-item-wrap" style="border-left:3px solid var(--acc);">
       <div class="custom-yn-row">
         <span class="custom-yn-label">${numBadge}${escHtml(ci.label)}${photoBadge}</span>
@@ -3191,18 +3269,31 @@ async function doExportReport() {
       {key:'ops', num:5, label:'운영',     max:SPEC_MAX.ops},
     ];
 
-    // 이슈 행 수집
+    // 이슈 행 수집 (항목 사진은 표에 넣지 않고 종합의견 뒤 '첨부사진'으로 모음)
     const issueRows = [];
+    const attachPhotos = [];
     domainDefs.filter(d=>!d.skip).forEach(d => {
       const domNote = (rec.notes||{})[d.key]||'';
       const allItems = d.key==='fin'
         ? [...YN_DEF.fin, {key:'_plt', label:'거래PLT', _plt:true}]
+        : d.key==='ops'
+        ? [...YN_DEF.ops, {key:'_iso', label:'인증 취득여부', _iso:true}]
         : YN_DEF[d.key];
       const domItems = [];
+      const collect = (photos, itemLabel) => photos.forEach(p => attachPhotos.push({
+        src:(p&&typeof p==='object')?p.src:p,
+        memo:(p&&typeof p==='object')?(p.memo||''):'',
+        title:`${d.num}. ${d.label} — ${itemLabel}`,
+      }));
       allItems.forEach(it => {
         if (it._plt) {
           const cnt = pltCount(c);
           if (cnt > 0) domItems.push({label:it.label, result:'', note:PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+'), isIssue:false, isText:true});
+          return;
+        }
+        if (it._iso) {
+          const isoPt = isoScore(c);
+          domItems.push({label:it.label, result:'', note:(isoLabelStr(c)||'미보유')+` (${isoPt>0?'+':''}${isoPt}pt)`, isIssue:isoPt<0, isText:true});
           return;
         }
         const val=c[it.key]||null, note=c[it.key+'_note']||'';
@@ -3210,14 +3301,16 @@ async function doExportReport() {
         const isIssue=(!it.neg&&val==='N')||(it.neg&&val==='Y');
         // X 결과이거나, O이지만 메모/사진이 있는 경우만 표시
         if (!isIssue && !note && !photos.length) return;
-        domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue, photos});
+        collect(photos, it.label);
+        domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue});
       });
       (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach(ci => {
         const val=c[ci.id]||null, note=c[ci.id+'_note']||'';
         const ciPhotos=normalizePhotos(c[ci.id+'_photos']).filter(p=>p&&p.src);
         const ciIsIssue = ci.pts>0 && val==='N';
         if (!ciIsIssue && !note && !ciPhotos.length) return;
-        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ciIsIssue, photos:ciPhotos});
+        collect(ciPhotos, ci.label);
+        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ciIsIssue});
       });
       if (!domItems.length) {
         issueRows.push({domLabel:d.label, domNum:d.num, domScore:sc[d.key], domMax:d.max, label:'해당사항 없음', result:'', note:'', opinion:domNote, isIssue:false, noItems:true});
@@ -3230,17 +3323,15 @@ async function doExportReport() {
     const colW = [1.5, 2.6, 0.46, 3.82, 4.15];
     const colX = []; { let cx=CX; colW.forEach(w=>{colX.push(cx);cx+=w;}); }
     const hdrs = ['카테고리','평가항목','결과','특이사항','평가의견'];
-    const scoreH = 0.42, hdrH = 0.3;
-    const topH = scoreH + 0.05 + hdrH;
+    const hdrH = 0.3;
+    const topH = hdrH;   // 점수 요약바는 1페이지(업체 개요)에만 표기
     const pageContentH = BOT - TY - topH;
 
     // 행 높이 사전 계산
     const rowsWithH = issueRows.map(row => {
       const noteLen=(row.note||'').length, lblLen=(row.label||'').length, opLen=(row.opinion||'').length;
       const textH=Math.max(0.35, Math.max(Math.ceil(lblLen/24), Math.ceil(noteLen/26), Math.ceil(opLen/40))*0.26+0.1);
-      const photoRows=Math.ceil(((row.photos||[]).length)/2);
-      const photoH=photoRows>0?photoRows*1.35:0;
-      return {...row, rH:textH+photoH, textH, photoH};
+      return {...row, rH:textH, textH};
     });
 
     // 페이지에 행 배분 (같은 도메인 행이 가능하면 함께 유지)
@@ -3262,30 +3353,7 @@ async function doExportReport() {
       addHeader(s, '점검 특이사항');
       let y = TY;
 
-      // 점수 요약 바
-      // PKG 업체: 카테고리 만점 100점 환산 표기용 가중치 (mat:30 pkg:35 fin:15 ops:20)
-      const PKG_DISP_MAX = {mat:30, pkg:35, fin:15, ops:20};
-      const activeDoms = domainDefs.filter(d=>!d.skip);
-      const sW = CW / (activeDoms.length + 2);
-      let sx = CX;
-      activeDoms.forEach(d => {
-        const dispMax = (rec.type==='PKG' && PKG_DISP_MAX[d.key]) ? PKG_DISP_MAX[d.key] : d.max;
-        const dispScore = (rec.type==='PKG' && PKG_DISP_MAX[d.key])
-          ? Math.round(sc[d.key] / d.max * dispMax) : sc[d.key];
-        const isLow = dispScore / dispMax < 0.5;
-        const sBg = isLow ? 'FEE2E2' : MG;
-        const sTx = isLow ? RD : DT;
-        s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:sBg}, line:{color:isLow?RD:LG}});
-        s.addText(`${d.num}. ${d.label}\n(${dispScore}/${dispMax})`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:8, bold:isLow, color:sTx, align:'center', fontFace:FF});
-        sx += sW;
-      });
-      s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:KB}, line:{color:KB}});
-      s.addText(`총점\n${sc.total}`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
-      sx += sW;
-      const gBg = sc.total>=80?'166534':sc.total>=60?'1e40af':'991b1b';
-      s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:gBg}, line:{color:gBg}});
-      s.addText(`결과\n${g.label}`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:10, bold:true, color:WH, align:'center', fontFace:FF});
-      y += scoreH + 0.05;
+      // 점수 요약바는 1페이지(업체 개요)에만 표기 — 카테고리/내용 공간 확보를 위해 여기서는 생략
 
       // 테이블 헤더
       hdrs.forEach((h,i) => {
@@ -3329,19 +3397,6 @@ async function doExportReport() {
             s.addText(row.result, {x:colX[2]+0.04, y:y+0.04, w:colW[2]-0.06, h:row.rH-0.06, fontSize:isOX?11:7.5, bold:isOX, color:rc, align:'center', fontFace:FF, valign:'middle', shrinkText:true});
           }
           if (row.note) s.addText(row.note, {x:colX[3]+0.07, y:y+0.04, w:colW[3]-0.1, h:row.textH-0.06, fontSize:9, color:row.isIssue?RD:DT, fontFace:FF, valign:'top', wrap:true});
-          const rowPhotos=(row.photos||[]).filter(p=>p&&p.src);
-          if (rowPhotos.length) {
-            const npW=(colW[3]-0.18)/2, npH=1.2, nx0=colX[3]+0.07;
-            const phStartY=y+row.textH;
-            rowPhotos.forEach((p,pi)=>{
-              const pc=pi%2, pr=Math.floor(pi/2);
-              const phX=nx0+pc*(npW+0.07), phY=phStartY+pr*(npH+0.07);
-              const src=(p&&typeof p==='object')?p.src:p;
-              try{s.addImage({data:src,x:phX,y:phY,w:npW,h:npH});}catch(e){}
-              const memo=p&&p.memo;
-              if(memo) s.addText(memo,{x:phX,y:phY+npH+0.01,w:npW,h:0.15,fontSize:7,color:ST,fontFace:FF,shrinkText:true});
-            });
-          }
           y += row.rH;
         });
         globalRowIdx += domRows.length;
@@ -3373,6 +3428,41 @@ async function doExportReport() {
     if (overallNote) ov.addText(overallNote, {x:CX+sumW[0]+0.1, y:oy+0.07, w:sumW[1]-0.15, h:totalRH-0.1, fontSize:9.5, color:DT, fontFace:FF, valign:'top', wrap:true});
     oy += totalRH + 0.12;
 
+    /* ── 첨부사진 (항목 메모에 첨부된 사진, 종합의견 다음 / 페이지당 2장 대형) ── */
+    for (let ai = 0; ai < attachPhotos.length; ai += 2) {
+      const pgPhotos = attachPhotos.slice(ai, ai + 2);
+      const aps = pptx.addSlide();
+      addHeader(aps, '첨부사진');
+      const gap = 0.16;
+      const cellW = (CW - gap) / 2;
+      const cellH = BOT - TY - 0.06;
+      pgPhotos.forEach((ph, idx) => {
+        const bx = CX + idx * (cellW + gap), by = TY;
+        const tH = 0.3;
+        aps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:cellH, fill:{color:WH}, line:{color:LG}});
+        aps.addShape(pptx.shapes.RECTANGLE, {x:bx, y:by, w:cellW, h:tH, fill:{color:KB}, line:{color:KB}});
+        aps.addText(ph.title || '', {x:bx+0.08, y:by+0.05, w:cellW-0.14, h:tH-0.08, fontSize:10, bold:true, color:WH, fontFace:FF, valign:'middle', shrinkText:true});
+
+        let contentY = by + tH + 0.06;
+        const bottomY = by + cellH - 0.06;
+
+        // 사진별 메모를 사진 위에 함께 표기
+        if (ph.memo) {
+          const memoCharsPerLine = Math.max(8, Math.floor((cellW - 0.24) / 0.165));
+          const memoH = Math.max(0.3, Math.ceil((ph.memo.length + 7) / memoCharsPerLine) * 0.19 + 0.14);
+          aps.addShape(pptx.shapes.RECTANGLE, {x:bx+0.06, y:contentY, w:cellW-0.12, h:memoH, fill:{color:DNL}, line:{color:DN, width:0.5}});
+          aps.addText([
+            {text:'[메모]  ', options:{bold:true, color:DN}},
+            {text:ph.memo,   options:{color:DT}},
+          ], {x:bx+0.1, y:contentY+0.03, w:cellW-0.2, h:memoH-0.06, fontSize:10, fontFace:FF, valign:'middle', wrap:true});
+          contentY += memoH + 0.06;
+        }
+
+        // 남은 영역 전체에 사진을 비율 유지하며 최대 크기로 배치
+        const fit = fitImageInSlot(ph.src, bx+0.07, contentY, cellW-0.14, bottomY-contentY);
+        try { aps.addImage({data:ph.src, x:fit.x, y:fit.y, w:fit.w, h:fit.h}); } catch(e) {}
+      });
+    }
   }
 
   /* ── 현장사진 및 특이사항 (투어 구간, 사진 최대 2장 단위로 분할 / 4블록당 페이지) ── */
@@ -3632,14 +3722,15 @@ function printChecklist() {
     const pStyle = it.neg ? 'color:#dc2626' : it.heavy ? 'color:#f97316;font-weight:700' : 'color:#64748b';
     const numHtml = num != null ? `<span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>` : '';
     const photoCnt = photos.length;
+    // 사진은 현장메모 칸 폭에 꽉 차게 확대하고, 사진별 메모를 캡션으로 함께 표기
     const photoHtml = photoCnt > 0
-      ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;">
+      ? `<div style="display:block;margin-top:${note ? '5px' : '0'};">
           ${photos.map(p => {
             const src = (p&&typeof p==='object') ? p.src : p;
             const m   = (p&&typeof p==='object') ? (p.memo||'') : '';
-            return `<div style="display:inline-block;">
-              <img src="${src}" style="width:90px;height:68px;object-fit:cover;border-radius:3px;border:1px solid #e2e8f0;display:block;">
-              ${m ? `<div style="font-size:7px;color:#475569;max-width:90px;word-break:break-all;">${m}</div>` : ''}
+            return `<div style="width:100%;margin-bottom:5px;break-inside:avoid;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;">
+              <img src="${src}" style="width:100%;height:auto;max-height:220px;object-fit:contain;background:#f8fafc;display:block;">
+              ${m ? `<div style="font-size:9px;font-weight:600;color:#1e293b;background:#eef2ff;border-top:1px solid #cbd5e1;padding:3px 5px;word-break:break-word;line-height:1.35;">📷 ${m}</div>` : ''}
             </div>`;
           }).join('')}
         </div>` : '';
@@ -3650,16 +3741,16 @@ function printChecklist() {
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;${pStyle}">${pts}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'Y')}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'N')}</td>
-      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#1e293b;min-width:90px;">${note}${photoHtml}</td>
+      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;">${note}${photoHtml}</td>
     </tr>`;
   }
 
   const TH = `<tr>
-    <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;width:46%">평가항목</th>
-    <th style="background:#f1f5f9;color:#64748b;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">배점</th>
-    <th style="background:#dcfce7;color:#16a34a;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">O</th>
-    <th style="background:#fee2e2;color:#dc2626;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:7%">X</th>
-    <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;">현장 메모</th>
+    <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;width:36%">평가항목</th>
+    <th style="background:#f1f5f9;color:#64748b;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:6%">배점</th>
+    <th style="background:#dcfce7;color:#16a34a;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:6%">O</th>
+    <th style="background:#fee2e2;color:#dc2626;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;width:6%">X</th>
+    <th style="background:#f1f5f9;color:#64748b;font-size:9px;text-align:left;padding:3px 8px;border:1px solid #cbd5e1;width:46%">현장 메모</th>
   </tr>`;
 
   function pltRowHtml(num) {
@@ -3669,6 +3760,28 @@ function printChecklist() {
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;color:#64748b;background:#eff6ff;">최대+2</td>
       <td colspan="3" style="padding:3px 8px;border:1px solid #e2e8f0;text-align:center;font-size:10px;font-weight:700;color:#1d4ed8;background:#eff6ff;">${pltLabel}</td>
       <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:9px;color:#94a3b8;background:#eff6ff;"></td>
+    </tr>`;
+  }
+
+  function isoRowHtml(num) {
+    const opts  = c.ops_cert_opts || {};
+    const score = isoScore(c);
+    const boxes = ISO_OPTS.map(o => {
+      const on  = !!opts[o.key];
+      const box = on
+        ? `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #7c3aed;border-radius:2px;background:#7c3aed;vertical-align:middle;margin-right:2px;text-align:center;line-height:13px;font-size:9px;color:#fff;">✓</span>`
+        : `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #cbd5e1;border-radius:2px;background:#fff;vertical-align:middle;margin-right:2px;"></span>`;
+      return `<span style="display:inline-flex;align-items:center;margin-right:8px;font-size:9px;color:${on?'#7c3aed':'#94a3b8'};">${box}${o.label}</span>`;
+    }).join('');
+    const otherText = (opts.etc && c.ops_cert_other_text)
+      ? `<div style="margin-top:3px;font-size:8px;color:#475569;">기타: ${c.ops_cert_other_text}</div>` : '';
+    return `<tr>
+      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#f5f3ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>인증 취득여부</td>
+      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;font-weight:700;color:${score<0?'#dc2626':'#7c3aed'};background:#f5f3ff;">${score>0?'+':''}${score}</td>
+      <td colspan="3" style="padding:4px 8px;border:1px solid #e2e8f0;background:#f5f3ff;">
+        <div style="display:flex;flex-wrap:wrap;gap:2px;">${boxes}</div>
+        ${otherText}
+      </td>
     </tr>`;
   }
 
@@ -3745,9 +3858,10 @@ function printChecklist() {
       </span>`).join('')
     : '<span style="color:#94a3b8;font-size:10px;">미입력</span>';
 
+  // 충전·포장 업체는 제조관리 섹션 자체를 인쇄물에서 생략 (안내 문구도 표기하지 않음)
   const mfgSection = rec.type !== 'PKG'
     ? domainSection('1. 제조관리','mfg',30,'#1e40af')
-    : `<div style="padding:12px;background:#f1f5f9;border-radius:6px;text-align:center;color:#94a3b8;font-size:11px;margin-bottom:10px;">PKG 업체 — 제조관리 해당없음</div>`;
+    : '';
 
   const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
   <title>체크리스트 — ${rec.companyName}</title>
@@ -3818,7 +3932,7 @@ function printChecklist() {
     </table>
   </div>
   ${domainSection('4. 완제품관리','fin',10,'#be185d',pltRowHtml)}
-  ${domainSection('5. 운영·거래조건','ops',15,'#7c3aed')}
+  ${domainSection('5. 운영·거래조건','ops',15,'#7c3aed',isoRowHtml)}
   <!-- 점수 요약 -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr) auto;gap:6px;margin-bottom:10px;">
     ${['mfg','mat','pkg','fin','ops'].map((d,i) => {
