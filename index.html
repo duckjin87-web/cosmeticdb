@@ -162,13 +162,23 @@ body{background:var(--s1);color:var(--txt);
 .eval-det-close:hover{color:var(--txt);}
 
 /* 탭 */
-.eval-tabs{display:flex;gap:0;overflow-x:auto;}
+.eval-tabs{display:flex;gap:3px;overflow-x:auto;padding-top:2px;}
 .eval-tab{
-  padding:9px 15px;font-size:16px;cursor:pointer;color:var(--txt3);
-  border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;flex-shrink:0;
+  padding:9px 16px;font-size:18px;cursor:pointer;color:var(--txt3);
+  background:transparent;
+  border:1px solid transparent;border-bottom:3px solid transparent;
+  border-radius:7px 7px 0 0;
+  transition:.15s;white-space:nowrap;flex-shrink:0;
 }
-.eval-tab.active{color:var(--cyn);border-bottom-color:var(--cyn);font-weight:700;}
-.eval-tab:hover{color:var(--txt2);}
+.eval-tab:hover{color:var(--txt2);background:#f1f5f9;}
+.eval-tab.active{
+  color:var(--cyn);font-weight:800;
+  background:#e0f2fe;
+  border-color:#7dd3fc;
+  border-bottom-color:var(--cyn);
+  box-shadow:0 -1px 4px rgba(14,165,233,.15);
+}
+.eval-tab.active:hover{background:#d5edfd;}
 .eval-tab.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
 
 /* 탭 본문 */
@@ -437,6 +447,15 @@ body{background:var(--s1);color:var(--txt);
   color:var(--cyn);font-size:15px;cursor:pointer;transition:.15s;white-space:nowrap;
 }
 .tour-inline-add:hover{background:#e0f2fe;border-style:solid;}
+
+/* 인라인 구간추가 입력칸 (＋ 버튼 자리에서 바로 열림) */
+.tour-add-box{
+  border-color:var(--cyn)!important;background:#f0f9ff!important;
+  box-shadow:0 0 0 3px rgba(14,165,233,.16);
+}
+.tour-add-box .tour-chip-num{background:var(--cyn);color:#fff;}
+.tour-add-box .tour-chip-input{color:var(--txt);}
+.tour-add-box .tour-chip-input::placeholder{color:#94a3b8;font-weight:400;}
 
 /* 투어 칩 순서 이동 버튼 (hover 시 표시) */
 .tour-move-wrap{display:none;gap:1px;align-items:center;}
@@ -1466,6 +1485,7 @@ function closeDet() {
   currentId = null;
   activeTourStep = -1;
   editingTourIdx = -1;
+  addingTourAt   = null;
   document.getElementById('eval-empty').style.display = 'flex';
   document.getElementById('eval-det-view').style.display = 'none';
   document.getElementById('tour-bar').style.display = 'none';
@@ -2625,6 +2645,7 @@ function deleteCustomItem(itemId) {
 /* ══ 15d. 투어 동선 바 + 사진 ══ */
 let activeTourStep = -1;
 let editingTourIdx = -1; // 인라인 편집 중인 칩 인덱스
+let addingTourAt   = null; // 인라인 구간추가 위치 (null=미사용, -1=맨 뒤, n=n번째 앞)
 
 /* ── 사진 스키마 정규화: string → {src,memo} ── */
 function normalizePhotos(arr) {
@@ -2657,11 +2678,26 @@ function renderTourBar(rec) {
   syncTourSteps(rec);
   const steps = rec.tourSteps || [];
 
+  // 인라인 구간추가 입력칸 (버튼을 누른 자리에서 바로 열림)
+  const addBoxHtml = `<div class="tour-chip active tour-add-box" id="tour-add-box">
+      <span class="tour-chip-num">＋</span>
+      <input class="tour-chip-input" id="tour-add-input" placeholder="구간 이름"
+        onkeydown="onAddTourKey(event)" onblur="commitAddTourStep(this.value)">
+      <button class="tour-chip-del" onmousedown="event.preventDefault()"
+        onclick="cancelAddTourStep()" title="취소">✕</button>
+    </div>`;
+
   let html = '';
   if (steps.length === 0) {
-    html = `<button class="tour-inline-add" onclick="promptAddTourStep(-1)">＋ 구간추가</button>`;
+    html = (addingTourAt !== null)
+      ? addBoxHtml
+      : `<button class="tour-inline-add" onclick="startAddTourStep(-1)">＋ 구간추가</button>`;
   } else {
     steps.forEach((s, i) => {
+      if (addingTourAt === i) {
+        html += addBoxHtml;
+        html += `<span style="color:var(--txt3);font-size:13px;padding:0 2px;flex-shrink:0;">→</span>`;
+      }
       const photoCnt = s.photos?.length || 0;
       const hasMemo  = s.photos?.some(p => p?.memo?.trim());
       const badge    = photoCnt > 0 ? `<span class="tour-chip-photo-cnt">📷${photoCnt}</span>` : '';
@@ -2690,8 +2726,10 @@ function renderTourBar(rec) {
         html += `<span style="color:var(--txt3);font-size:13px;padding:0 2px;flex-shrink:0;">→</span>`;
       }
     });
-    // 마지막에 인라인 구간추가 버튼
-    html += `<button class="tour-inline-add" onclick="promptAddTourStep(-1)" title="구간 추가">＋ 구간추가</button>`;
+    // 마지막에 인라인 구간추가 입력칸 / 버튼
+    html += (addingTourAt === -1)
+      ? addBoxHtml
+      : `<button class="tour-inline-add" onclick="startAddTourStep(-1)" title="구간 추가">＋ 구간추가</button>`;
   }
 
   chips.innerHTML = html;
@@ -2701,16 +2739,40 @@ function renderTourBar(rec) {
     const inp = document.getElementById(`chip-input-${editingTourIdx}`);
     if (inp) { inp.focus(); inp.select(); }
   }
+  if (addingTourAt !== null) {
+    const ai = document.getElementById('tour-add-input');
+    if (ai) { ai.focus(); ai.scrollIntoView({block:'nearest', inline:'nearest'}); }
+  }
 }
 
 /* 투어 구간 추가 (insertIdx: -1 = 맨 뒤, 0~n = 해당 위치 앞에 삽입) */
-function promptAddTourStep(insertIdx) {
+function startAddTourStep(insertIdx) {
   if (!currentId) return;
-  const name = (window.prompt('구간 이름을 입력하세요:', '')) || '';
-  if (!name.trim()) return;
+  editingTourIdx = -1;
+  addingTourAt   = insertIdx;
+  renderTourBar(getRecord(currentId));
+}
+
+function cancelAddTourStep() {
+  if (addingTourAt === null) return;
+  addingTourAt = null;
+  if (currentId) renderTourBar(getRecord(currentId));
+}
+
+function onAddTourKey(e) {
+  if (e.key === 'Enter')  { e.preventDefault(); commitAddTourStep(e.target.value); }
+  if (e.key === 'Escape') { e.preventDefault(); e.target.value = ''; cancelAddTourStep(); }
+}
+
+function commitAddTourStep(value) {
+  if (addingTourAt === null || !currentId) return;
+  const insertIdx = addingTourAt;
+  const name = (value || '').trim();
+  addingTourAt = null;
   const rec = getRecord(currentId);
+  if (!name) { renderTourBar(rec); return; }   // 빈 값이면 취소
   syncTourSteps(rec);
-  const newStep = { name: name.trim(), memo:'', photos:[] };
+  const newStep = { name, memo:'', photos:[] };
   if (insertIdx < 0 || insertIdx >= rec.tourSteps.length) {
     rec.tourSteps.push(newStep);
   } else {
@@ -2722,6 +2784,9 @@ function promptAddTourStep(insertIdx) {
   renderTourBar(rec);
   toast(`구간 추가: ${newStep.name}`);
 }
+
+/* 하위 호환 — 기존 호출부(구간 사이 ＋ 버튼 등) */
+function promptAddTourStep(insertIdx) { startAddTourStep(insertIdx); }
 
 /* 투어 구간 삭제 (B안: 빈 동선 허용) */
 function deleteTourStep(idx) {
