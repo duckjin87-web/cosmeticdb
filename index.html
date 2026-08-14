@@ -164,10 +164,10 @@ body{background:var(--s1);color:var(--txt);
 /* 탭 */
 .eval-tabs{display:flex;gap:0;overflow-x:auto;}
 .eval-tab{
-  padding:7px 13px;font-size:13px;cursor:pointer;color:var(--txt3);
+  padding:9px 15px;font-size:16px;cursor:pointer;color:var(--txt3);
   border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;flex-shrink:0;
 }
-.eval-tab.active{color:var(--cyn);border-bottom-color:var(--cyn);font-weight:600;}
+.eval-tab.active{color:var(--cyn);border-bottom-color:var(--cyn);font-weight:700;}
 .eval-tab:hover{color:var(--txt2);}
 .eval-tab.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
 
@@ -1528,6 +1528,7 @@ function fillForm(rec) {
   setVal('f-mfg_loss',      c.mfg_loss      ?? '');
   setVal('f-mfg_capa',      c.mfg_capa      ?? '');
   setVal('f-mfg_headcount', c.mfg_headcount ?? '');
+  ensureDefaultTableRows(rec);
   renderMfgEquipTable(c.mfg_equip_tbl || []);
   setVal('f-pkg_util',      c.pkg_util      ?? '');
   setVal('f-pkg_lt',        c.pkg_lt        ?? '');
@@ -1538,6 +1539,21 @@ function fillForm(rec) {
     const el = document.getElementById(`res-note-${d}`);
     if (el) el.value = n[d] || '';
   });
+}
+
+/* 설비규격 · 설비CAPA 표는 항상 최소 1행이 열려 있도록 보장 */
+function ensureDefaultTableRows(rec) {
+  const c = rec.checks = rec.checks || {};
+  let changed = false;
+  if (!Array.isArray(c.mfg_equip_tbl) || !c.mfg_equip_tbl.length) {
+    c.mfg_equip_tbl = [{type:'', capacity:'', cnt:1, aux:{oil:false,water:false,cold:false}, note:''}];
+    changed = true;
+  }
+  if (!Array.isArray(c.pkg_tbl) || !c.pkg_tbl.length) {
+    c.pkg_tbl = [{name:'', daily:0, monthly:0, kolma:0, cnt:1, note:''}];
+    changed = true;
+  }
+  if (changed) upsertRecord(rec);
 }
 
 function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
@@ -2357,7 +2373,7 @@ function openEvalAdd() {
     visitDate:'', visitor:'', observers:'', reason:'',
     address:'', contactName:'', contactTel:'',
     privacy:{ consent:'Y', name:'', signature:'' },
-    checks:{ pkg_tbl:[] }, tourSteps:[],
+    checks:{ pkg_tbl:[{name:'',daily:0,monthly:0,kolma:0,cnt:1,note:''}], mfg_equip_tbl:[{type:'',capacity:'',cnt:1,aux:{oil:false,water:false,cold:false},note:''}] }, tourSteps:[],
     notes:{ mfg:'', mat:'', pkg:'', fin:'', ops:'', overall:'', memo:'' },
     scores:{ mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 },
     createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
@@ -2376,7 +2392,7 @@ function addToEvalFromDB(companyId, companyName) {
     visitDate:'', visitor:'', observers:'', reason:'',
     address:'', contactName:'', contactTel:'',
     privacy:{ consent:'Y', name:'', signature:'' },
-    checks:{ pkg_tbl:[] }, tourSteps:[],
+    checks:{ pkg_tbl:[{name:'',daily:0,monthly:0,kolma:0,cnt:1,note:''}], mfg_equip_tbl:[{type:'',capacity:'',cnt:1,aux:{oil:false,water:false,cold:false},note:''}] }, tourSteps:[],
     notes:{ mfg:'', mat:'', pkg:'', fin:'', ops:'', overall:'', memo:'' },
     scores:{ mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 },
     createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
