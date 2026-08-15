@@ -1156,7 +1156,8 @@ function pltScore(c) {
   return cnt >= 3 ? 2 : cnt >= 2 ? 1.5 : cnt >= 1 ? 1 : 0;
 }
 
-/* 인증 취득여부 (5.운영) — 보유 인증별 배점 합산 (CGMP 2pt, 그 외 각 1pt / 최대 6pt) */
+/* 인증 취득여부 (5.운영) — 보유 인증별 배점 합산 (CGMP 2pt, 그 외 각 1pt / 최대 6pt)
+   단, 하나도 보유하지 않으면 -1pt */
 const ISO_OPTS = [
   {key:'iso',   label:'ISO',   pts:1},
   {key:'cgmp',  label:'CGMP',  pts:2},
@@ -1170,7 +1171,8 @@ function isoCount(c) {
 }
 function isoScore(c) {
   const o = c.ops_cert_opts || {};
-  return ISO_OPTS.reduce((s, x) => s + (o[x.key] ? x.pts : 0), 0);
+  const sum = ISO_OPTS.reduce((s, x) => s + (o[x.key] ? x.pts : 0), 0);
+  return sum > 0 ? sum : -1;   // 미보유 → 마이너스
 }
 function isoLabelStr(c) {
   const o = c.ops_cert_opts || {};
@@ -1702,14 +1704,14 @@ function renderIsoCert(checks) {
   <div class="plt-group" id="plt-group-iso" style="display:block;">
     <div style="display:flex;align-items:center;gap:6px;">
       <span class="plt-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num}.</span>인증 취득여부</span>
-      <span class="yn-pts">+${score}pt</span>
+      <span class="yn-pts ${score < 0 ? 'neg' : ''}">${score > 0 ? '+' : ''}${score}pt</span>
     </div>
     <div class="plt-opts" style="flex-wrap:wrap;margin-top:6px;">
       ${ISO_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="toggleIsoOpt('${o.key}',this)">${o.label} <b style="font-weight:700;opacity:.7;">+${o.pts}</b></span>`).join('')}
     </div>
     ${opts.etc ? `<input class="num-input" style="margin-top:6px;width:100%;text-align:left;" placeholder="기타 인증 직접입력"
       value="${escHtml(checks.ops_cert_other_text||'')}" oninput="patchCheck('ops_cert_other_text',this.value)">` : ''}
-    <div style="margin-top:5px;font-size:11px;color:var(--txt3);">CGMP +2 · ISO/할랄/VEGAN/기타 각 +1 (최대 +${ISO_MAX})</div>
+    <div style="margin-top:5px;font-size:11px;color:var(--txt3);">CGMP +2 · ISO/할랄/VEGAN/기타 각 +1 (최대 +${ISO_MAX}) · 미보유 −1</div>
   </div>`);
 }
 
@@ -3541,7 +3543,7 @@ async function doExportReport() {
         }
         if (it._iso) {
           const isoPt = isoScore(c);
-          domItems.push({label:it.label, result:'', note:(isoLabelStr(c)||'미보유')+` (+${isoPt}/${ISO_MAX}pt)`, isIssue:isoPt===0, isText:true});
+          domItems.push({label:it.label, result:'', note:(isoLabelStr(c)||'미보유')+` (${isoPt>0?'+':''}${isoPt}${isoPt>0?'/'+ISO_MAX:''}pt)`, isIssue:isoPt<0, isText:true});
           return;
         }
         const val=c[it.key]||null, note=c[it.key+'_note']||'';
@@ -4025,7 +4027,7 @@ function printChecklist() {
       ? `<div style="margin-top:3px;font-size:8px;color:#475569;">기타: ${c.ops_cert_other_text}</div>` : '';
     return `<tr>
       <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#f5f3ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>인증 취득여부</td>
-      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;font-weight:700;color:#7c3aed;background:#f5f3ff;">+${score}<span style="font-weight:400;color:#94a3b8;">/${ISO_MAX}</span></td>
+      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;font-weight:700;color:${score<0?'#dc2626':'#7c3aed'};background:#f5f3ff;">${score>0?'+':''}${score}<span style="font-weight:400;color:#94a3b8;">/${ISO_MAX}</span></td>
       <td colspan="3" style="padding:4px 8px;border:1px solid #e2e8f0;background:#f5f3ff;">
         <div style="display:flex;flex-wrap:wrap;gap:2px;">${boxes}</div>
         ${otherText}
