@@ -2,8 +2,20 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CosmeDB — TAB04 신규처 등록평가</title>
+
+<!-- ── 앱 설치(PWA) ── -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3b4f8a">
+<meta name="application-name" content="등록평가">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="등록평가">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <!-- PptxGenJS: 내부보고용 PPTX 생성 (lazy load) -->
 <style>
@@ -601,6 +613,8 @@ body{background:var(--s1);color:var(--txt);
         <button class="btn sm" onclick="exportBackupJson()" title="전체 데이터를 JSON 파일로 백업" style="flex:1;font-size:10px;">💾 백업</button>
         <button class="btn sm" onclick="document.getElementById('restoreFileInp').click()" title="JSON 백업 파일에서 복원" style="flex:1;font-size:10px;">📂 복원</button>
         <input type="file" id="restoreFileInp" accept=".json" style="display:none" onchange="importBackupJson(this)">
+        <button class="btn sm" id="pwa-install-btn" onclick="installApp()" title="홈 화면에 앱으로 설치"
+          style="display:none;flex:1;font-size:10px;border-color:var(--cyn);color:var(--cyn);">📲 앱설치</button>
       </div>
       <div class="eval-filter-tabs">
         <span class="eval-ftab on" data-f="ALL" onclick="setFilter(this,'ALL')">전체</span>
@@ -4283,8 +4297,70 @@ function _initMobileLayout() {
 }
 
 /* ══ 20. 초기화 ══ */
+/* ══ 22. 앱 설치 (PWA) ══ */
+let _deferredInstall = null;
+
+function _isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function _initPwa() {
+  // file:// 로 직접 열었을 때는 서비스워커를 쓸 수 없음
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // 새 버전이 배포되면 다음 실행부터 자동 적용
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            toast('새 버전이 준비되었습니다. 앱을 다시 열면 적용됩니다.');
+          }
+        });
+      });
+    }).catch(() => {});
+  }
+
+  const btn = document.getElementById('pwa-install-btn');
+  if (!btn) return;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _deferredInstall = e;
+    if (!_isStandalone()) btn.style.display = '';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    _deferredInstall = null;
+    btn.style.display = 'none';
+    toast('홈 화면에 설치되었습니다.', 'ok');
+  });
+
+  // iOS Safari는 beforeinstallprompt 미지원 — 안내만 노출
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS && !_isStandalone()) btn.style.display = '';
+}
+
+async function installApp() {
+  if (_deferredInstall) {
+    _deferredInstall.prompt();
+    const { outcome } = await _deferredInstall.userChoice;
+    if (outcome === 'accepted') _deferredInstall = null;
+    return;
+  }
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    alert('아이폰/아이패드 설치 방법\n\n'
+        + '1. 하단(또는 상단)의 공유 버튼 [ ↑ ] 을 누릅니다.\n'
+        + '2. "홈 화면에 추가"를 선택합니다.\n'
+        + '3. 우측 상단 "추가"를 누르면 앱처럼 실행됩니다.');
+    return;
+  }
+  alert('브라우저 주소창의 설치 아이콘(⊕) 또는 메뉴 → "앱 설치"를 선택하세요.');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   _initMobileLayout();
+  _initPwa();
   await initStorage();
   renderEvalList();
   updateFsaStatus();
