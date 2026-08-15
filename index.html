@@ -616,6 +616,7 @@ body{background:var(--s1);color:var(--txt);
         <button class="btn sm" id="pwa-install-btn" onclick="installApp()" title="홈 화면에 앱으로 설치"
           style="display:none;flex:1;font-size:10px;border-color:var(--cyn);color:var(--cyn);">📲 앱설치</button>
       </div>
+      <div id="storage-info" style="display:none;font-size:10px;margin-bottom:7px;line-height:1.4;"></div>
       <div class="eval-filter-tabs">
         <span class="eval-ftab on" data-f="ALL" onclick="setFilter(this,'ALL')">전체</span>
         <span class="eval-ftab" data-f="WAIT" onclick="setFilter(this,'WAIT')">평가대기</span>
@@ -1296,6 +1297,7 @@ function saveRecords(r) {
     console.error('IndexedDB 저장 실패', e);
     toast('저장 실패: ' + (e && e.message ? e.message : '알 수 없는 오류'), 'err');
   });
+  scheduleStorageInfoUpdate();
 }
 function getRecord(id)  {
   const rec = loadRecords().find(r => r.id === id) || null;
@@ -4377,6 +4379,76 @@ function _initMobileLayout() {
 }
 
 /* ══ 20. 초기화 ══ */
+/* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
+   브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
+   (특히 iOS Safari는 홈 화면에 설치하지 않은 사이트를 7일 미방문 시 삭제)
+   persist()로 '영구' 상태를 받으면 이 자동 삭제 대상에서 제외됩니다. */
+let _persistState = null;   // true=영구보존, false=일반, null=미지원
+
+function fmtBytes(n) {
+  if (!n || n < 0) return '0MB';
+  if (n < 1024*1024) return Math.max(1, Math.round(n/1024)) + 'KB';
+  if (n < 1024*1024*1024) return (n/(1024*1024)).toFixed(n < 10*1024*1024 ? 1 : 0) + 'MB';
+  return (n/(1024*1024*1024)).toFixed(2) + 'GB';
+}
+
+async function requestPersistentStorage() {
+  if (!navigator.storage || !navigator.storage.persist) { _persistState = null; return null; }
+  try {
+    if (await navigator.storage.persisted()) { _persistState = true; return true; }
+    _persistState = await navigator.storage.persist();
+    return _persistState;
+  } catch (e) { _persistState = null; return null; }
+}
+
+async function updateStorageInfo() {
+  const el = document.getElementById('storage-info');
+  if (!el) return;
+  if (!navigator.storage || !navigator.storage.estimate) { el.style.display = 'none'; return; }
+
+  let usage = 0, quota = 0;
+  try { ({usage = 0, quota = 0} = await navigator.storage.estimate()); }
+  catch (e) { el.style.display = 'none'; return; }
+
+  const pct  = quota > 0 ? (usage / quota) * 100 : 0;
+  const tight = pct >= 80;
+  const barColor = tight ? 'var(--red)' : pct >= 60 ? 'var(--acc)' : 'var(--cyn)';
+
+  const lock = _persistState === true
+    ? `<span title="브라우저 자동 삭제 대상에서 제외된 상태입니다." style="color:var(--grn);font-weight:700;">🔒 영구보존</span>`
+    : `<span title="앱으로 설치하면 영구보존이 적용될 가능성이 높습니다." style="color:var(--txt3);">⚠️ 일반저장</span>`;
+
+  el.style.display = '';
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:3px;">
+      <span style="color:var(--txt3);">저장 ${fmtBytes(usage)}${quota ? ' / ' + fmtBytes(quota) : ''}</span>
+      ${lock}
+    </div>
+    <div style="height:5px;background:var(--s3);border-radius:3px;overflow:hidden;">
+      <div style="height:100%;width:${Math.min(100, Math.max(pct, usage > 0 ? 1.5 : 0))}%;background:${barColor};transition:width .3s;"></div>
+    </div>
+    ${tight ? `<div style="color:var(--red);margin-top:3px;">공간이 부족합니다. 💾 백업 후 오래된 평가를 정리하세요.</div>` : ''}`;
+}
+
+let _storageInfoTimer = null;
+function scheduleStorageInfoUpdate() {
+  clearTimeout(_storageInfoTimer);
+  _storageInfoTimer = setTimeout(() => updateStorageInfo(), 1200);
+}
+
+async function initStorageGuard() {
+  await requestPersistentStorage();
+  await updateStorageInfo();
+  // 사용자 조작 이후에는 승인될 수 있으므로 한 번 더 시도
+  if (_persistState === false) {
+    const retry = async () => {
+      document.removeEventListener('click', retry);
+      if (await requestPersistentStorage()) updateStorageInfo();
+    };
+    document.addEventListener('click', retry, {once:true});
+  }
+}
+
 /* ══ 22. 앱 설치 (PWA) ══ */
 let _deferredInstall = null;
 
@@ -4444,6 +4516,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initStorage();
   renderEvalList();
   updateFsaStatus();
+  initStorageGuard();
 });
 </script>
 </body>
