@@ -385,15 +385,30 @@ body{background:var(--s1);color:var(--txt);
 .yn-item-wrap.yn-item-locked .yn-btn[disabled]{cursor:not-allowed;}
 .yn-item-wrap .yn-row.note-open{border-bottom-color:transparent;border-radius:4px 4px 0 0;}
 .yn-note-panel{
-  display:none;padding:7px 12px 9px;
+  display:none;padding:10px 12px 12px;
   background:#f8fafc;border:1px solid var(--bd);border-top:none;
   border-radius:0 0 4px 4px;
 }
-.yn-note-panel input{
-  width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:4px;
-  color:var(--txt);padding:8px 10px;font-size:14px;outline:none;font-family:inherit;transition:.15s;
+/* 태블릿 펜 필기용 확대 메모칸 — 줄선에 맞춰 쓰도록 배경에 괘선 */
+.yn-note-input{
+  width:100%;box-sizing:border-box;
+  background:#fff;border:1.5px solid var(--cyn);border-radius:6px;
+  color:var(--txt);padding:12px 14px;
+  font-size:19px;line-height:34px;font-family:inherit;
+  outline:none;resize:vertical;height:180px;min-height:112px;
+  background-image:repeating-linear-gradient(#fff 0 33px,#eef4f9 33px 34px);
+  background-attachment:local;
 }
-.yn-note-panel input:focus{border-color:var(--cyn);}
+.yn-note-input:focus{box-shadow:0 0 0 3px rgba(14,165,233,.16);}
+.yn-note-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:9px;}
+.yn-note-count{font-size:13px;color:var(--txt3);}
+.yn-note-close{
+  padding:10px 22px;border-radius:6px;border:1px solid var(--navy);
+  background:var(--navy);color:#fff;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.yn-note-close:hover{background:var(--navy-ink,#2b3c6d);}
 .yn-btn.note-on{border-color:var(--cyn);background:#e0f2fe;color:var(--cyn);}
 
 /* 투어 동선 바 — 항상 상단 고정 (flex-shrink:0 으로 스크롤 영역 밖 유지) */
@@ -1614,6 +1629,20 @@ function findYnLabel(key) {
   return key;
 }
 
+/* 항목 메모 패널 (A안 — 인라인 확대) : 기본·커스텀 항목 공통 */
+function notePanelHtml(key, noteVal) {
+  const v   = noteVal || '';
+  const has = v.length > 0;
+  return `<div class="yn-note-panel" id="note-panel-${key}" style="display:${has?'block':'none'};">
+    <textarea class="yn-note-input" id="note-input-${key}" placeholder="현장 메모 — 펜으로 바로 필기하세요"
+      oninput="patchItemNote('${key}',this.value)">${escHtml(v)}</textarea>
+    <div class="yn-note-bar">
+      <span class="yn-note-count" id="note-count-${key}">${v.length}자</span>
+      <button class="yn-note-close" onclick="toggleItemNote('${key}')">닫기</button>
+    </div>
+  </div>`;
+}
+
 function ynItemHtml(it, checks, num) {
   const locked   = it.unlockBy && checks[it.unlockBy] !== 'Y';
   const cur      = checks[it.key] || null;
@@ -1635,17 +1664,14 @@ function ynItemHtml(it, checks, num) {
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  ${locked?'disabled':''} onclick="setYN('${it.key}','Y',this)">O</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  ${locked?'disabled':''} onclick="setYN('${it.key}','N',this)">X</button>
-        <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
+        <button class="yn-btn ${hasNote?'note-on':''}" data-note onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
           <input type="file" accept="image/*" style="display:none"
             onchange="handleItemPhotoUpload(this,'${it.key}')">
         </label>
       </div>
     </div>
-    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote?'block':'none'};">
-      <input placeholder="현장 메모..." value="${escHtml(noteVal)}"
-        oninput="patchItemNote('${it.key}',this.value)">
-    </div>
+    ${notePanelHtml(it.key, noteVal)}
     ${hasPhoto ? `<div class="yn-photo-panel" id="yphoto-panel-${it.key}">
       ${photos.map((p,pi) => `<div class="yn-photo-thumb-wrap">
         <img class="yn-photo-thumb" src="${p.src||p}" onclick="viewPhoto('${p.src||p}')">
@@ -1742,17 +1768,14 @@ function ynRowHtml(it, cur, checks, num) {
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
-        <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
+        <button class="yn-btn ${hasNote?'note-on':''}" data-note onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
           <input type="file" accept="image/*" style="display:none"
             onchange="handleItemPhotoUpload(this,'${it.key}')">
         </label>
       </div>
     </div>
-    <div class="yn-note-panel" id="note-panel-${it.key}" style="display:${hasNote?'block':'none'};">
-      <input placeholder="현장 메모..." value="${escHtml(noteVal)}"
-        oninput="patchItemNote('${it.key}',this.value)">
-    </div>
+    ${notePanelHtml(it.key, noteVal)}
     ${hasPhoto ? `<div class="yn-photo-panel" id="yphoto-panel-${it.key}">
       ${photos.map((p,pi) => `<div class="yn-photo-thumb-wrap">
         <img class="yn-photo-thumb" src="${p.src||p}" onclick="viewPhoto('${p.src||p}')">
@@ -2449,17 +2472,35 @@ function deleteRecord(id) {
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+/* 메모가 여러 줄이 되었으므로 인쇄물에서 줄바꿈을 살려 출력 */
+function nl2br(s) {
+  return escHtml(s || '').replace(/\r?\n/g, '<br>');
+}
+
+/* 메모 버튼(💬) 찾기 — 마지막 자식은 📷 이므로 전용 셀렉터 사용 */
+function _noteBtnOf(key) {
+  return document.getElementById(`note-panel-${key}`)
+    ?.closest('.yn-item-wrap')?.querySelector('.yn-btn[data-note]') || null;
+}
 
 function toggleItemNote(key) {
   const panel = document.getElementById(`note-panel-${key}`);
   if (!panel) return;
-  const row   = panel.closest('.yn-item-wrap')?.querySelector('.yn-row');
-  const btn   = row?.querySelector('.yn-btn:last-child');
-  const open  = panel.style.display === 'none';
+  const wrap = panel.closest('.yn-item-wrap');
+  const row  = wrap?.querySelector('.yn-row');
+  const btn  = _noteBtnOf(key);
+  const open = panel.style.display === 'none';
   panel.style.display = open ? 'block' : 'none';
   if (row) row.classList.toggle('note-open', open);
-  if (btn) btn.classList.toggle('note-on', open);
-  if (open) panel.querySelector('input')?.focus();
+  if (btn) btn.classList.toggle('note-on', open || !!(getRecord(currentId)?.checks[key+'_note']||'').length);
+  if (open) {
+    const ta = document.getElementById(`note-input-${key}`);
+    if (ta) {
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+      ta.scrollIntoView({block:'nearest', behavior:'smooth'});
+    }
+  }
 }
 
 function patchItemNote(key, val) {
@@ -2467,9 +2508,9 @@ function patchItemNote(key, val) {
   const rec = getRecord(currentId);
   rec.checks[key + '_note'] = val;
   upsertRecord(rec);
-  const row = document.getElementById(`note-panel-${key}`)
-    ?.closest('.yn-item-wrap')?.querySelector('.yn-row');
-  const btn = row?.querySelector('.yn-btn:last-child');
+  const cnt = document.getElementById(`note-count-${key}`);
+  if (cnt) cnt.textContent = val.length + '자';
+  const btn = _noteBtnOf(key);
   if (btn) btn.classList.toggle('note-on', val.length > 0);
 }
 
@@ -2569,7 +2610,7 @@ function renderCustomSection(domain, recArg) {
         <div class="yn-btns">
           <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${ci.id}','Y',this)">O</button>
           <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${ci.id}','N',this)">X</button>
-          <button class="yn-btn ${hasNote?'note-on':''}" onclick="toggleItemNote('${ci.id}')" title="메모">💬</button>
+          <button class="yn-btn ${hasNote?'note-on':''}" data-note onclick="toggleItemNote('${ci.id}')" title="메모">💬</button>
           <label class="yn-btn" style="cursor:pointer;" title="사진">📷
             <input type="file" accept="image/*" style="display:none"
               onchange="handleItemPhotoUpload(this,'${ci.id}')">
@@ -2578,10 +2619,7 @@ function renderCustomSection(domain, recArg) {
           <button class="custom-yn-del" onclick="deleteCustomItem('${ci.id}')" title="항목삭제">🗑</button>
         </div>
       </div>
-      <div class="yn-note-panel" id="note-panel-${ci.id}" style="display:${hasNote?'block':'none'};">
-        <input placeholder="현장 메모..." value="${escHtml(noteVal)}"
-          oninput="patchItemNote('${ci.id}',this.value)">
-      </div>
+      ${notePanelHtml(ci.id, noteVal)}
       ${hasPhoto ? `<div class="yn-photo-panel" id="yphoto-panel-${ci.id}">
         ${photos.map((p,pi) => `<div class="yn-photo-thumb-wrap">
           <img class="yn-photo-thumb" src="${p.src||p}" onclick="viewPhoto('${p.src||p}')">
@@ -3578,9 +3616,12 @@ async function doExportReport() {
     const pageContentH = BOT - TY - topH;
 
     // 행 높이 사전 계산
+    // 줄바꿈이 포함된 메모도 실제 줄 수로 높이 산정
+    const lineCount = (txt, perLine) =>
+      String(txt || '').split(/\r?\n/).reduce((n, l) => n + Math.max(1, Math.ceil(l.length / perLine)), 0);
     const rowsWithH = issueRows.map(row => {
-      const noteLen=(row.note||'').length, lblLen=(row.label||'').length, opLen=(row.opinion||'').length;
-      const textH=Math.max(0.35, Math.max(Math.ceil(lblLen/24), Math.ceil(noteLen/26), Math.ceil(opLen/40))*0.26+0.1);
+      const lines = Math.max(lineCount(row.label, 24), lineCount(row.note, 26), lineCount(row.opinion, 40));
+      const textH = Math.max(0.35, lines * 0.26 + 0.1);
       return {...row, rH:textH, textH};
     });
 
@@ -3991,7 +4032,7 @@ function printChecklist() {
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;${pStyle}">${pts}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'Y')}</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'N')}</td>
-      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;">${note}${photoHtml}</td>
+      <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;line-height:1.5;">${nl2br(note)}${photoHtml}</td>
     </tr>`;
   }
 
@@ -4080,7 +4121,7 @@ function printChecklist() {
         <span>${title}</span><span style="opacity:.8;font-size:9px;">만점 ${specMax}pt</span>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;">${TH}${rows}${pltRow}${customRows}</table>
-      ${domNote ? `<div style="padding:7px 10px;background:#f0f4ff;border:1px solid #cbd5e1;border-top:none;"><span style="font-size:10px;font-weight:700;color:#3b4f8a;">총평: </span><span style="font-size:12px;font-weight:700;color:#1e293b;">${domNote}</span></div>` : ''}
+      ${domNote ? `<div style="padding:7px 10px;background:#f0f4ff;border:1px solid #cbd5e1;border-top:none;"><span style="font-size:10px;font-weight:700;color:#3b4f8a;">총평: </span><span style="font-size:12px;font-weight:700;color:#1e293b;line-height:1.5;">${nl2br(domNote)}</span></div>` : ''}
     </div>`;
   }
 
