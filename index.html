@@ -2403,11 +2403,18 @@ async function saveEvalDone(id) {
   toast('평가완료 처리됨 — CONFIRMED 전환을 MOD02에서 진행하세요.', 'ok');
   renderEvalList(); updateScoreBar(rec);
 
-  // 평가완료 시 체크리스트 결과를 자동으로 저장 폴더(데스크탑) 또는 공유 시트(모바일)로 전달
+  // 평가완료 시 결과 파일을 공용폴더(자동 업로드) 또는 저장 폴더/공유 시트로 전달
   const handle = FSA_SUPPORTED ? await fsaGetSavedDirHandle() : null;
-  if (handle || !FSA_SUPPORTED) {
+  const silent = spConfigured() || !!handle;   // 사용자 조작 없이 저장되는 경로
+
+  if (silent || !FSA_SUPPORTED) {
     try { await loadXlsxLib(); await doExportExcel(); }
-    catch(e) { console.error(e); toast('자동 저장 실패: ' + e.message, 'err'); }
+    catch(e) { console.error(e); toast('체크리스트 자동 저장 실패: ' + e.message, 'err'); }
+  }
+  // 내부보고용 PPT는 조용히 저장되는 경로에서만 (공유 시트가 두 번 뜨는 것 방지)
+  if (silent) {
+    try { await loadPptxLib(); await doExportReport(); }
+    catch(e) { console.error(e); toast('내부보고용 PPT 자동 저장 실패: ' + e.message, 'err'); }
   }
 }
 
