@@ -796,8 +796,8 @@ body{background:var(--s1);color:var(--txt);
 
           <div class="eval-section">
             <div class="eval-section-title">담당자 메모</div>
-            <textarea class="form-textarea" id="f-memo" rows="3"
-              placeholder="방문 전 사전 메모, 주의사항 등"
+            <textarea class="form-textarea" id="f-memo" rows="6" style="min-height:150px;"
+              placeholder="방문 전 사전 메모, 주의사항 등 — 내용이 길어지면 칸이 자동으로 늘어납니다"
               oninput="patchNoteField('memo',this.value)"></textarea>
           </div>
         </div>
@@ -942,6 +942,7 @@ body{background:var(--s1);color:var(--txt);
                   </tr>
                 </thead>
                 <tbody id="capa-tbody"></tbody>
+                <tfoot id="capa-tfoot"></tfoot>
               </table>
             </div>
             <button class="capa-add-btn" onclick="addCapaRow()">+ 설비 행 추가</button>
@@ -1590,6 +1591,7 @@ function fillForm(rec) {
     const el = document.getElementById(`res-note-${d}`);
     if (el) el.value = n[d] || '';
   });
+  initAutoGrow();
 }
 
 /* 설비규격 · 설비CAPA 표는 항상 최소 1행이 열려 있도록 보장 */
@@ -1608,6 +1610,24 @@ function ensureDefaultTableRows(rec) {
 }
 
 function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
+
+/* 메모 칸 자동 높이 — 입력 내용이 길어지면 칸이 함께 늘어남 */
+function autoGrowTextarea(el) {
+  if (!el) return;
+  const min = parseFloat(getComputedStyle(el).minHeight) || 64;
+  el.style.height = 'auto';
+  el.style.height = Math.max(min, el.scrollHeight + 2) + 'px';
+}
+
+function initAutoGrow(root) {
+  (root || document).querySelectorAll('textarea.form-textarea').forEach(ta => {
+    if (!ta.dataset.agBound) {
+      ta.dataset.agBound = '1';
+      ta.addEventListener('input', () => autoGrowTextarea(ta));
+    }
+    autoGrowTextarea(ta);
+  });
+}
 
 /* ══ 9. O/X 렌더 ══ */
 function ynBtnClass(cur, v) {
@@ -1815,11 +1835,32 @@ function renderCapaTable(tbl) {
     </div></td>
     <td><input value="${autoDaily ? Number(autoDaily).toLocaleString('ko-KR') : ''}" type="text" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="설비CAPA × 보유대수 자동계산" placeholder="자동"></td>
     <td><input value="${autoMonthly ? Number(autoMonthly).toLocaleString('ko-KR') : ''}" type="text" readonly style="background:#f1f5f9;color:var(--txt3);cursor:default;" title="일CAPA × 20일 자동계산" placeholder="자동"></td>
-    <td><input value="${row.kolma||''}" type="number" onchange="updateCapaRow(${i},'kolma',+this.value)" placeholder="0"></td>
+    <td><input value="${row.kolma ? Number(row.kolma).toLocaleString('ko-KR') : ''}" type="text" inputmode="numeric"
+      oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,',')"
+      onchange="updateCapaRowAuto(${i},'kolma',+(this.value.replace(/,/g,'')||0))" placeholder="0"></td>
     <td><input value="${row.note||''}" onchange="updateCapaRow(${i},'note',this.value)" placeholder="—"></td>
     <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
   </tr>`;
   }).join('');
+  renderCapaTotals(tbl);
+}
+
+/* 일CAPA · 월CAPA · 콜마배정 합계 행 */
+function renderCapaTotals(tbl) {
+  const foot = document.getElementById('capa-tfoot');
+  if (!foot) return;
+  const rows = tbl || [];
+  if (!rows.length) { foot.innerHTML = ''; return; }
+  const sumDaily   = rows.reduce((s, r) => s + (r.daily||0) * (r.cnt||0), 0);
+  const sumMonthly = sumDaily * 20;
+  const sumKolma   = rows.reduce((s, r) => s + (r.kolma||0), 0);
+  const cell = v => `<td style="text-align:right;padding:8px 9px;font-weight:800;color:var(--navy);background:#eef2ff;border:1px solid var(--bd);">${v ? Number(v).toLocaleString('ko-KR') : '—'}</td>`;
+  foot.innerHTML = `
+  <tr>
+    <td colspan="3" style="text-align:right;padding:8px 9px;font-weight:800;color:var(--txt2);background:#eef2ff;border:1px solid var(--bd);">합계 (${rows.length}종)</td>
+    ${cell(sumDaily)}${cell(sumMonthly)}${cell(sumKolma)}
+    <td colspan="2" style="background:#eef2ff;border:1px solid var(--bd);"></td>
+  </tr>`;
 }
 
 function addCapaRow() {
@@ -2357,6 +2398,7 @@ function renderResult() {
     const el = document.getElementById(`res-note-${d}`);
     if (el) el.value = n[d] || '';
   });
+  initAutoGrow();
 }
 
 /* ══ 14. 저장/상태 변경 ══ */
@@ -3593,6 +3635,14 @@ async function doExportReport() {
         r.note || '',
       ];
     });
+    // 합계 행 (일CAPA · 월CAPA · 콜마배정)
+    if (capaRows.length) {
+      const tbl2 = c.pkg_tbl || [];
+      const sd = tbl2.reduce((s,r)=>s+(r.daily||0)*(r.cnt||0),0);
+      const sk = tbl2.reduce((s,r)=>s+(r.kolma||0),0);
+      capaRows.push(['합계', '', `${tbl2.length}종`,
+        sd.toLocaleString(), (sd*20).toLocaleString(), sk.toLocaleString(), '']);
+    }
     drawTable('설비 CAPA 현황', TL, [2.1,1.9,1.4,1.9,2.1,1.5,1.63],
       ['설비명','설비CAPA','보유대수','일CAPA','월CAPA(20일)','콜마배정','비고'],
       capaRows, '등록된 설비 없음',
@@ -4192,6 +4242,20 @@ function printChecklist() {
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;color:#64748b;">${r.note||''}</td>
   </tr>`; }).join('') || `<tr><td colspan="7" style="padding:8px;text-align:center;color:#94a3b8;font-size:9px;border:1px solid #e2e8f0;">등록된 설비 없음</td></tr>`;
 
+  // 일CAPA · 월CAPA · 콜마배정 합계
+  const capaTotalRow = capaTbl.length ? (() => {
+    const sd = capaTbl.reduce((s,r)=>s+(r.daily||0)*(r.cnt||0),0);
+    const sk = capaTbl.reduce((s,r)=>s+(r.kolma||0),0);
+    const c1 = 'padding:5px 6px;border:1px solid #cbd5e1;font-size:9px;font-weight:700;background:#eef2ff;color:#3b4f8a;text-align:right;';
+    return `<tr>
+      <td colspan="3" style="${c1}">합계 (${capaTbl.length}종)</td>
+      <td style="${c1}">${sd.toLocaleString()}</td>
+      <td style="${c1}">${(sd*20).toLocaleString()}</td>
+      <td style="${c1}">${sk.toLocaleString()}</td>
+      <td style="${c1}"></td>
+    </tr>`;
+  })() : '';
+
   const pkgNoteStr = rec.type==='PKG' ? ' <span style="font-size:9px;color:#f97316;background:#fff7ed;padding:1px 6px;border-radius:6px;margin-left:4px;">PKG 70→100 환산</span>' : '';
   const tourHtml = (rec.tourSteps||[]).length > 0
     ? rec.tourSteps.map((s,i) => `<span style="display:inline-flex;align-items:center;gap:3px;">
@@ -4271,7 +4335,7 @@ function printChecklist() {
         <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px;border:1px solid #cbd5e1;text-align:center;">콜마배정</th>
         <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px 6px;border:1px solid #cbd5e1;text-align:left;">비고</th>
       </tr></thead>
-      <tbody>${capaRows}</tbody>
+      <tbody>${capaRows}${capaTotalRow}</tbody>
     </table>
   </div>
   ${domainSection('4. 완제품관리','fin',10,'#be185d',pltRowHtml)}
