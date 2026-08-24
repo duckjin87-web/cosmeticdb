@@ -475,28 +475,14 @@ body{background:var(--s1);color:var(--txt);
 }
 .tour-inline-add:hover{background:#e0f2fe;border-style:solid;}
 
-/* 구간추가 프리셋 패널 */
-.tour-add-panel{
-  background:#f0f9ff;border-bottom:1px solid var(--bd);
-  border-left:3px solid var(--cyn);
-  padding:12px 16px 14px;flex-shrink:0;
-}
-.tour-add-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;}
-.tour-add-title{font-size:15px;font-weight:700;color:var(--navy);}
-.tour-add-title span{font-size:12px;font-weight:500;color:var(--txt3);margin-left:6px;}
-.tour-preset-select{
-  width:100%;max-width:420px;padding:12px 14px;
-  border:1.5px solid var(--cyn);border-radius:8px;background:#fff;
-  color:var(--txt);font-size:16px;font-weight:600;font-family:inherit;
-  cursor:pointer;outline:none;
+/* 구간추가 — 칩 자리 인라인 드롭다운 */
+.tour-chip-select{
+  border:none;outline:none;background:transparent;
+  color:var(--navy);font-size:15px;font-weight:700;font-family:inherit;
+  cursor:pointer;max-width:170px;padding:2px 0;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
-.tour-preset-select:focus{box-shadow:0 0 0 3px rgba(14,165,233,.16);}
-.tour-etc-row{display:flex;gap:7px;align-items:center;margin-top:9px;}
-.tour-etc-row input{
-  flex:1;min-width:0;padding:11px 13px;border:1.5px solid var(--acc);border-radius:8px;
-  font-size:16px;font-family:inherit;outline:none;color:var(--txt);
-}
+.tour-chip-select:focus{text-decoration:underline;}
 
 /* 인라인 구간추가 입력칸 (＋ 버튼 자리에서 바로 열림) */
 .tour-add-box{
@@ -722,9 +708,6 @@ body{background:var(--s1);color:var(--txt);
       </div>
 
       <!-- 투어 단계 상세 패널 -->
-      <!-- 구간추가 프리셋 선택 패널 -->
-      <div class="tour-add-panel" id="tour-add-panel" style="display:none;"></div>
-
       <div class="tour-step-panel" id="tour-step-panel" style="display:none;">
         <div class="tour-step-panel-header">
           <span class="tour-step-title" id="tour-step-title" ondblclick="startTourTitleEdit()" title="더블클릭하여 이름 수정">—</span>
@@ -1507,7 +1490,6 @@ function openEvalDet(id) {
   if (!rec) return;
   // 다른 평가로 이동 시 구간추가 선택 상태 초기화
   addingTourAt = null; tourEtcOpen = false; editingTourIdx = -1;
-  renderTourAddPanel();
   // 모바일: 항목 선택 시 리스트 패널 자동 닫기
   if (window.innerWidth <= 640) {
     const panel = document.getElementById('eval-list-panel');
@@ -1548,7 +1530,6 @@ function closeDet() {
   editingTourIdx = -1;
   addingTourAt   = null;
   tourEtcOpen    = false;
-  document.getElementById('tour-add-panel').style.display = 'none';
   document.getElementById('eval-empty').style.display = 'flex';
   document.getElementById('eval-det-view').style.display = 'none';
   document.getElementById('tour-bar').style.display = 'none';
@@ -2810,12 +2791,25 @@ function renderTourBar(rec) {
   syncTourSteps(rec);
   const steps = rec.tourSteps || [];
 
-  // 추가 위치 표시 마커 (실제 선택은 아래 프리셋 패널에서)
-  const addBoxHtml = `<div class="tour-chip active tour-add-box" id="tour-add-box">
-      <span class="tour-chip-num">＋</span>
-      <span style="font-size:14px;font-weight:700;color:var(--cyn);">여기에 추가</span>
-      <button class="tour-chip-del" onclick="cancelAddTourStep()" title="취소">✕</button>
-    </div>`;
+  // 구간추가 — 버튼 자리에서 바로 드롭다운(또는 직접입력)이 열림
+  const used = new Set(steps.map(s => s.name));
+  const addBoxHtml = tourEtcOpen
+    ? `<div class="tour-chip active tour-add-box" id="tour-add-box">
+        <span class="tour-chip-num">＋</span>
+        <input class="tour-chip-input" id="tour-etc-input" placeholder="구간 이름"
+          style="width:130px;" onkeydown="onAddTourKey(event)">
+        <button class="tour-chip-del" onmousedown="event.preventDefault()"
+          onclick="cancelAddTourStep()" title="취소">✕</button>
+      </div>`
+    : `<div class="tour-chip active tour-add-box" id="tour-add-box">
+        <span class="tour-chip-num">＋</span>
+        <select class="tour-chip-select" id="tour-preset-select" onchange="onTourPresetSelect(this.value)">
+          <option value="">구간 선택…</option>
+          <option value="__etc__">✏️ 직접입력</option>
+          ${TOUR_PRESETS.map(n => `<option value="${escHtml(n)}">${used.has(n)?'✓ ':''}${escHtml(n)}</option>`).join('')}
+        </select>
+        <button class="tour-chip-del" onclick="cancelAddTourStep()" title="취소">✕</button>
+      </div>`;
 
   let html = '';
   if (steps.length === 0) {
@@ -2871,6 +2865,12 @@ function renderTourBar(rec) {
   }
   if (addingTourAt !== null) {
     document.getElementById('tour-add-box')?.scrollIntoView({block:'nearest', inline:'nearest'});
+    if (tourEtcOpen) {
+      const ei = document.getElementById('tour-etc-input');
+      if (ei) ei.focus();
+    } else {
+      document.getElementById('tour-preset-select')?.focus();
+    }
   }
 }
 
@@ -2888,7 +2888,6 @@ function startAddTourStep(insertIdx) {
   editingTourIdx = -1;
   addingTourAt   = insertIdx;
   tourEtcOpen    = false;
-  renderTourAddPanel();
   renderTourBar(getRecord(currentId));
 }
 
@@ -2896,51 +2895,17 @@ function cancelAddTourStep() {
   if (addingTourAt === null) return;
   addingTourAt = null;
   tourEtcOpen  = false;
-  renderTourAddPanel();
   if (currentId) renderTourBar(getRecord(currentId));
 }
 
-function renderTourAddPanel() {
-  const panel = document.getElementById('tour-add-panel');
-  if (!panel) return;
-  if (addingTourAt === null || !currentId) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
-
-  const rec   = getRecord(currentId);
-  const used  = new Set((rec.tourSteps || []).map(s => s.name));
-  const pos   = addingTourAt === -1
-    ? '맨 뒤에 추가'
-    : `${addingTourAt + 1}번째 앞에 삽입`;
-
-  panel.style.display = 'block';
-  panel.innerHTML = `
-    <div class="tour-add-head">
-      <span class="tour-add-title">구간 선택<span>${pos} · 선택할 때마다 순서대로 추가됩니다</span></span>
-      <button class="btn sm" onclick="cancelAddTourStep()">✕ 닫기</button>
-    </div>
-    <select class="tour-preset-select" id="tour-preset-select" onchange="onTourPresetSelect(this.value)">
-      <option value="">구간을 선택하세요…</option>
-      <option value="__etc__">✏️ 직접입력</option>
-      ${TOUR_PRESETS.map(n => `<option value="${escHtml(n)}">${used.has(n)?'✓ ':''}${escHtml(n)}</option>`).join('')}
-    </select>
-    ${tourEtcOpen ? `
-    <div class="tour-etc-row">
-      <input id="tour-etc-input" placeholder="구간 이름을 입력하세요" onkeydown="onAddTourKey(event)">
-      <button class="btn grn" onclick="commitAddTourStep(document.getElementById('tour-etc-input').value)">추가</button>
-    </div>` : ''}`;
-
-  if (tourEtcOpen) document.getElementById('tour-etc-input')?.focus();
-}
-
 function onTourPresetSelect(val) {
-  const sel = document.getElementById('tour-preset-select');
   if (!val) return;
-  if (val === '__etc__') {
+  if (val === '__etc__') {          // 직접입력으로 전환
     tourEtcOpen = true;
-    renderTourAddPanel();
+    if (currentId) renderTourBar(getRecord(currentId));
     return;
   }
   tourEtcOpen = false;
-  if (sel) sel.value = '';        // 다음 선택을 위해 초기화
   addTourPreset(val);
 }
 
@@ -2962,7 +2927,7 @@ function commitAddTourStep(value, keepOpen) {
   const rec  = getRecord(currentId);
 
   if (!name) {                       // 빈 값이면 취소
-    if (!keepOpen) { addingTourAt = null; tourEtcOpen = false; renderTourAddPanel(); }
+    if (!keepOpen) { addingTourAt = null; tourEtcOpen = false; }
     renderTourBar(rec);
     return;
   }
@@ -2981,11 +2946,9 @@ function commitAddTourStep(value, keepOpen) {
   if (keepOpen) {
     // 중간 삽입이면 다음 구간은 방금 넣은 것 뒤로
     if (addingTourAt >= 0) addingTourAt = insertIdx + 1;
-    renderTourAddPanel();
   } else {
     addingTourAt = null;
     tourEtcOpen  = false;
-    renderTourAddPanel();
   }
   renderTourBar(rec);
   toast(`구간 추가: ${newStep.name}`);
