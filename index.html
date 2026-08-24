@@ -484,17 +484,14 @@ body{background:var(--s1);color:var(--txt);
 .tour-add-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;}
 .tour-add-title{font-size:15px;font-weight:700;color:var(--navy);}
 .tour-add-title span{font-size:12px;font-weight:500;color:var(--txt3);margin-left:6px;}
-.tour-preset-grid{display:flex;flex-wrap:wrap;gap:7px;}
-.tour-preset{
-  padding:11px 16px;border-radius:8px;border:1px solid var(--bd);
-  background:#fff;color:var(--txt2);font-size:15px;font-weight:600;
-  cursor:pointer;transition:.15s;white-space:nowrap;font-family:inherit;
+.tour-preset-select{
+  width:100%;max-width:420px;padding:12px 14px;
+  border:1.5px solid var(--cyn);border-radius:8px;background:#fff;
+  color:var(--txt);font-size:16px;font-weight:600;font-family:inherit;
+  cursor:pointer;outline:none;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
-.tour-preset:hover{border-color:var(--cyn);background:#e0f2fe;color:var(--cyn);}
-.tour-preset.used{border-color:var(--grn);background:#dcfce7;color:#15803d;}
-.tour-preset.etc{border-style:dashed;border-color:var(--acc);color:var(--acc);}
-.tour-preset.etc:hover{background:#fff7ed;border-color:var(--acc);color:var(--acc);}
+.tour-preset-select:focus{box-shadow:0 0 0 3px rgba(14,165,233,.16);}
 .tour-etc-row{display:flex;gap:7px;align-items:center;margin-top:9px;}
 .tour-etc-row input{
   flex:1;min-width:0;padding:11px 13px;border:1.5px solid var(--acc);border-radius:8px;
@@ -2881,7 +2878,7 @@ function renderTourBar(rec) {
 /* 자주 쓰는 투어 구간 프리셋 */
 const TOUR_PRESETS = [
   '회사전경','충전실','포장실','세척실','제조실','칭량실',
-  '보관소(반제품)','보관소(완제품)','보관소(자재)','보관소(원료)',
+  '반제품창고','완제품창고','자재창고','원료창고',
 ];
 
 let tourEtcOpen = false;   // '기타' 직접입력 열림 여부
@@ -2917,14 +2914,14 @@ function renderTourAddPanel() {
   panel.style.display = 'block';
   panel.innerHTML = `
     <div class="tour-add-head">
-      <span class="tour-add-title">구간 선택<span>${pos} · 여러 개를 눌러 순서대로 추가할 수 있습니다</span></span>
+      <span class="tour-add-title">구간 선택<span>${pos} · 선택할 때마다 순서대로 추가됩니다</span></span>
       <button class="btn sm" onclick="cancelAddTourStep()">✕ 닫기</button>
     </div>
-    <div class="tour-preset-grid">
-      ${TOUR_PRESETS.map(n => `<button class="tour-preset${used.has(n)?' used':''}"
-        onclick="addTourPreset('${escHtml(n).replace(/'/g,"\\'")}')">${used.has(n)?'✓ ':''}${escHtml(n)}</button>`).join('')}
-      <button class="tour-preset etc" onclick="toggleTourEtc()">✏️ 기타 (직접입력)</button>
-    </div>
+    <select class="tour-preset-select" id="tour-preset-select" onchange="onTourPresetSelect(this.value)">
+      <option value="">구간을 선택하세요…</option>
+      <option value="__etc__">✏️ 직접입력</option>
+      ${TOUR_PRESETS.map(n => `<option value="${escHtml(n)}">${used.has(n)?'✓ ':''}${escHtml(n)}</option>`).join('')}
+    </select>
     ${tourEtcOpen ? `
     <div class="tour-etc-row">
       <input id="tour-etc-input" placeholder="구간 이름을 입력하세요" onkeydown="onAddTourKey(event)">
@@ -2934,9 +2931,17 @@ function renderTourAddPanel() {
   if (tourEtcOpen) document.getElementById('tour-etc-input')?.focus();
 }
 
-function toggleTourEtc() {
-  tourEtcOpen = !tourEtcOpen;
-  renderTourAddPanel();
+function onTourPresetSelect(val) {
+  const sel = document.getElementById('tour-preset-select');
+  if (!val) return;
+  if (val === '__etc__') {
+    tourEtcOpen = true;
+    renderTourAddPanel();
+    return;
+  }
+  tourEtcOpen = false;
+  if (sel) sel.value = '';        // 다음 선택을 위해 초기화
+  addTourPreset(val);
 }
 
 /* 프리셋 클릭 — 바로 추가하고 패널은 열어둠 (연속 선택) */
