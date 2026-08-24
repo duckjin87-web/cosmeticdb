@@ -2980,14 +2980,11 @@ function pickTourEtc() {
   if (currentId) renderTourBar(getRecord(currentId));
 }
 
+/* 목록에서 하나 고르면 추가하고 목록을 닫음 — 더 넣으려면 구간추가를 다시 누름 */
 function pickTourPreset(name) {
   tourEtcOpen = false;
-  addTourPreset(name);
-}
-
-/* 프리셋 클릭 — 바로 추가하고 패널은 열어둠 (연속 선택) */
-function addTourPreset(name) {
-  commitAddTourStep(name, true);
+  closeTourDrop();
+  commitAddTourStep(name);
 }
 
 function onAddTourKey(e) {
