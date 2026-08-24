@@ -476,13 +476,33 @@ body{background:var(--s1);color:var(--txt);
 .tour-inline-add:hover{background:#e0f2fe;border-style:solid;}
 
 /* 구간추가 — 칩 자리 인라인 드롭다운 */
-.tour-chip-select{
-  border:none;outline:none;background:transparent;
-  color:var(--navy);font-size:15px;font-weight:700;font-family:inherit;
-  cursor:pointer;max-width:170px;padding:2px 0;
+.tour-add-label{
+  font-size:15px;font-weight:700;color:var(--navy);cursor:pointer;
+  white-space:nowrap;user-select:none;
+}
+/* 구간 선택 목록 — 칩 바로 아래 붙음 (fixed 로 가로스크롤 클리핑 회피) */
+.tour-drop{
+  position:fixed;z-index:800;display:none;
+  background:#fff;border:1px solid var(--bd);border-radius:10px;
+  box-shadow:0 14px 34px rgba(15,23,42,.22);
+  padding:6px;min-width:220px;max-height:56vh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.tour-drop.on{display:block;}
+.tour-drop-item{
+  display:block;width:100%;padding:12px 14px;
+  border:none;background:transparent;border-radius:7px;
+  font-size:16px;font-weight:600;color:var(--txt2);font-family:inherit;
+  cursor:pointer;text-align:left;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
-.tour-chip-select:focus{text-decoration:underline;}
+.tour-drop-item:hover{background:#e0f2fe;color:var(--cyn);}
+.tour-drop-item.used{color:#15803d;}
+.tour-drop-item.etc{
+  color:var(--acc);border-bottom:1px solid var(--bd);
+  border-radius:7px 7px 0 0;margin-bottom:4px;
+}
+.tour-drop-item.etc:hover{background:#fff7ed;color:var(--acc);}
 
 /* 인라인 구간추가 입력칸 (＋ 버튼 자리에서 바로 열림) */
 .tour-add-box{
@@ -1530,6 +1550,7 @@ function closeDet() {
   editingTourIdx = -1;
   addingTourAt   = null;
   tourEtcOpen    = false;
+  closeTourDrop();
   document.getElementById('eval-empty').style.display = 'flex';
   document.getElementById('eval-det-view').style.display = 'none';
   document.getElementById('tour-bar').style.display = 'none';
@@ -2803,11 +2824,7 @@ function renderTourBar(rec) {
       </div>`
     : `<div class="tour-chip active tour-add-box" id="tour-add-box">
         <span class="tour-chip-num">＋</span>
-        <select class="tour-chip-select" id="tour-preset-select" onchange="onTourPresetSelect(this.value)">
-          <option value="">구간 선택…</option>
-          <option value="__etc__">✏️ 직접입력</option>
-          ${TOUR_PRESETS.map(n => `<option value="${escHtml(n)}">${used.has(n)?'✓ ':''}${escHtml(n)}</option>`).join('')}
-        </select>
+        <span class="tour-add-label" onclick="toggleTourDrop()">구간 선택 ▾</span>
         <button class="tour-chip-del" onclick="cancelAddTourStep()" title="취소">✕</button>
       </div>`;
 
@@ -2866,11 +2883,13 @@ function renderTourBar(rec) {
   if (addingTourAt !== null) {
     document.getElementById('tour-add-box')?.scrollIntoView({block:'nearest', inline:'nearest'});
     if (tourEtcOpen) {
-      const ei = document.getElementById('tour-etc-input');
-      if (ei) ei.focus();
+      document.getElementById('tour-etc-input')?.focus();
+      closeTourDrop();
     } else {
-      document.getElementById('tour-preset-select')?.focus();
+      openTourDrop(used);
     }
+  } else {
+    closeTourDrop();
   }
 }
 
@@ -2898,15 +2917,72 @@ function cancelAddTourStep() {
   if (currentId) renderTourBar(getRecord(currentId));
 }
 
-function onTourPresetSelect(val) {
-  if (!val) return;
-  if (val === '__etc__') {          // 직접입력으로 전환
-    tourEtcOpen = true;
-    if (currentId) renderTourBar(getRecord(currentId));
-    return;
+/* ── 구간 선택 목록 (칩 바로 아래에 붙는 자체 드롭다운) ── */
+function tourDropEl() {
+  let el = document.getElementById('tour-drop');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tour-drop';
+    el.className = 'tour-drop';
+    document.body.appendChild(el);
   }
+  return el;
+}
+
+function openTourDrop(used) {
+  const box = document.getElementById('tour-add-box');
+  if (!box) return;
+  const usedSet = used || new Set(((currentId && getRecord(currentId)?.tourSteps) || []).map(s => s.name));
+  const el = tourDropEl();
+  el.innerHTML =
+    `<button class="tour-drop-item etc" onclick="pickTourEtc()">✏️ 직접입력</button>` +
+    TOUR_PRESETS.map(n =>
+      `<button class="tour-drop-item${usedSet.has(n)?' used':''}"
+         onclick="pickTourPreset('${escHtml(n).replace(/'/g,"\\'")}')">${usedSet.has(n)?'✓ ':''}${escHtml(n)}</button>`
+    ).join('');
+  el.classList.add('on');
+  positionTourDrop();
+  document.addEventListener('pointerdown', onTourDropOutside, true);
+  window.addEventListener('resize', positionTourDrop);
+}
+
+function positionTourDrop() {
+  const el = document.getElementById('tour-drop');
+  const box = document.getElementById('tour-add-box');
+  if (!el || !box || !el.classList.contains('on')) return;
+  const r = box.getBoundingClientRect();
+  const w = el.offsetWidth || 220;
+  el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+  el.style.top  = (r.bottom + 6) + 'px';
+}
+
+function closeTourDrop() {
+  const el = document.getElementById('tour-drop');
+  if (el) { el.classList.remove('on'); el.innerHTML = ''; }
+  document.removeEventListener('pointerdown', onTourDropOutside, true);
+  window.removeEventListener('resize', positionTourDrop);
+}
+
+function onTourDropOutside(e) {
+  if (e.target.closest('#tour-drop') || e.target.closest('#tour-add-box')) return;
+  cancelAddTourStep();
+}
+
+function toggleTourDrop() {
+  const el = document.getElementById('tour-drop');
+  if (el && el.classList.contains('on')) closeTourDrop();
+  else openTourDrop();
+}
+
+function pickTourEtc() {
+  tourEtcOpen = true;
+  closeTourDrop();
+  if (currentId) renderTourBar(getRecord(currentId));
+}
+
+function pickTourPreset(name) {
   tourEtcOpen = false;
-  addTourPreset(val);
+  addTourPreset(name);
 }
 
 /* 프리셋 클릭 — 바로 추가하고 패널은 열어둠 (연속 선택) */
