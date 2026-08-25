@@ -222,8 +222,9 @@ body{background:var(--s1);color:var(--txt);
 .form-input[type=date]::-webkit-calendar-picker-indicator{opacity:.4;}
 .form-textarea{
   background:var(--s2);border:1px solid var(--bd);border-radius:4px;
-  color:var(--txt);padding:9px 10px;font-size:16px;outline:none;
-  font-family:inherit;width:100%;resize:vertical;min-height:64px;transition:.15s;
+  color:var(--txt);padding:9px 10px;font-size:16px;line-height:1.6;outline:none;
+  font-family:inherit;width:100%;resize:vertical;transition:.15s;
+  min-height:148px;   /* 기본 5줄 — 내용이 길어지면 자동으로 늘어남 */
 }
 .form-textarea:focus{border-color:var(--cyn);box-shadow:0 0 0 2px rgba(14,165,233,.1);}
 
@@ -1700,9 +1701,9 @@ function findYnLabel(key) {
 
 /* 항목 메모 패널 (A안 — 인라인 확대) : 기본·커스텀 항목 공통 */
 function notePanelHtml(key, noteVal) {
-  const v   = noteVal || '';
-  const has = v.length > 0;
-  return `<div class="yn-note-panel" id="note-panel-${key}" style="display:${has?'block':'none'};">
+  const v = noteVal || '';
+  // 메모가 있어도 기본은 접힌 상태 — 내용 유무는 💬 버튼 강조로 표시
+  return `<div class="yn-note-panel" id="note-panel-${key}" style="display:none;">
     <textarea class="yn-note-input" id="note-input-${key}" placeholder="현장 메모 — 펜으로 바로 필기하세요"
       oninput="patchItemNote('${key}',this.value)">${escHtml(v)}</textarea>
     <div class="yn-note-bar">
@@ -1722,7 +1723,7 @@ function ynItemHtml(it, checks, num) {
   const ptsClass = it.neg ? 'neg' : it.heavy ? 'heavy' : '';
   const ptsSign  = it.tierBonus ? '보너스' : it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
   const negCls   = it.neg ? 'neg-item' : '';
-  const noteOpen = hasNote ? 'note-open' : '';
+  const noteOpen = '';   // 메모 패널은 기본 접힘 상태로 시작
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
   const lockNote = locked ? `<span style="font-size:10px;color:var(--txt3);margin-left:4px;">(${findYnLabel(it.unlockBy)} 'O' 선택 시 활성화)</span>` : '';
   return `
@@ -1859,7 +1860,7 @@ function ynRowHtml(it, cur, checks, num) {
   const hasPhoto = photos.length > 0;
   const ptsSign  = it.pts > 0 ? `+${it.pts}` : `${it.pts}`;
   const negCls   = it.neg ? 'neg-item' : '';
-  const noteOpen = hasNote ? 'note-open' : '';
+  const noteOpen = '';   // 메모 패널은 기본 접힘 상태로 시작
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
   return `
   <div class="yn-item-wrap">
