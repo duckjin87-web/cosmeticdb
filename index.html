@@ -1147,7 +1147,6 @@ const YN_DEF = {
     {key:'pkg_q9', label:'튜브 실링검사·리크테스트 진행',         pts:1, unlockBy:'pkg_q2'},
     {key:'pkg_q10', label:'용기 감압검사 진행',                   pts:1, unlockBy:'pkg_q2'},
     {key:'pkg_q11', label:'라벨 자체 발행 가능(바코드 등)',       pts:1},
-    {key:'pkg_q13', label:'기술인력의 경력 및 기술수준 우수',     pts:1},
   ],
   fin:[
     {key:'fin_q1', label:'완제품창고 독립',                       pts:1},
@@ -1171,7 +1170,7 @@ const YN_DEF = {
   ]
 };
 
-const REAL_MAX  = { mfg:10, mat:9, pkg:18, fin:7, ops:18 }; // ops = 문항 12 + 인증 6
+const REAL_MAX  = { mfg:10, mat:9, pkg:19, fin:7, ops:18 }; // pkg = 문항 15 + 특이공정 2 + 기술인력 2 / ops = 문항 12 + 인증 6
 
 const PKG12_OPTS = [
   {key:'shrink',  label:'수축'},
@@ -1187,6 +1186,20 @@ function pkg12Count(c) {
 function pkg12Score(c) {
   const cnt = pkg12Count(c);
   return cnt >= 5 ? 2 : cnt >= 3 ? 1.5 : cnt >= 1 ? 1 : 0;
+}
+
+/* 기술인력의 경력 및 기술수준 (3.임가공) — 3년이상 +1 / 5년이상 +2 */
+const PKG_TECH_TIERS = [
+  {key:'y3', label:'3년이상', pts:1},
+  {key:'y5', label:'5년이상', pts:2},
+];
+function pkgTechScore(c) {
+  const t = PKG_TECH_TIERS.find(x => x.key === c.pkg_tech);
+  return t ? t.pts : 0;
+}
+function pkgTechLabel(c) {
+  const t = PKG_TECH_TIERS.find(x => x.key === c.pkg_tech);
+  return t ? t.label : '';
 }
 
 const PLT_OPTS = [
@@ -1392,6 +1405,7 @@ function calcScores(record) {
   addDomainScore(raw, 'mat', YN_DEF.mat, c);
   addDomainScore(raw, 'pkg', YN_DEF.pkg, c);
   raw.pkg += pkg12Score(c);
+  raw.pkg += pkgTechScore(c);   // 기술인력의 경력 및 기술수준
   raw.pkg = Math.max(0, raw.pkg);
   addDomainScore(raw, 'fin', YN_DEF.fin, c);
   addDomainScore(raw, 'ops', YN_DEF.ops, c);
@@ -1605,6 +1619,7 @@ function fillForm(rec) {
   });
 
   ['mfg','mat','pkg','fin','ops'].forEach(d => renderYN(d, c));
+  renderPkgTech(c);
   renderPkg12(c);
   renderTradePLT(c);
   renderIsoCert(c);
@@ -1752,12 +1767,44 @@ function renderTradePLT(checks) {
   </div>`);
 }
 
+function renderPkgTech(checks) {
+  const wrap = document.getElementById('yn-pkg');
+  if (!wrap) return;
+  document.getElementById('plt-group-pkgtech')?.remove();
+  const cur   = checks.pkg_tech || null;
+  const num   = YN_DEF.pkg.length + 1;   // 12번
+  const score = pkgTechScore(checks);
+  const html = `
+  <div class="plt-group" id="plt-group-pkgtech" style="display:block;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="plt-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num}.</span>기술인력의 경력 및 기술수준</span>
+      <span class="yn-pts">${score>0?`+${score}pt`:'최대+2pt'}</span>
+    </div>
+    <div class="plt-opts" style="flex-wrap:wrap;margin-top:6px;">
+      ${PKG_TECH_TIERS.map(t => `<span class="plt-opt${cur===t.key?' on':''}"
+        onclick="setPkgTech('${t.key}')">${t.label} <b style="font-weight:700;opacity:.7;">+${t.pts}</b></span>`).join('')}
+    </div>
+  </div>`;
+  const p12 = document.getElementById('plt-group-pkg12');
+  if (p12) p12.insertAdjacentHTML('beforebegin', html);
+  else     wrap.insertAdjacentHTML('beforeend', html);
+}
+
+function setPkgTech(key) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  rec.checks.pkg_tech = (rec.checks.pkg_tech === key) ? null : key;  // 다시 누르면 해제
+  upsertRecord(rec);
+  renderPkgTech(rec.checks);
+  updateScoreBar(rec);
+}
+
 function renderPkg12(checks) {
   const wrap = document.getElementById('yn-pkg');
   if (!wrap) return;
   document.getElementById('plt-group-pkg12')?.remove();
   const opts = checks.pkg_q12_opts || {};
-  const num  = YN_DEF.pkg.length + 1;
+  const num  = YN_DEF.pkg.length + 2;   // 12=기술인력, 13=특이공정
   const score = pkg12Score(checks);
   wrap.insertAdjacentHTML('beforeend', `
   <div class="plt-group" id="plt-group-pkg12" style="display:block;">
@@ -2246,6 +2293,7 @@ function setYN(key, v, btn) {
   upsertRecord(rec);
   if (YN_DEF.pkg.some(it => it.unlockBy === key)) {
     renderYN('pkg', rec.checks);
+    renderPkgTech(rec.checks);
     renderPkg12(rec.checks);
     updateScoreBar(rec);
     return;
@@ -2275,6 +2323,7 @@ function togglePkg12Opt(key, el) {
   rec.checks.pkg_q12_opts = rec.checks.pkg_q12_opts || {};
   rec.checks.pkg_q12_opts[key] = !rec.checks.pkg_q12_opts[key];
   upsertRecord(rec);
+  renderPkgTech(rec.checks);
   renderPkg12(rec.checks);
   updateScoreBar(rec);
 }
@@ -2609,7 +2658,7 @@ async function handleItemPhotoUpload(input, key) {
     upsertRecord(rec);
     const domain = key.split('_')[0];
     if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
-    if (domain === 'pkg') renderPkg12(rec.checks);
+    if (domain === 'pkg') { renderPkgTech(rec.checks); renderPkg12(rec.checks); }
     if (domain === 'fin') renderTradePLT(rec.checks);
     if (domain === 'ops') renderIsoCert(rec.checks);
     renderCustomSection(domain, rec);
@@ -2632,7 +2681,7 @@ function deleteItemPhoto(key, pi) {
   upsertRecord(rec);
   const domain = key.split('_')[0];
   if (['mfg','mat','pkg','fin','ops'].includes(domain)) renderYN(domain, rec.checks);
-  if (domain === 'pkg') renderPkg12(rec.checks);
+  if (domain === 'pkg') { renderPkgTech(rec.checks); renderPkg12(rec.checks); }
   if (domain === 'fin') renderTradePLT(rec.checks);
   if (domain === 'ops') renderIsoCert(rec.checks);
   renderCustomSection(domain, rec);
@@ -3807,6 +3856,8 @@ async function doExportReport() {
       const domNote = (rec.notes||{})[d.key]||'';
       const allItems = d.key==='fin'
         ? [...YN_DEF.fin, {key:'_plt', label:'거래PLT', _plt:true}]
+        : d.key==='pkg'
+        ? [...YN_DEF.pkg, {key:'_ptech', label:'기술인력의 경력 및 기술수준', _ptech:true}]
         : d.key==='ops'
         ? [...YN_DEF.ops, {key:'_iso', label:'인증 취득여부', _iso:true}]
         : YN_DEF[d.key];
@@ -3820,6 +3871,11 @@ async function doExportReport() {
         if (it._plt) {
           const cnt = pltCount(c);
           if (cnt > 0) domItems.push({label:it.label, result:'', note:PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+'), isIssue:false, isText:true});
+          return;
+        }
+        if (it._ptech) {
+          const tp = pkgTechScore(c);
+          domItems.push({label:it.label, result:'', note:(pkgTechLabel(c)||'미해당')+(tp>0?` (+${tp}pt)`:''), isIssue:tp===0, isText:true});
           return;
         }
         if (it._iso) {
@@ -4165,7 +4221,8 @@ async function doExportExcel() {
     const allItems = d.key === 'fin'
       ? [ ...d.items, { label:'거래PLT', _isPLT:true } ]
       : d.key === 'pkg'
-      ? [ ...d.items, { label:'특이 공정 가능여부', _isPkg12:true } ]
+      ? [ ...d.items, { label:'기술인력의 경력 및 기술수준', _isPkgTech:true },
+                       { label:'특이 공정 가능여부', _isPkg12:true } ]
       : d.items;
 
     let numOffset = 0;
@@ -4174,6 +4231,11 @@ async function doExportExcel() {
       if (it._isPLT) {
         const pltLabel = PLT_OPTS.filter(o=>(c.fin_plt_opts||{})[o.key]).map(o=>o.label).join('+') || '없음';
         ckRows.push([num, d.label, it.label, '최대+2', pltLabel, '']);
+        return;
+      }
+      if (it._isPkgTech) {
+        const t = pkgTechScore(c);
+        ckRows.push([num, d.label, it.label, '최대+2', pkgTechLabel(c) || '없음', t>0?`+${t}`:'']);
         return;
       }
       if (it._isPkg12) {
@@ -4262,7 +4324,7 @@ function printChecklist() {
           ${photos.map(p => {
             const src = (p&&typeof p==='object') ? p.src : p;
             const m   = (p&&typeof p==='object') ? (p.memo||'') : '';
-            return `<div style="width:100%;margin-bottom:5px;break-inside:avoid;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;">
+            return `<div class="keep" style="width:100%;margin-bottom:5px;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;">
               <img src="${src}" style="width:100%;height:auto;max-height:220px;object-fit:contain;background:#f8fafc;display:block;">
               ${m ? `<div style="font-size:9px;font-weight:600;color:#1e293b;background:#eef2ff;border-top:1px solid #cbd5e1;padding:3px 5px;word-break:break-word;line-height:1.35;">📷 ${m}</div>` : ''}
             </div>`;
@@ -4319,6 +4381,25 @@ function printChecklist() {
     </tr>`;
   }
 
+  function pkgTechRowHtml(num) {
+    const cur = c.pkg_tech || null;
+    const sc2 = pkgTechScore(c);
+    const boxes = PKG_TECH_TIERS.map(t => {
+      const on = cur === t.key;
+      const box = on
+        ? `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #0f766e;border-radius:2px;background:#0f766e;vertical-align:middle;margin-right:2px;text-align:center;line-height:13px;font-size:9px;color:#fff;">✓</span>`
+        : `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #cbd5e1;border-radius:2px;background:#fff;vertical-align:middle;margin-right:2px;"></span>`;
+      return `<span style="display:inline-flex;align-items:center;margin-right:10px;font-size:9px;color:${on?'#0f766e':'#94a3b8'};">${box}${t.label}(+${t.pts})</span>`;
+    }).join('');
+    return `<tr>
+      <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#f0fdfa;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>기술인력의 경력 및 기술수준</td>
+      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;font-weight:700;color:#0f766e;background:#f0fdfa;">+${sc2}<span style="font-weight:400;color:#94a3b8;">/2</span></td>
+      <td colspan="3" style="padding:4px 8px;border:1px solid #e2e8f0;background:#f0fdfa;">
+        <div style="display:flex;flex-wrap:wrap;gap:2px;">${boxes}</div>
+      </td>
+    </tr>`;
+  }
+
   function pkg12RowHtml(num) {
     const opts = c.pkg_q12_opts || {};
     const checkboxes = PKG12_OPTS.map(o => {
@@ -4339,7 +4420,7 @@ function printChecklist() {
     </tr>`;
   }
 
-  function domainSection(title, domain, specMax, bgColor, extraRowFn) {
+  function domainSection(title, domain, specMax, bgColor, extraRowFn, extraCount) {
     const rows = YN_DEF[domain].map((it, i) => {
       const v      = c[it.key] || null;
       const note   = c[it.key+'_note'] || '';
@@ -4349,7 +4430,7 @@ function printChecklist() {
     const pltRow = extraRowFn ? extraRowFn(YN_DEF[domain].length + 1) : '';
 
     // 커스텀 항목 (기본 항목 수 이후 번호 연속)
-    const base = YN_DEF[domain].length + (extraRowFn ? 1 : 0);
+    const base = YN_DEF[domain].length + (extraRowFn ? (extraCount || 1) : 0);
     const customRows = (rec.customItems||[]).filter(ci=>ci.domain===domain).map((ci, idx) => {
       const fakeIt = { key:ci.id, label:ci.label, pts:ci.pts, neg:ci.pts<0, heavy:false };
       const v      = c[ci.id] || null;
@@ -4359,7 +4440,7 @@ function printChecklist() {
     }).join('');
 
     const domNote = (rec.notes || {})[domain] || '';
-    return `<div style="margin-bottom:10px;break-inside:avoid;">
+    return `<div style="margin-bottom:10px;">
       <div style="background:${bgColor};color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;display:flex;justify-content:space-between;">
         <span>${title}</span><span style="opacity:.8;font-size:9px;">만점 ${specMax}pt</span>
       </div>
@@ -4414,7 +4495,15 @@ function printChecklist() {
   const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
   <title>체크리스트 — ${rec.companyName}</title>
   <style>
-    @media print{.no-print{display:none!important;}body{margin:0;}div{page-break-inside:avoid;}}
+    @media print{
+      .no-print{display:none!important;}
+      body{margin:0;}
+      /* 표는 페이지에 이어서 출력하고(공백 방지), 행만 잘리지 않게 유지 */
+      table{page-break-inside:auto;}
+      tr{page-break-inside:avoid;page-break-after:auto;}
+      thead{display:table-header-group;}   /* 다음 장에도 표 머리글 반복 */
+      .keep{page-break-inside:avoid;}      /* 사진 등 쪼개면 안 되는 블록만 지정 */
+    }
     body{font-family:'Malgun Gothic','맑은 고딕',sans-serif;font-size:11px;color:#1e293b;background:#fff;padding:20px;max-width:820px;margin:0 auto;}
   </style>
   </head><body>
@@ -4462,9 +4551,9 @@ function printChecklist() {
   </div>
   ${mfgSection}
   ${domainSection('2. 자재관리','mat',20,'#0369a1')}
-  ${domainSection('3. 임가공·충전','pkg',25,'#0f766e',pkg12RowHtml)}
+  ${domainSection('3. 임가공·충전','pkg',25,'#0f766e',n => pkgTechRowHtml(n) + pkg12RowHtml(n+1), 2)}
   <!-- CAPA -->
-  <div style="margin-bottom:10px;break-inside:avoid;">
+  <div style="margin-bottom:10px;">
     <div style="background:#0f766e;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">설비 CAPA 현황</div>
     <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;font-size:9px;">
       <thead><tr>
@@ -4517,7 +4606,7 @@ function printChecklist() {
         const label = blk.total > 1 ? `${blk.name}(${blk.partIdx})` : blk.name;
         const src  = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
         const memo = (blk.photo&&typeof blk.photo==='object') ? (blk.photo.memo||'') : '';
-        return `<div style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;break-inside:avoid;">
+        return `<div class="keep" style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;">
           <div style="background:#eef2ff;padding:3px 8px;font-size:9px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${blk.stepNum}. ${label}</div>
           <div style="padding:5px;">
             <img src="${src}" style="width:100%;height:260px;object-fit:contain;border-radius:2px;border:1px solid #e2e8f0;display:block;">
