@@ -1241,6 +1241,18 @@ function isoLabelStr(c) {
 const SPEC_MAX  = { mfg:30, mat:20, pkg:25, fin:10, ops:15 };
 const PKG_BASE  = SPEC_MAX.mat + SPEC_MAX.pkg + SPEC_MAX.fin + SPEC_MAX.ops; // 70
 
+/* 충전·포장(PKG) 업체는 제조관리를 빼고 4개 항목을 100점으로 환산해 표기 (30+35+15+20 = 100) */
+const PKG_DISP_MAX = { mat:30, pkg:35, fin:15, ops:20 };
+function dispMaxOf(rec, key) {
+  return (rec && rec.type === 'PKG' && PKG_DISP_MAX[key]) ? PKG_DISP_MAX[key] : SPEC_MAX[key];
+}
+function dispScoreOf(rec, sc, key) {
+  if (rec && rec.type === 'PKG' && PKG_DISP_MAX[key]) {
+    return SPEC_MAX[key] > 0 ? Math.round((sc[key] || 0) / SPEC_MAX[key] * PKG_DISP_MAX[key]) : 0;
+  }
+  return sc[key] || 0;
+}
+
 /* ══ 2. 샘플 데이터 ══ */
 const SAMPLE_RECORDS = [
   {
@@ -3715,7 +3727,6 @@ async function doExportReport() {
     // 카테고리별 점수 · 총점 · 평가결과
     {
       // PKG 업체: 카테고리 만점 100점 환산 표기용 가중치 (mat:30 pkg:35 fin:15 ops:20)
-      const PKG_DISP_MAX = {mat:30, pkg:35, fin:15, ops:20};
       const scoreDoms = [
         {key:'mfg', num:1, label:'제조관리', max:SPEC_MAX.mfg, skip:rec.type==='PKG'},
         {key:'mat', num:2, label:'자재관리', max:SPEC_MAX.mat},
@@ -3727,9 +3738,8 @@ async function doExportReport() {
       const sW = CW / (scoreDoms.length + 2);
       let sx = CX;
       scoreDoms.forEach(d => {
-        const dispMax = (rec.type==='PKG' && PKG_DISP_MAX[d.key]) ? PKG_DISP_MAX[d.key] : d.max;
-        const dispScore = (rec.type==='PKG' && PKG_DISP_MAX[d.key])
-          ? Math.round(sc[d.key] / d.max * dispMax) : sc[d.key];
+        const dispMax   = dispMaxOf(rec, d.key);
+        const dispScore = dispScoreOf(rec, sc, d.key);
         const isLow = dispMax > 0 && dispScore / dispMax < 0.5;
         s.addShape(pptx.shapes.RECTANGLE, {x:sx, y, w:sW, h:scoreH, fill:{color:isLow?'FEE2E2':MG}, line:{color:isLow?RD:LG}});
         s.addText(`${d.num}. ${d.label}\n(${dispScore}/${dispMax})`, {x:sx+0.04, y:y+0.04, w:sW-0.06, h:scoreH-0.06, fontSize:9, bold:isLow, color:isLow?RD:DT, align:'center', fontFace:FF, valign:'middle'});
@@ -4114,8 +4124,22 @@ async function doExportReport() {
             contentY += memoH + 0.06;
           }
 
-          // 사진 1장을 셀 전체에 표시
-          const ia = {x:bx+0.07, y:contentY, w:cellW-0.14, h:bottomY-contentY};
+          // 사진별 메모 — 셀 하단에 캡션으로 표기
+          const pMemo = (blk.photo && typeof blk.photo === 'object') ? String(blk.photo.memo || '').trim() : '';
+          let photoBottom = bottomY;
+          if (pMemo) {
+            const capChars = Math.max(8, Math.floor((cellW - 0.24) / 0.155));
+            const capLines = pMemo.split(/\r?\n/).reduce((n, l) => n + Math.max(1, Math.ceil(l.length / capChars)), 0);
+            const capH = Math.min(1.3, Math.max(0.3, capLines * 0.19 + 0.12));
+            photoBottom = bottomY - capH - 0.06;
+            ps.addShape(pptx.shapes.RECTANGLE, {x:bx+0.06, y:bottomY-capH, w:cellW-0.12, h:capH, fill:{color:MG}, line:{color:LG, width:0.5}});
+            ps.addText([{text:'📷  ', options:{color:ST, bold:true}}, {text:pMemo, options:{color:DT}}],
+              {x:bx+0.1, y:bottomY-capH+0.03, w:cellW-0.2, h:capH-0.06,
+               fontSize:9.5, fontFace:FF, valign:'middle', wrap:true, shrinkText:true});
+          }
+
+          // 사진을 남은 영역에 최대 크기로 표시
+          const ia = {x:bx+0.07, y:contentY, w:cellW-0.14, h:photoBottom-contentY};
           const src = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
           const fit = fitImageInSlot(src, ia.x, ia.y, ia.w, ia.h);
           try { ps.addImage({data:src, x:fit.x, y:fit.y, w:fit.w, h:fit.h}); } catch(e) {}
@@ -4551,8 +4575,8 @@ function printChecklist() {
     <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${tourHtml}</div>
   </div>
   ${mfgSection}
-  ${domainSection('2. 자재관리','mat',20,'#0369a1')}
-  ${domainSection('3. 임가공·충전','pkg',25,'#0f766e',n => pkgTechRowHtml(n) + pkg12RowHtml(n+1), 2)}
+  ${domainSection('2. 자재관리','mat',dispMaxOf(rec,'mat'),'#0369a1')}
+  ${domainSection('3. 임가공·충전','pkg',dispMaxOf(rec,'pkg'),'#0f766e',n => pkgTechRowHtml(n) + pkg12RowHtml(n+1), 2)}
   <!-- CAPA -->
   <div style="margin-bottom:10px;">
     <div style="background:#0f766e;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">설비 CAPA 현황</div>
@@ -4569,19 +4593,17 @@ function printChecklist() {
       <tbody>${capaRows}${capaTotalRow}</tbody>
     </table>
   </div>
-  ${domainSection('4. 완제품관리','fin',10,'#be185d',pltRowHtml)}
-  ${domainSection('5. 운영·거래조건','ops',15,'#7c3aed',isoRowHtml)}
+  ${domainSection('4. 완제품관리','fin',dispMaxOf(rec,'fin'),'#be185d',pltRowHtml)}
+  ${domainSection('5. 운영·거래조건','ops',dispMaxOf(rec,'ops'),'#7c3aed',isoRowHtml)}
   <!-- 점수 요약 -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr) auto;gap:6px;margin-bottom:10px;">
-    ${['mfg','mat','pkg','fin','ops'].map((d,i) => {
-      const labels = ['제조관리','자재관리','임가공','완제품','운영'];
-      const maxes  = [30,20,25,10,15];
-      return `<div style="border:1px solid #e2e8f0;border-radius:5px;text-align:center;padding:6px 4px;background:#f8fafc;">
-        <div style="font-size:9px;color:#64748b;margin-bottom:3px;">${labels[i]}</div>
-        <div style="font-size:18px;font-weight:900;color:#3b4f8a;line-height:1;">${sc[d]}</div>
-        <div style="font-size:8px;color:#94a3b8;">/ ${maxes[i]}</div>
-      </div>`;
-    }).join('')}
+  <div style="display:grid;grid-template-columns:repeat(${rec.type==='PKG'?4:5},1fr) auto;gap:6px;margin-bottom:10px;">
+    ${[['mfg','제조관리'],['mat','자재관리'],['pkg','임가공'],['fin','완제품'],['ops','운영']]
+      .filter(([k]) => !(rec.type==='PKG' && k==='mfg'))
+      .map(([k,label]) => `<div style="border:1px solid #e2e8f0;border-radius:5px;text-align:center;padding:6px 4px;background:#f8fafc;">
+        <div style="font-size:9px;color:#64748b;margin-bottom:3px;">${label}</div>
+        <div style="font-size:18px;font-weight:900;color:#3b4f8a;line-height:1;">${dispScoreOf(rec,sc,k)}</div>
+        <div style="font-size:8px;color:#94a3b8;">/ ${dispMaxOf(rec,k)}</div>
+      </div>`).join('')}
     <div style="border:2px solid #3b4f8a;border-radius:5px;text-align:center;padding:6px 12px;background:#f0f4ff;display:flex;flex-direction:column;justify-content:center;">
       <div style="font-size:9px;color:#3b4f8a;font-weight:700;">총점${pkgNoteStr}</div>
       <div style="font-size:26px;font-weight:900;color:#3b4f8a;line-height:1;">${sc.total}</div>
@@ -4597,31 +4619,24 @@ function printChecklist() {
       });
     });
     if (!blocks.length) return '';
-    // 6장씩 페이지 분할 (2열 3행) — 사진이 적으면 자연스럽게 더 크게 보임
-    const PAGE = 6;
-    const chunks = [];
-    for (let i = 0; i < blocks.length; i += PAGE) chunks.push(blocks.slice(i, i+PAGE));
-    const chunkHtml = chunks.map((chunk, ci) => {
-      const isLast = ci === chunks.length - 1;
-      const cards = chunk.map(blk => {
-        const label = blk.total > 1 ? `${blk.name}(${blk.partIdx})` : blk.name;
-        const src  = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
-        const memo = (blk.photo&&typeof blk.photo==='object') ? (blk.photo.memo||'') : '';
-        return `<div class="keep" style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;">
-          <div style="background:#eef2ff;padding:3px 8px;font-size:9px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${blk.stepNum}. ${label}</div>
-          <div style="padding:5px;">
-            <img src="${src}" style="width:100%;height:260px;object-fit:contain;border-radius:2px;border:1px solid #e2e8f0;display:block;">
-            ${memo ? `<div style="font-size:7px;color:#475569;margin-top:2px;padding:1px 4px;background:#f8fafc;border-radius:2px;">${memo}</div>` : ''}
-          </div>
-        </div>`;
-      }).join('');
-      return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;border:1px solid #cbd5e1;border-top:none;${isLast?'':'break-after:page;'}">
-        ${cards}
+    // 강제 페이지 분할 없이 이어서 채움 — 카드 단위로만 잘리지 않게 유지
+    const cards = blocks.map(blk => {
+      const label = blk.total > 1 ? `${blk.name}(${blk.partIdx})` : blk.name;
+      const src  = (blk.photo&&typeof blk.photo==='object') ? blk.photo.src : blk.photo;
+      const memo = (blk.photo&&typeof blk.photo==='object') ? (blk.photo.memo||'') : '';
+      return `<div class="keep" style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;">
+        <div style="background:#eef2ff;padding:3px 8px;font-size:9px;font-weight:700;color:#3b4f8a;border-bottom:1px solid #c7d2fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${blk.stepNum}. ${label}</div>
+        <div style="padding:5px;">
+          <img src="${src}" style="width:100%;height:240px;object-fit:contain;border-radius:2px;border:1px solid #e2e8f0;display:block;">
+          ${memo ? `<div style="font-size:8px;color:#334155;margin-top:3px;padding:3px 5px;background:#f1f5f9;border-radius:2px;line-height:1.4;">${nl2br(memo)}</div>` : ''}
+        </div>
       </div>`;
     }).join('');
     return `<div style="margin-bottom:10px;">
       <div style="background:#3b4f8a;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">동선별 현장 사진</div>
-      ${chunkHtml}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;border:1px solid #cbd5e1;border-top:none;">
+        ${cards}
+      </div>
     </div>`;
   })()}
   <!-- 종합의견 -->
