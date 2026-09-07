@@ -5,7 +5,7 @@
    - 외부 CDN(pptxgenjs): 캐시 우선 (한 번 받아두면 오프라인에서도 PPT 생성)
    평가 데이터는 IndexedDB에 있으므로 이 캐시와 무관하게 보존됩니다. */
 
-const VERSION    = 'v4';
+const VERSION    = 'v5';
 const APP_CACHE  = `cosmedb-app-${VERSION}`;
 const CDN_CACHE  = `cosmedb-cdn-${VERSION}`;
 

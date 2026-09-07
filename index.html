@@ -3518,22 +3518,77 @@ async function fsaSaveBlob(blob, fileName) {
   downloadBlob(blob, fileName);
 }
 
-/* blob 다운로드 — revoke 를 지연시키지 않으면 다운로드가 시작되기 전에
-   URL 이 폐기되어 파일이 받아지지 않는다(안드로이드/PWA 에서 특히 자주 발생) */
+/* blob 저장.
+   모바일 브라우저·PWA 에서는 스크립트가 만든 a.click() 다운로드가 조용히 차단되는
+   경우가 있어(안내만 뜨고 파일이 없음), 이런 환경에서는 저장 시트를 띄워
+   '사용자가 직접 누른 순간'에 저장/공유가 실행되도록 한다. */
 function downloadBlob(blob, fileName) {
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.rel = 'noopener';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, 60000);
-  toast('파일 저장됨: ' + fileName + ' (다운로드 폴더 확인)', 'ok');
+  const release = () => setTimeout(() => URL.revokeObjectURL(url), 300000);
+
+  const clickAnchor = () => {
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName; a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => a.remove(), 2000);
+  };
+
+  // 폴더 저장을 지원하는 데스크탑 브라우저는 자동 다운로드가 안정적으로 동작
+  if (FSA_SUPPORTED) {
+    clickAnchor();
+    release();
+    toast('파일 저장됨: ' + fileName + ' (다운로드 폴더 확인)', 'ok');
+    return;
+  }
+  openSaveSheet(blob, fileName, url, clickAnchor, release);
+}
+
+function openSaveSheet(blob, fileName, url, clickAnchor, release) {
+  document.getElementById('dlOverlay')?.remove();
+  const kb = blob.size < 1024*1024
+    ? Math.max(1, Math.round(blob.size/1024)) + 'KB'
+    : (blob.size/(1024*1024)).toFixed(1) + 'MB';
+  const canShare = !!(navigator.canShare && navigator.canShare({files:[new File([blob], fileName, {type:blob.type})]}));
+
+  const ov = document.createElement('div');
+  ov.id = 'dlOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:10000;padding:18px;';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:22px;width:460px;max-width:96vw;">
+      <div style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:6px;">파일이 준비되었습니다</div>
+      <div style="font-size:14px;color:#475569;word-break:break-all;margin-bottom:2px;">${escHtml(fileName)}</div>
+      <div style="font-size:13px;color:#94a3b8;margin-bottom:18px;">${kb}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${canShare ? `<button class="btn grn" id="dlShare" style="flex:1;min-width:130px;padding:13px;font-size:16px;">📤 앱으로 보내기</button>` : ''}
+        <button class="btn" id="dlSave" style="flex:1;min-width:130px;padding:13px;font-size:16px;border-color:var(--navy);color:var(--navy);font-weight:700;">📥 기기에 저장</button>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid #e2e8f0;">
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px;">위 버튼이 동작하지 않으면 아래 링크를 <b>길게 눌러</b> ‘링크 저장’을 선택하세요.</div>
+        <a href="${url}" download="${escHtml(fileName)}" style="font-size:13px;color:var(--cyn);word-break:break-all;">${escHtml(fileName)}</a>
+      </div>
+      <div style="text-align:right;margin-top:14px;">
+        <button class="btn" id="dlClose">닫기</button>
+      </div>
+    </div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) { ov.remove(); release(); } });
+  document.body.appendChild(ov);
+
+  document.getElementById('dlClose').onclick = () => { ov.remove(); release(); };
+  document.getElementById('dlSave').onclick  = () => {
+    clickAnchor();                       // 사용자가 누른 순간이라 차단되지 않음
+    toast('저장을 시작했습니다 — 다운로드 폴더를 확인하세요.', 'ok');
+  };
+  const shareBtn = document.getElementById('dlShare');
+  if (shareBtn) shareBtn.onclick = async () => {
+    try {
+      await navigator.share({files:[new File([blob], fileName, {type:blob.type})], title:fileName});
+      ov.remove(); release();
+    } catch(e) {
+      if (e.name !== 'AbortError') toast('공유 실패 — 기기에 저장을 눌러보세요.', 'err');
+    }
+  };
 }
 
 /* ══ 16d. SharePoint 자동 업로드 (Power Automate HTTP 트리거) ══
@@ -4794,7 +4849,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.09.07';
+const APP_VERSION = '2026.09.07b';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
