@@ -4589,8 +4589,62 @@ function printChecklist() {
 
   // 충전·포장 업체는 제조관리 섹션 자체를 인쇄물에서 생략 (안내 문구도 표기하지 않음)
   const mfgSection = rec.type !== 'PKG'
-    ? domainSection('1. 제조관리','mfg',30,'#1e40af')
+    ? domainSection('1. 제조관리','mfg',dispMaxOf(rec,'mfg'),'#1e40af')
     : '';
+
+  // 제조 CAPA 현황 (설비규격 + 로스율·일CAPA·제조인원) — 제조업체만
+  const mfgCapaSection = (() => {
+    if (rec.type === 'PKG') return '';
+    const tbl = c.mfg_equip_tbl || [];
+    const has = tbl.some(r => r.type || r.capacity || r.cnt || r.note);
+    const num = v => (v === null || v === undefined || v === '') ? '—' : Number(v).toLocaleString();
+    const stat = (label, val, unit) => `<div style="flex:1;min-width:120px;border:1px solid #e2e8f0;border-radius:4px;padding:6px 9px;background:#f8fafc;">
+        <div style="font-size:9px;color:#64748b;margin-bottom:2px;">${label}</div>
+        <div style="font-size:14px;font-weight:800;color:#1e40af;">${num(val)}<span style="font-size:9px;font-weight:500;color:#94a3b8;margin-left:2px;">${unit}</span></div>
+      </div>`;
+
+    const totalUnits = tbl.reduce((s2, r) => s2 + (Number(r.cnt) || 0), 0);
+    const rows = has ? tbl.map((r, i) => {
+      const aux = r.aux || {};
+      const auxTxt = [aux.oil && '유상', aux.water && '수상', aux.cold && '냉각'].filter(Boolean).join(' · ') || '—';
+      return `<tr>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:center;color:#94a3b8;">${i + 1}</td>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;">${escHtml((r.type === '기타' ? (r.typeOther || '기타') : r.type) || '—')}</td>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:center;">${escHtml((r.capacity === '기타' ? (r.capacityOther || '기타') : r.capacity) || '—')}</td>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:center;">${r.cnt || 0}</td>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:center;color:#475569;">${escHtml(auxTxt)}</td>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;color:#64748b;">${escHtml(r.note || '')}</td>
+      </tr>`;
+    }).join('') + `<tr>
+        <td colspan="3" style="padding:5px 6px;border:1px solid #cbd5e1;font-size:9px;font-weight:700;text-align:right;background:#eef2ff;color:#1e40af;">합계 (${tbl.length}종)</td>
+        <td style="padding:5px 6px;border:1px solid #cbd5e1;font-size:9px;font-weight:700;text-align:center;background:#eef2ff;color:#1e40af;">${totalUnits}</td>
+        <td colspan="2" style="border:1px solid #cbd5e1;background:#eef2ff;"></td>
+      </tr>`
+      : `<tr><td colspan="6" style="padding:8px;text-align:center;color:#94a3b8;font-size:9px;border:1px solid #e2e8f0;">등록된 설비 없음</td></tr>`;
+
+    return `<div style="margin-bottom:10px;">
+      <div style="background:#1e40af;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">제조 CAPA 현황</div>
+      <div style="border:1px solid #cbd5e1;border-top:none;padding:8px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+          ${stat('제조 로스율', c.mfg_loss, '%')}
+          ${stat('일 CAPA', c.mfg_capa, 'lot')}
+          ${stat('제조인원', c.mfg_headcount, '명')}
+        </div>
+        <div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:4px;">설비규격 <span style="font-weight:400;color:#94a3b8;">(참고정보 · 비점수)</span></div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;">
+          <thead><tr>
+            <th style="background:#eff6ff;color:#1e40af;font-size:9px;padding:3px;border:1px solid #cbd5e1;width:6%;">No</th>
+            <th style="background:#eff6ff;color:#1e40af;font-size:9px;padding:3px 6px;border:1px solid #cbd5e1;text-align:left;">종류</th>
+            <th style="background:#eff6ff;color:#1e40af;font-size:9px;padding:3px;border:1px solid #cbd5e1;width:14%;">용량</th>
+            <th style="background:#eff6ff;color:#1e40af;font-size:9px;padding:3px;border:1px solid #cbd5e1;width:12%;">보유대수</th>
+            <th style="background:#eff6ff;color:#1e40af;font-size:9px;padding:3px;border:1px solid #cbd5e1;width:20%;">보조가마</th>
+            <th style="background:#eff6ff;color:#1e40af;font-size:9px;padding:3px 6px;border:1px solid #cbd5e1;text-align:left;width:22%;">비고</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  })();
 
   const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
   <title>체크리스트 — ${rec.companyName}</title>
@@ -4650,11 +4704,12 @@ function printChecklist() {
     <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${tourHtml}</div>
   </div>
   ${mfgSection}
+  ${mfgCapaSection}
   ${domainSection('2. 자재관리','mat',dispMaxOf(rec,'mat'),'#0369a1')}
   ${domainSection('3. 임가공·충전','pkg',dispMaxOf(rec,'pkg'),'#0f766e',n => pkgTechRowHtml(n) + pkg12RowHtml(n+1), 2)}
   <!-- CAPA -->
   <div style="margin-bottom:10px;">
-    <div style="background:#0f766e;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">설비 CAPA 현황</div>
+    <div style="background:#0f766e;color:#fff;padding:4px 10px;border-radius:4px 4px 0 0;font-size:10px;font-weight:700;">충전·포장 설비 CAPA 현황</div>
     <table style="width:100%;border-collapse:collapse;border:1px solid #cbd5e1;border-top:none;font-size:9px;">
       <thead><tr>
         <th style="background:#f0fdfa;color:#0f766e;font-size:9px;padding:3px 6px;border:1px solid #cbd5e1;text-align:left;">설비명</th>
@@ -4849,7 +4904,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.09.07b';
+const APP_VERSION = '2026.09.10';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
