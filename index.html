@@ -278,6 +278,8 @@ body{background:var(--s1);color:var(--txt);
 .plt-opt:hover{border-color:var(--cyn);}
 .plt-opt.on{border-color:var(--cyn);background:#e0f2fe;color:var(--cyn);}
 .plt-opt.on.both{border-color:#16a34a;background:#dcfce7;color:#16a34a;}
+.plt-opt.plan{border-style:dashed;color:var(--acc);}
+.plt-opt.plan.on{border-style:solid;border-color:var(--acc);background:#fff7ed;color:var(--acc);}
 
 /* CAPA 테이블 */
 .capa-table-wrap{overflow-x:auto;margin-bottom:8px;}
@@ -1160,7 +1162,6 @@ const YN_DEF = {
     {key:'ops_q4',  label:'콜마 담당 인원 배정 가능',             pts:1},
     {key:'ops_q5',  label:'설비 증량·이전 계획',                  pts:1},
     {key:'ops_q6',  label:'평일 잔업·주말 특근 가능',             pts:1},
-    {key:'ops_q7',  label:'추가 품질인증 예정',                   pts:1},
     {key:'ops_q8',  label:'결제조건 수용',                        pts:1},
     {key:'ops_q9',  label:'단가 협의 완료',                       pts:1},
     {key:'ops_q10', label:'긴급 단납기 대응',                     pts:1},
@@ -1171,7 +1172,7 @@ const YN_DEF = {
   ]
 };
 
-const REAL_MAX  = { mfg:10, mat:9, pkg:19, fin:7, ops:18 }; // pkg = 문항 15 + 특이공정 2 + 기술인력 2 / ops = 문항 12 + 인증 6
+const REAL_MAX  = { mfg:10, mat:9, pkg:19, fin:7, ops:18 }; // pkg = 문항 15 + 특이공정 2 + 기술인력 2 / ops = 문항 11 + 인증 7
 
 const PKG12_OPTS = [
   {key:'shrink',  label:'수축'},
@@ -1216,8 +1217,10 @@ function pltScore(c) {
   return cnt >= 3 ? 2 : cnt >= 2 ? 1.5 : cnt >= 1 ? 1 : 0;
 }
 
-/* 인증 취득여부 (5.운영) — 보유 인증별 배점 합산 (CGMP 2pt, 그 외 각 1pt / 최대 6pt)
-   단, 하나도 보유하지 않으면 -1pt */
+/* 인증 취득여부 (5.운영)
+   보유 인증별 배점 합산 (CGMP 2pt, 그 외 각 1pt / 취득분 최대 6pt)
+   - 하나도 취득하지 않으면 -1pt
+   - '추가 인증예정'은 취득분과 별개의 가점(+1) — 예정이 없다고 감점되지는 않음 */
 const ISO_OPTS = [
   {key:'iso',   label:'ISO',   pts:1},
   {key:'cgmp',  label:'CGMP',  pts:2},
@@ -1225,18 +1228,31 @@ const ISO_OPTS = [
   {key:'halal', label:'할랄',  pts:1},
   {key:'etc',   label:'기타',  pts:1},
 ];
-const ISO_MAX = ISO_OPTS.reduce((s, o) => s + o.pts, 0); // 6
+const ISO_PLAN = {key:'plan', label:'추가 인증예정', pts:1};
+const ISO_ALL  = [...ISO_OPTS, ISO_PLAN];
+const ISO_MAX  = ISO_ALL.reduce((s, o) => s + o.pts, 0); // 7
 function isoCount(c) {
   return ISO_OPTS.filter(o => (c.ops_cert_opts||{})[o.key]).length;
 }
-function isoScore(c) {
+/* 취득분 점수 — 미취득이면 -1 */
+function isoHeldScore(c) {
   const o = c.ops_cert_opts || {};
   const sum = ISO_OPTS.reduce((s, x) => s + (o[x.key] ? x.pts : 0), 0);
-  return sum > 0 ? sum : -1;   // 미보유 → 마이너스
+  return sum > 0 ? sum : -1;
+}
+function isoPlanScore(c) {
+  return (c.ops_cert_opts || {})[ISO_PLAN.key] ? ISO_PLAN.pts : 0;
+}
+function isoScore(c) {
+  return isoHeldScore(c) + isoPlanScore(c);
 }
 function isoLabelStr(c) {
   const o = c.ops_cert_opts || {};
-  return ISO_OPTS.filter(x => o[x.key]).map(x => x.label).join('+');
+  const held = ISO_OPTS.filter(x => o[x.key])
+    .map(x => x.key === 'etc' ? (c.ops_cert_other_text || '기타') : x.label);
+  const parts = [held.length ? held.join('+') : '미보유'];
+  if (o[ISO_PLAN.key]) parts.push(`예정: ${c.ops_cert_plan_text || '—'}`);
+  return parts.join(' / ');
 }
 const SPEC_MAX  = { mfg:30, mat:20, pkg:25, fin:10, ops:15 };
 const PKG_BASE  = SPEC_MAX.mat + SPEC_MAX.pkg + SPEC_MAX.fin + SPEC_MAX.ops; // 70
@@ -1847,11 +1863,13 @@ function renderIsoCert(checks) {
       <span class="yn-pts ${score < 0 ? 'neg' : ''}">${score > 0 ? '+' : ''}${score}pt</span>
     </div>
     <div class="plt-opts" style="flex-wrap:wrap;margin-top:6px;">
-      ${ISO_OPTS.map(o => `<span class="plt-opt${opts[o.key]?' on':''}" onclick="toggleIsoOpt('${o.key}',this)">${o.label} <b style="font-weight:700;opacity:.7;">+${o.pts}</b></span>`).join('')}
+      ${ISO_ALL.map(o => `<span class="plt-opt${opts[o.key]?' on':''}${o.key===ISO_PLAN.key?' plan':''}" onclick="toggleIsoOpt('${o.key}',this)">${o.label} <b style="font-weight:700;opacity:.7;">+${o.pts}</b></span>`).join('')}
     </div>
     ${opts.etc ? `<input class="num-input" style="margin-top:6px;width:100%;text-align:left;" placeholder="기타 인증 직접입력"
       value="${escHtml(checks.ops_cert_other_text||'')}" oninput="patchCheck('ops_cert_other_text',this.value)">` : ''}
-    <div style="margin-top:5px;font-size:11px;color:var(--txt3);">CGMP +2 · ISO/할랄/VEGAN/기타 각 +1 (최대 +${ISO_MAX}) · 미보유 −1</div>
+    ${opts[ISO_PLAN.key] ? `<input class="num-input" style="margin-top:6px;width:100%;text-align:left;border-color:var(--acc);" placeholder="추진 예정 인증명 (예: ISO22716, 비건 인증)"
+      value="${escHtml(checks.ops_cert_plan_text||'')}" oninput="patchCheck('ops_cert_plan_text',this.value)">` : ''}
+    <div style="margin-top:5px;font-size:11px;color:var(--txt3);">취득: CGMP +2 · ISO/할랄/VEGAN/기타 각 +1 (최대 +6) · 미취득 −1 &nbsp;|&nbsp; 추가 인증예정 +1 (별도 가점)</div>
   </div>`);
 }
 
@@ -4327,20 +4345,30 @@ async function doExportExcel() {
 
   /* ── 체크리스트 O/X · 메모 ── */
   const oxOf = v => v === 'Y' ? 'O' : v === 'N' ? 'X' : '';
-  const fillItems = (items, startRow, naAll) => {
-    items.forEach((it, i) => {
+  // 항목명·배점까지 앱 정의로 기록해, 문항이 바뀌어도 양식과 어긋나지 않게 함
+  const fillItems = (items, startRow, endRow, naAll) => {
+    const slots = endRow - startRow + 1;
+    items.slice(0, slots).forEach((it, i) => {
       const row = startRow + i;
+      ws.getCell(`C${row}`).value = it.label;
+      ws.getCell(`G${row}`).value = it.pts;
       ws.getCell(`H${row}`).value = naAll ? 'N/A' : oxOf(c[it.key]);
       const memo = c[it.key + '_note'] || '';
       if (memo) ws.getCell(`I${row}`).value = memo;
     });
+    // 남는 칸은 배점 0 · N/A 로 비활성 처리
+    for (let row = startRow + items.length; row <= endRow; row++) {
+      ws.getCell(`C${row}`).value = '—';
+      ws.getCell(`G${row}`).value = 0;
+      ws.getCell(`H${row}`).value = 'N/A';
+    }
   };
-  fillItems(YN_DEF.mfg, 45, isPkg);           // 제조관리 45~52
+  fillItems(YN_DEF.mfg, 45, 52, isPkg);        // 제조관리 45~52
   put('I53', c.mfg_loss);                      // 제조 로스율
   put('I54', c.mfg_capa);                      // 일 capa
   put('I55', c.mfg_headcount);                 // 제조인원
-  fillItems(YN_DEF.mat, 57);                   // 자재관리 57~63
-  fillItems(YN_DEF.pkg, 65);                   // 임가공  65~75
+  fillItems(YN_DEF.mat, 57, 63);               // 자재관리 57~63
+  fillItems(YN_DEF.pkg, 65, 75);               // 임가공  65~75
 
   // 12. 기술인력 (3년 +1 / 5년 +2)
   const techPt = pkgTechScore(c);
@@ -4354,19 +4382,30 @@ async function doExportExcel() {
 
   put('I78', c.pkg_util);                      // 가동율
   put('I79', c.pkg_lt);                        // 생산 L/T
-  fillItems(YN_DEF.fin, 81);                   // 완제품 81~84
+  fillItems(YN_DEF.fin, 81, 84);               // 완제품 81~84
 
   // 거래PLT
   const plt = PLT_OPTS.filter(o => (c.fin_plt_opts || {})[o.key]).map(o => o.label);
   ws.getCell('H85').value = plt.length ? 'O' : 'X';
   ws.getCell('I85').value = plt.length ? `${plt.join('+')} (+${pltScore(c)})` : '없음';
 
-  fillItems(YN_DEF.ops, 87);                   // 운영 87~98
+  fillItems(YN_DEF.ops, 87, 97);               // 운영 87~97 (11문항)
 
-  // 인증 취득여부
-  const isoPt = isoScore(c);
-  ws.getCell('H99').value = isoPt > 0 ? 'O' : 'X';
-  ws.getCell('I99').value = (isoLabelStr(c) || '미보유') + ` (${isoPt > 0 ? '+' : ''}${isoPt})`;
+  // 98. 추가 인증예정 (인증 취득여부의 별도 가점)
+  const planPt = isoPlanScore(c);
+  ws.getCell('C98').value = ISO_PLAN.label;
+  ws.getCell('G98').value = ISO_PLAN.pts;
+  ws.getCell('H98').value = planPt > 0 ? 'O' : 'X';
+  ws.getCell('I98').value = planPt > 0 ? (c.ops_cert_plan_text || '인증명 미기재') : '예정 없음';
+
+  // 99. 인증 취득여부 (취득분)
+  const heldPt = isoHeldScore(c);
+  const held = ISO_OPTS.filter(o => (c.ops_cert_opts || {})[o.key])
+    .map(o => o.key === 'etc' ? (c.ops_cert_other_text || '기타') : o.label);
+  ws.getCell('C99').value = '인증 취득여부';
+  ws.getCell('G99').value = 6;
+  ws.getCell('H99').value = heldPt > 0 ? 'O' : 'X';
+  ws.getCell('I99').value = (held.length ? held.join('+') : '미보유') + ` (${heldPt > 0 ? '+' : ''}${heldPt})`;
 
   /* ── 소계: 앱 점수와 정확히 일치하도록 만점·취득을 직접 기입 ──
      (부분배점 항목은 O/X × 배점 합산으로 표현할 수 없어 수식 대신 실제값 사용) */
@@ -4462,15 +4501,19 @@ function printChecklist() {
   function isoRowHtml(num) {
     const opts  = c.ops_cert_opts || {};
     const score = isoScore(c);
-    const boxes = ISO_OPTS.map(o => {
+    const boxes = ISO_ALL.map(o => {
       const on  = !!opts[o.key];
       const box = on
         ? `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #7c3aed;border-radius:2px;background:#7c3aed;vertical-align:middle;margin-right:2px;text-align:center;line-height:13px;font-size:9px;color:#fff;">✓</span>`
         : `<span style="display:inline-block;width:13px;height:13px;border:1.5px solid #cbd5e1;border-radius:2px;background:#fff;vertical-align:middle;margin-right:2px;"></span>`;
       return `<span style="display:inline-flex;align-items:center;margin-right:8px;font-size:9px;color:${on?'#7c3aed':'#94a3b8'};">${box}${o.label}(+${o.pts})</span>`;
     }).join('');
-    const otherText = (opts.etc && c.ops_cert_other_text)
-      ? `<div style="margin-top:3px;font-size:8px;color:#475569;">기타: ${c.ops_cert_other_text}</div>` : '';
+    const detail = [
+      (opts.etc  && c.ops_cert_other_text) ? `기타: ${escHtml(c.ops_cert_other_text)}` : '',
+      (opts.plan && c.ops_cert_plan_text)  ? `추진 예정: ${escHtml(c.ops_cert_plan_text)}` : '',
+    ].filter(Boolean).join(' / ');
+    const otherText = detail
+      ? `<div style="margin-top:3px;font-size:8px;color:#475569;">${detail}</div>` : '';
     return `<tr>
       <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;background:#f5f3ff;"><span style="font-size:8px;color:#94a3b8;margin-right:3px;">${num}.</span>인증 취득여부</td>
       <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;font-weight:700;color:${score<0?'#dc2626':'#7c3aed'};background:#f5f3ff;">${score>0?'+':''}${score}<span style="font-weight:400;color:#94a3b8;">/${ISO_MAX}</span></td>
@@ -4904,7 +4947,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.09.10';
+const APP_VERSION = '2026.09.11';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
