@@ -3103,7 +3103,7 @@ function patchItemNote(key, val) {
 async function handleItemPhotoUpload(input, key) {
   if (!input.files.length || !currentId) return;
   try {
-    const dataUrl = await resizeImage(input.files[0], 800, 0.75);
+    const dataUrl = await resizeImage(input.files[0], PHOTO_MAX_PX, PHOTO_QUALITY);
     const rec = getRecord(currentId);
     const existing = normalizePhotos(rec.checks[key + '_photos']);
     existing.push({ src: dataUrl, memo: '' });
@@ -3788,7 +3788,7 @@ async function handlePhotoUpload(input) {
     if (!step) return;
     step.photos = step.photos || [];
     for (const file of files) {
-      const dataUrl = await resizeImage(file, 800, 0.75);
+      const dataUrl = await resizeImage(file, PHOTO_MAX_PX, PHOTO_QUALITY);
       step.photos.push({ src: dataUrl, memo: '' });
     }
     upsertRecord(rec);
@@ -4023,6 +4023,10 @@ function openSaveSheet(blob, fileName, url, clickAnchor, release) {
     }
   };
 }
+
+/* 사진 저장 해상도 — 긴 변 1600px, JPEG 품질 0.8 (라벨·계기판 글씨 판독용) */
+const PHOTO_MAX_PX = 1600;
+const PHOTO_QUALITY = 0.8;
 
 /* ══ 사진자료: 모아보기 · 선택/전체 내려받기 ══ */
 const JSZIP_CDN = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
@@ -5680,7 +5684,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.11.10';
+const APP_VERSION = '2026.11.10b';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
