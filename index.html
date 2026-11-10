@@ -68,6 +68,7 @@
 [data-ui-theme="bw"] .yn-btn.n-on,
 [data-ui-theme="bw"] .yn-btn.note-on,
 [data-ui-theme="bw"] .neg-item .yn-btn.y-on,
+[data-ui-theme="bw"] .yn-btn.na-on,
 [data-ui-theme="bw"] .neg-item .yn-btn.n-on{
   background:#fff;border:2.5px solid #000;color:#000;font-weight:900;
 }
@@ -129,6 +130,10 @@
 [data-ui-theme="bw"] .tour-inline-add{border:1px dashed #000;background:#fff;color:#000;border-radius:0;}
 [data-ui-theme="bw"] .det-total-badge{background:#000;color:#fff;border-radius:0;}
 [data-ui-theme="bw"] .tag{background:#eee!important;color:#000!important;border:1px solid #000;border-radius:0;}
+[data-ui-theme="bw"] .eval-type-pill.PKG{background:#eee;color:#000;}
+[data-ui-theme="bw"] .tube-spec-row td{background:#fff;}
+[data-ui-theme="bw"] #capa-tfoot td{background:#eee!important;color:#000!important;border-color:#000!important;}
+[data-ui-theme="bw"] .yn-item-wrap.is-na .yn-label{color:#777;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--s1);color:var(--txt);
   font-family:'Malgun Gothic','맑은 고딕',sans-serif;font-size:15px;line-height:1.5;}
@@ -351,6 +356,12 @@ body{background:var(--s1);color:var(--txt);
 .yn-btn:hover{border-color:var(--cyn);color:var(--cyn);}
 .yn-btn.y-on  {border-color:#16a34a;background:#dcfce7;color:#16a34a;}
 .yn-btn.n-on  {border-color:#dc2626;background:#fee2e2;color:#dc2626;}
+.yn-btn.yn-na{font-size:13px;width:50px;letter-spacing:-.02em;}
+.yn-btn.na-on {border-color:#475569;background:#e2e8f0;color:#334155;}
+.yn-item-wrap.is-na .yn-label,
+.yn-item-wrap.is-na .custom-yn-label{color:var(--txt3);}
+.yn-item-wrap.is-na .yn-pts::after,
+.yn-item-wrap.is-na .custom-yn-pts::after{content:' 제외';font-size:11px;}
 
 /* 수치 입력 그룹 */
 .num-row{
@@ -414,6 +425,201 @@ body{background:var(--s1);color:var(--txt);
 .capa-stepper input::-webkit-outer-spin-button,.capa-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .capa-step-btn{width:30px;height:30px;border:1px solid var(--bd);border-radius:4px;background:var(--s3);color:var(--txt2);font-size:18px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .capa-step-btn:hover{background:var(--cyn);color:#fff;border-color:var(--cyn);}
+/* 메일 발송 */
+.mail-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;}
+.mail-panel{background:var(--s2);border-radius:12px;width:min(760px,100%);max-height:94vh;display:flex;flex-direction:column;overflow:hidden;}
+.mail-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--bd);}
+.mail-title{font-size:18px;font-weight:800;color:var(--navy);}
+.mail-body{padding:16px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+.mail-row{display:flex;gap:12px;align-items:center;}
+.mail-row.top{align-items:flex-start;}
+.mail-k{width:84px;flex-shrink:0;font-size:14px;font-weight:700;color:var(--txt2);padding-top:2px;}
+.mail-row .form-input,.mail-row .form-textarea{flex:1;min-width:0;}
+.mail-from{font-size:15px;font-weight:700;color:var(--txt);}
+.mail-from em{font-style:normal;font-size:11px;font-weight:700;color:var(--txt3);border:1px solid var(--bd);border-radius:8px;padding:1px 7px;margin-left:6px;}
+.mail-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.mail-chip{display:inline-flex;align-items:center;border:1px solid var(--bd);border-radius:18px;background:var(--s3);font-size:14px;overflow:hidden;}
+.mail-chip>span{padding:7px 4px 7px 12px;cursor:pointer;}
+.mail-chip>button{border:none;background:transparent;color:var(--txt3);font-size:16px;padding:0 10px;cursor:pointer;height:100%;}
+.mail-chip>button:hover{color:var(--red);}
+.mail-chip.on{border-color:var(--cyn);background:#e0f2fe;color:#0369a1;font-weight:700;}
+.mail-add{display:flex;gap:6px;}
+.mail-add input{flex:1;min-width:0;border:1px solid var(--bd);border-radius:6px;padding:9px 11px;font-size:15px;font-family:inherit;}
+.mail-att{display:flex;gap:16px;flex-wrap:wrap;font-size:15px;}
+.mail-att label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+.mail-att input{width:19px;height:19px;}
+.mail-conf{border:1px solid var(--bd);border-radius:8px;padding:10px 12px;background:var(--s3);}
+.mail-conf summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--txt2);}
+.mail-conf summary .ok{color:#16a34a;font-size:12px;margin-left:6px;}
+.mail-conf summary .no{color:var(--red);font-size:12px;margin-left:6px;}
+.mail-conf-body{margin-top:10px;}
+.mail-help{font-size:13px;color:var(--txt3);line-height:1.5;margin-bottom:8px;}
+.mail-foot{display:flex;align-items:center;gap:12px;padding:14px 20px;border-top:1px solid var(--bd);}
+.mail-status{flex:1;font-size:14px;color:var(--txt2);}
+.mail-foot .btn[disabled]{opacity:.5;cursor:wait;}
+/* ══ 뉴모피즘 (컬러 테마 전용 — 흑백모드에는 적용되지 않음) ══
+   같은 바탕색 위에 밝은 그림자(좌상)·어두운 그림자(우하)로 볼록함을,
+   안쪽 그림자로 눌림을 표현. 선택 상태는 '눌림 + 색 글자'로 구분한다. */
+:root{
+  --neu:#e7ecf3; --neu-hi:#ffffff; --neu-lo:#c3cbd8;
+  --neu-up:  5px 5px 12px var(--neu-lo), -5px -5px 12px var(--neu-hi);
+  --neu-up-s:3px 3px 7px  var(--neu-lo), -3px -3px 7px  var(--neu-hi);
+  --neu-in:  inset 4px 4px 9px var(--neu-lo), inset -4px -4px 9px var(--neu-hi);
+  --neu-in-s:inset 2px 2px 5px var(--neu-lo), inset -2px -2px 5px var(--neu-hi);
+}
+:root:not([data-ui-theme="bw"]) body,
+:root:not([data-ui-theme="bw"]) .eval-list-panel,
+:root:not([data-ui-theme="bw"]) .eval-det-wrap,
+:root:not([data-ui-theme="bw"]) .eval-det-header,
+:root:not([data-ui-theme="bw"]) .eval-det-body,
+:root:not([data-ui-theme="bw"]) .eval-det-footer,
+:root:not([data-ui-theme="bw"]) .tour-bar,
+:root:not([data-ui-theme="bw"]) .tour-step-panel{background:var(--neu);}
+:root:not([data-ui-theme="bw"]) .eval-det-header,
+:root:not([data-ui-theme="bw"]) .eval-det-footer,
+:root:not([data-ui-theme="bw"]) .eval-list-head,
+:root:not([data-ui-theme="bw"]) .tour-bar{border-color:rgba(163,177,198,.35);box-shadow:none;}
+:root:not([data-ui-theme="bw"]) .eval-list-panel{border-right:none;box-shadow:4px 0 14px rgba(163,177,198,.35);}
+
+/* 버튼 */
+:root:not([data-ui-theme="bw"]) .btn{
+  background:var(--neu);border:1px solid rgba(255,255,255,.55);border-radius:11px;
+  box-shadow:var(--neu-up-s);color:var(--txt2);font-weight:600;
+  transition:box-shadow .16s ease,transform .1s ease,color .15s;
+}
+:root:not([data-ui-theme="bw"]) .btn:hover{color:var(--navy);}
+:root:not([data-ui-theme="bw"]) .btn:active{box-shadow:var(--neu-in-s);transform:translateY(1px);}
+:root:not([data-ui-theme="bw"]) .btn.grn{background:#16a34a;color:#fff;border-color:#16a34a;box-shadow:4px 4px 10px rgba(22,163,74,.35),-3px -3px 8px var(--neu-hi);}
+:root:not([data-ui-theme="bw"]) .btn.acc{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:4px 4px 10px rgba(251,146,60,.35),-3px -3px 8px var(--neu-hi);}
+:root:not([data-ui-theme="bw"]) .btn.grn:active,
+:root:not([data-ui-theme="bw"]) .btn.acc:active{box-shadow:inset 2px 2px 6px rgba(0,0,0,.25);}
+
+/* 목록 필터 · 검색 */
+:root:not([data-ui-theme="bw"]) .eval-ftab{background:var(--neu);border:none;border-radius:10px;box-shadow:var(--neu-up-s);padding:5px 11px;}
+:root:not([data-ui-theme="bw"]) .eval-ftab.on{box-shadow:var(--neu-in-s);color:var(--navy);font-weight:700;background:var(--neu);}
+:root:not([data-ui-theme="bw"]) .eval-search{background:var(--neu);border:none;border-radius:10px;box-shadow:var(--neu-in-s);padding:8px 11px;}
+:root:not([data-ui-theme="bw"]) .eval-card{background:var(--neu);border:none;border-radius:13px;box-shadow:var(--neu-up-s);margin-bottom:10px;}
+:root:not([data-ui-theme="bw"]) .eval-card.selected{box-shadow:var(--neu-in);}
+
+/* 카테고리 탭: 눌린 홈 위로 볼록한 표시줄이 미끄러짐 */
+:root:not([data-ui-theme="bw"]) .eval-tabs{
+  position:relative;background:var(--neu);border-radius:14px;padding:5px;gap:2px;
+  box-shadow:var(--neu-in);margin-bottom:10px;
+}
+:root:not([data-ui-theme="bw"]) .eval-tab{
+  position:relative;z-index:1;background:transparent!important;border:none!important;
+  border-radius:10px;box-shadow:none!important;color:var(--txt3);
+}
+:root:not([data-ui-theme="bw"]) .eval-tab:hover{color:var(--txt2);}
+:root:not([data-ui-theme="bw"]) .eval-tab.active{color:var(--navy);font-weight:800;}
+.tab-slider{display:none;}
+:root:not([data-ui-theme="bw"]) .tab-slider{
+  display:block;position:absolute;left:0;top:5px;z-index:0;border-radius:10px;
+  background:var(--neu);box-shadow:var(--neu-up-s);
+  transition:transform .32s cubic-bezier(.22,.8,.26,1),width .32s cubic-bezier(.22,.8,.26,1);
+}
+
+/* 평가 항목 카드: 항목 전체(행+메모+사진)를 하나의 볼록 카드로 */
+:root:not([data-ui-theme="bw"]) .yn-item-wrap{
+  background:var(--neu);border-radius:14px;box-shadow:var(--neu-up);margin-bottom:12px;overflow:hidden;
+}
+:root:not([data-ui-theme="bw"]) .yn-item-wrap .yn-row,
+:root:not([data-ui-theme="bw"]) .yn-item-wrap .custom-yn-row{background:transparent;border:none;border-radius:0;box-shadow:none;}
+:root:not([data-ui-theme="bw"]) .yn-item-wrap .yn-row:hover{background:rgba(255,255,255,.25);}
+:root:not([data-ui-theme="bw"]) .yn-note-panel,
+:root:not([data-ui-theme="bw"]) .yn-photo-panel{background:transparent;border:none;border-top:1px solid rgba(163,177,198,.35);}
+:root:not([data-ui-theme="bw"]) .plt-group,
+:root:not([data-ui-theme="bw"]) .num-row{background:var(--neu);border:none;border-radius:14px;box-shadow:var(--neu-up);margin-bottom:12px;}
+
+/* O · X · N/A · 메모 · 사진 버튼 — 선택 시 '눌림' */
+:root:not([data-ui-theme="bw"]) .yn-btn{
+  background:var(--neu);border:none;border-radius:11px;box-shadow:var(--neu-up-s);color:#94a3b8;
+  transition:box-shadow .15s ease,color .15s;
+}
+:root:not([data-ui-theme="bw"]) .yn-btn:hover{color:var(--txt2);}
+:root:not([data-ui-theme="bw"]) .yn-btn.y-on{background:#e1f2e7;box-shadow:var(--neu-in);color:#15803d;font-weight:900;}
+:root:not([data-ui-theme="bw"]) .yn-btn.n-on{background:#f5e3e5;box-shadow:var(--neu-in);color:#dc2626;font-weight:900;}
+:root:not([data-ui-theme="bw"]) .yn-btn.na-on{background:#e3e8ef;box-shadow:var(--neu-in);color:#334155;font-weight:800;}
+:root:not([data-ui-theme="bw"]) .yn-btn.note-on{box-shadow:var(--neu-in);color:#0284c7;}
+:root:not([data-ui-theme="bw"]) .neg-item .yn-btn.y-on{background:#f5e3e5;color:#dc2626;}
+:root:not([data-ui-theme="bw"]) .neg-item .yn-btn.n-on{background:#e1f2e7;color:#15803d;}
+:root:not([data-ui-theme="bw"]) .plt-opt{background:var(--neu);border:none;border-radius:10px;box-shadow:var(--neu-up-s);}
+:root:not([data-ui-theme="bw"]) .plt-opt.on{box-shadow:var(--neu-in-s);background:#dff0fb;color:#0369a1;font-weight:700;}
+:root:not([data-ui-theme="bw"]) .plt-opt.plan.on{background:#fdeedd;color:#c2410c;}
+
+/* 입력칸: 눌린 홈 */
+:root:not([data-ui-theme="bw"]) .form-input,
+:root:not([data-ui-theme="bw"]) .form-textarea,
+:root:not([data-ui-theme="bw"]) .num-input{background:var(--neu);border:none;border-radius:11px;box-shadow:var(--neu-in-s);}
+:root:not([data-ui-theme="bw"]) .form-input:focus,
+:root:not([data-ui-theme="bw"]) .form-textarea:focus,
+:root:not([data-ui-theme="bw"]) .num-input:focus{box-shadow:var(--neu-in-s),0 0 0 2px rgba(14,165,233,.35);}
+:root:not([data-ui-theme="bw"]) .yn-note-input{border:none;border-radius:11px;box-shadow:var(--neu-in-s);}
+
+/* 기타 조작부 */
+:root:not([data-ui-theme="bw"]) .capa-step-btn,
+:root:not([data-ui-theme="bw"]) .capa-del-btn{background:var(--neu);border:none;border-radius:9px;box-shadow:var(--neu-up-s);}
+:root:not([data-ui-theme="bw"]) .capa-step-btn:active,
+:root:not([data-ui-theme="bw"]) .capa-del-btn:active{box-shadow:var(--neu-in-s);}
+:root:not([data-ui-theme="bw"]) .capa-add-btn,
+:root:not([data-ui-theme="bw"]) .custom-add-btn,
+:root:not([data-ui-theme="bw"]) .tour-inline-add{background:var(--neu);border:none;border-radius:11px;box-shadow:var(--neu-up-s);}
+:root:not([data-ui-theme="bw"]) .tour-chip{background:var(--neu);border:none;border-radius:14px;box-shadow:var(--neu-up-s);}
+:root:not([data-ui-theme="bw"]) .tour-chip.active{box-shadow:var(--neu-in-s);background:var(--neu);}
+:root:not([data-ui-theme="bw"]) .capa-table-wrap{border-radius:12px;box-shadow:var(--neu-up-s);background:#fff;}
+
+@media (min-width:641px){
+  :root:not([data-ui-theme="bw"]) .sidebar-toggle{background:var(--neu);border-right:none;box-shadow:none;}
+}
+/* 카테고리 화면 전환: 이동 방향으로 미끄러짐 */
+@keyframes paneInR{from{opacity:0;transform:translateX(34px);}to{opacity:1;transform:none;}}
+@keyframes paneInL{from{opacity:0;transform:translateX(-34px);}to{opacity:1;transform:none;}}
+.eval-tab-pane.active.slide-r{animation:paneInR .3s cubic-bezier(.22,.8,.26,1);}
+.eval-tab-pane.active.slide-l{animation:paneInL .3s cubic-bezier(.22,.8,.26,1);}
+@media (prefers-reduced-motion:reduce){
+  .eval-tab-pane.active.slide-r,.eval-tab-pane.active.slide-l{animation:none;}
+  .tab-slider{transition:none!important;}
+}
+
+/* 사진자료 모음 */
+.gal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9000;display:flex;align-items:stretch;justify-content:center;padding:18px;}
+.gal-panel{background:var(--s2);border-radius:12px;width:min(1100px,100%);display:flex;flex-direction:column;overflow:hidden;}
+.gal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--bd);}
+.gal-title{font-size:18px;font-weight:800;color:var(--navy);}
+.gal-sub{font-size:13px;color:var(--txt3);margin-top:2px;}
+.gal-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--bd);background:var(--s3);}
+.gal-spacer{flex:1;}
+.gal-tools .btn[disabled]{opacity:.45;cursor:not-allowed;}
+.gal-body{flex:1;overflow-y:auto;padding:16px 20px 24px;-webkit-overflow-scrolling:touch;}
+.gal-group{margin-bottom:20px;}
+.gal-group-name{font-size:14px;font-weight:700;color:var(--txt2);margin-bottom:8px;}
+.gal-group-name span{font-size:12px;color:var(--txt3);background:var(--s3);border:1px solid var(--bd);border-radius:9px;padding:0 7px;margin-left:4px;}
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+.gal-cell{position:relative;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#fff;}
+.gal-cell img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;cursor:zoom-in;}
+.gal-check{position:absolute;top:6px;left:6px;background:rgba(255,255,255,.92);border-radius:6px;padding:4px;display:flex;line-height:0;}
+.gal-check input{width:22px;height:22px;margin:0;cursor:pointer;}
+.gal-memo{font-size:12px;color:var(--txt2);padding:6px 8px;border-top:1px solid var(--bd);line-height:1.4;}
+.gal-empty{padding:60px 20px;text-align:center;color:var(--txt3);font-size:15px;}
+/* 사진 뷰어 */
+.pv-overlay{position:fixed;inset:0;background:rgba(2,6,15,.92);z-index:9500;display:flex;flex-direction:column;}
+.pv-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;color:#e2e8f0;font-size:14px;font-weight:600;}
+.pv-stage{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:0;padding:0 8px;}
+.pv-stage img{max-width:calc(100% - 120px);max-height:100%;object-fit:contain;border-radius:4px;}
+.pv-nav{width:52px;height:52px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:32px;line-height:1;cursor:pointer;flex-shrink:0;}
+.pv-nav:hover{background:rgba(255,255,255,.26);}
+.pv-bottom{display:flex;align-items:center;gap:12px;padding:12px 16px 18px;}
+.pv-memo{flex:1;color:#e2e8f0;font-size:15px;line-height:1.5;}
+.pv-top .btn,.pv-bottom .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff;}
+.pv-bottom .btn.grn{background:#16a34a;border-color:#16a34a;}
+/* 튜브 가능 파이수 입력줄 */
+.tube-spec-row td{background:#f8fbff;border-top:none!important;padding:7px 10px!important;}
+.tube-spec{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.tube-spec-lb{font-size:13px;font-weight:700;color:var(--txt2);white-space:nowrap;}
+.tube-shape{display:inline-flex;align-items:center;gap:6px;}
+.tube-phi{display:inline-flex;align-items:center;gap:3px;font-size:15px;font-weight:700;color:var(--txt2);}
+.tube-phi input{width:150px!important;text-align:left!important;border:1px solid var(--bd)!important;
+  border-radius:4px;background:#fff!important;padding:6px 8px!important;font-size:14px!important;}
 
 /* 점수 미니바 */
 .eval-score-bar{
@@ -811,6 +1017,7 @@ body{background:var(--s1);color:var(--txt);
           </div>
         </div>
         <div class="eval-tabs" id="eval-tabs">
+          <span class="tab-slider" id="tab-slider" aria-hidden="true"></span>
           <div class="eval-tab active" data-tab="info" onclick="setEvalTab('info')">기본정보</div>
           <div class="eval-tab" data-tab="privacy" onclick="setEvalTab('privacy')">🔏개인정보</div>
           <div class="eval-tab" data-tab="mfg" onclick="setEvalTab('mfg')">1.제조</div>
@@ -1198,15 +1405,14 @@ body{background:var(--s1);color:var(--txt);
       <!-- 하단 버튼 -->
       <div class="eval-det-footer">
         <button class="btn" onclick="saveEvalDraft(currentId)">💾 임시저장</button>
+        <button class="btn" onclick="openPhotoGallery()" title="이 평가의 사진을 모아 보고 내려받기">📷 사진자료</button>
         <button class="btn grn" onclick="saveEvalDone(currentId)" title="평가완료 처리 시, 저장 폴더가 지정되어 있으면 체크리스트 Excel이 자동으로 공용 폴더에 저장됩니다.">✅ 평가완료</button>
         <button class="btn" onclick="printChecklist()" title="인쇄/PDF로 체크리스트 출력">📋 PDF 인쇄</button>
         <button class="btn" onclick="exportChecklistExcel()" title="Excel 파일로 체크리스트 다운로드">📊 Excel 저장</button>
         <button class="btn report" onclick="exportInternalReport()"
           title="내부보고용 PPTX 다운로드 (가로형 4슬라이드)">📄 내부보고용</button>
+        <button class="btn" onclick="openMailDialog()" title="평가 결과를 메일로 발송">✉️ 메일 발송</button>
         <button class="btn" onclick="fsaChooseSaveFolder()" title="원드라이브 동기화 폴더 등 저장 위치를 지정하면 Excel/PPTX가 다운로드 대신 해당 폴더에 바로 저장됩니다.">📁 저장 폴더 설정</button>
-        <button class="btn" onclick="spOpenFolder()" title="SharePoint 공용폴더를 새 탭으로 엽니다">📂 공용폴더 열기</button>
-        <button class="btn" onclick="spOpenSettings()" title="공용폴더 주소 및 자동 업로드 설정">☁️ 공용폴더 연동</button>
-        <button class="btn sm" onclick="spTestUpload()" title="공용 폴더에 테스트 파일을 올려 연결을 확인합니다">연결테스트</button>
         <span id="fsaStatus" style="font-size:12px;color:var(--muted);align-self:center;"></span>
         <button class="btn" onclick="exportEvalCSV()" style="margin-left:auto;">📥 CSV 내보내기</button>
         <button class="btn" style="border-color:var(--red);color:var(--red);"
@@ -1514,6 +1720,20 @@ function upsertRecord(rec) {
 }
 
 /* ══ 4. 점수 계산 ══ */
+/* 해당없음(N/A) 규칙
+   - O : 해당 + 충족      → 배점 획득
+   - X : 해당 + 미충족    → 0점 (감점항목은 반대)
+   - N/A : 해당하지 않음  → 취득·만점 모두에서 제외 (분모에서도 빠져 불이익 없음)
+   - 빈칸 : 아직 미평가   → 평가완료 시 경고 */
+function naDeduction(rec, domain) {
+  const c = (rec && rec.checks) || {};
+  return (YN_DEF[domain] || [])
+    .filter(it => c[it.key] === 'NA')
+    .reduce((s, it) => s + Math.abs(it.pts), 0);   // 감점항목은 'X'일 때 +|pts| 가 최대
+}
+function realMaxOf(rec, domain) {
+  return Math.max(0, REAL_MAX[domain] - naDeduction(rec, domain));
+}
 function getItemScore(pts, val) {
   if (!val) return 0;
   if (pts < 0) {
@@ -1552,7 +1772,7 @@ function calcScores(record) {
   const scores = { mfg:0, mat:0, pkg:0, fin:0, ops:0, total:0 };
   for (const d of ['mfg','mat','pkg','fin','ops']) {
     if (record.type === 'PKG' && d === 'mfg') { scores.mfg = 0; continue; }
-    const rm = REAL_MAX[d];
+    const rm = realMaxOf(record, d);
     scores[d] = rm > 0 ? Math.round((Math.max(0, raw[d]) / rm) * SPEC_MAX[d]) : 0;
   }
 
@@ -1690,6 +1910,7 @@ function openEvalDet(id) {
   document.getElementById('tour-bar').style.display = 'block'; // 항상 표시
   renderEvalList();
   setEvalTab('info');
+  requestAnimationFrame(moveTabSlider);   // 화면이 그려진 뒤 표시줄 위치 보정
 }
 
 function closeDet() {
@@ -1707,10 +1928,59 @@ function closeDet() {
 }
 
 function setEvalTab(tab) {
-  document.querySelectorAll('.eval-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.querySelectorAll('.eval-tab-pane').forEach(p => p.classList.toggle('active', p.id === `pane-${tab}`));
+  const tabs = [...document.querySelectorAll('.eval-tab')];
+  const prevIdx = tabs.findIndex(t => t.classList.contains('active'));
+  const nextIdx = tabs.findIndex(t => t.dataset.tab === tab);
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.eval-tab-pane').forEach(p => {
+    const on = p.id === `pane-${tab}`;
+    p.classList.toggle('active', on);
+    p.classList.remove('slide-l', 'slide-r');
+    if (on && prevIdx >= 0 && prevIdx !== nextIdx) {
+      void p.offsetWidth;                                   // 애니메이션 재시작
+      p.classList.add(nextIdx > prevIdx ? 'slide-r' : 'slide-l');
+    }
+  });
+  moveTabSlider();
+  document.getElementById('eval-det-body')?.scrollTo({ top: 0 });
   if (tab === 'result') renderResult();
 }
+
+/* 선택된 탭 아래로 떠 있는 표시줄을 미끄러지듯 이동 */
+function moveTabSlider() {
+  const bar = document.getElementById('eval-tabs');
+  const sl  = document.getElementById('tab-slider');
+  const act = bar && bar.querySelector('.eval-tab.active');
+  if (!sl || !act) return;
+  sl.style.width = act.offsetWidth + 'px';
+  sl.style.transform = `translateX(${act.offsetLeft}px)`;
+  sl.style.height = act.offsetHeight + 'px';
+  const l = act.offsetLeft, r = l + act.offsetWidth;            // 탭줄이 가로 스크롤될 때 보이게
+  if (l < bar.scrollLeft || r > bar.scrollLeft + bar.clientWidth) bar.scrollTo({ left: l - 24, behavior: 'smooth' });
+}
+window.addEventListener('resize', () => moveTabSlider());
+
+/* 태블릿: 본문을 좌우로 쓸어 이전/다음 카테고리로 이동
+   (입력칸·표·사진 위에서 시작한 동작과 펜 입력은 제외해 오작동 방지) */
+(function initTabSwipe() {
+  let sx = 0, sy = 0, st = 0, track = false;
+  const SKIP = 'input,textarea,select,button,label,canvas,.capa-table-wrap,.tour-chips,.yn-photo-panel,.photo-card,[contenteditable]';
+  document.addEventListener('pointerdown', e => {
+    const body = e.target.closest && e.target.closest('#eval-det-body');
+    track = !!body && e.pointerType === 'touch' && !e.target.closest(SKIP);
+    if (track) { sx = e.clientX; sy = e.clientY; st = Date.now(); }
+  }, { passive: true });
+  document.addEventListener('pointerup', e => {
+    if (!track) return; track = false;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Date.now() - st > 700 || Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+    if (window.getSelection && String(window.getSelection())) return;
+    const tabs = [...document.querySelectorAll('.eval-tab')].filter(t => !t.classList.contains('disabled'));
+    const i = tabs.findIndex(t => t.classList.contains('active'));
+    const n = tabs[i + (dx < 0 ? 1 : -1)];
+    if (n) setEvalTab(n.dataset.tab);
+  }, { passive: true });
+})();
 
 function updateMfgTabState(type) {
   const mfgTab = document.querySelector('.eval-tab[data-tab="mfg"]');
@@ -1813,8 +2083,9 @@ function initAutoGrow(root) {
 
 /* ══ 9. O/X 렌더 ══ */
 function ynBtnClass(cur, v) {
-  if (v === 'Y' && cur === 'Y') return 'y-on';
-  if (v === 'N' && cur === 'N') return 'n-on';
+  if (v === 'Y'  && cur === 'Y')  return 'y-on';
+  if (v === 'N'  && cur === 'N')  return 'n-on';
+  if (v === 'NA' && cur === 'NA') return 'na-on';
   return '';
 }
 
@@ -1860,13 +2131,14 @@ function ynItemHtml(it, checks, num) {
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
   const lockNote = locked ? `<span style="font-size:10px;color:var(--txt3);margin-left:4px;">(${findYnLabel(it.unlockBy)} 'O' 선택 시 활성화)</span>` : '';
   return `
-  <div class="yn-item-wrap${locked?' yn-item-locked':''}">
+  <div class="yn-item-wrap${locked?' yn-item-locked':''}${cur==='NA'?' is-na':''}">
     <div class="yn-row ${negCls} ${noteOpen}">
       <span class="yn-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num||''}.</span>${it.label}${lockNote}${photoBadge}</span>
       <span class="yn-pts ${ptsClass}">${ptsSign}</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  ${locked?'disabled':''} onclick="setYN('${it.key}','Y',this)">O</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  ${locked?'disabled':''} onclick="setYN('${it.key}','N',this)">X</button>
+        <button class="yn-btn yn-na ${ynBtnClass(cur,'NA')}" data-v="NA" ${locked?'disabled':''} onclick="setYN('${it.key}','NA',this)" title="해당없음 — 점수 계산에서 제외">N/A</button>
         <button class="yn-btn ${hasNote?'note-on':''}" data-note onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
           <input type="file" accept="image/*" style="display:none"
@@ -1998,13 +2270,14 @@ function ynRowHtml(it, cur, checks, num) {
   const noteOpen = '';   // 메모 패널은 기본 접힘 상태로 시작
   const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
   return `
-  <div class="yn-item-wrap">
+  <div class="yn-item-wrap${cur==='NA'?' is-na':''}">
     <div class="yn-row ${negCls} ${noteOpen}">
       <span class="yn-label"><span style="font-size:13px;color:var(--txt3);margin-right:5px;">${num||''}.</span>${it.label}${photoBadge}</span>
       <span class="yn-pts">${ptsSign}pt</span>
       <div class="yn-btns">
         <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${it.key}','Y',this)">O</button>
         <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${it.key}','N',this)">X</button>
+        <button class="yn-btn yn-na ${ynBtnClass(cur,'NA')}" data-v="NA" onclick="setYN('${it.key}','NA',this)" title="해당없음 — 점수 계산에서 제외">N/A</button>
         <button class="yn-btn ${hasNote?'note-on':''}" data-note onclick="toggleItemNote('${it.key}')" title="현장메모">💬</button>
         <label class="yn-btn" style="cursor:pointer;" title="현장사진 추가">📷
           <input type="file" accept="image/*" style="display:none"
@@ -2056,9 +2329,51 @@ function renderCapaTable(tbl) {
       onchange="updateCapaRowAuto(${i},'kolma',+(this.value.replace(/,/g,'')||0))" placeholder="0"></td>
     <td><input value="${row.note||''}" onchange="updateCapaRow(${i},'note',this.value)" placeholder="—"></td>
     <td><button class="capa-del-btn" onclick="delCapaRow(${i})">✕</button></td>
-  </tr>`;
+  </tr>${row.name === '튜브' ? tubeSpecRowHtml(row, i) : ''}`;
   }).join('');
   renderCapaTotals(tbl);
+}
+
+/* 튜브 설비: 원형/타원형별 가능 파이수(Φ) 입력줄 */
+const TUBE_SHAPES = [
+  {key:'round', label:'원형',   field:'tubeRound', ph:'예: 19, 25, 30, 35'},
+  {key:'oval',  label:'타원형', field:'tubeOval',  ph:'예: 35, 40, 50'},
+];
+function tubeSpecRowHtml(row, i) {
+  const sh = row.tubeShapes || {};
+  return `
+  <tr class="tube-spec-row">
+    <td colspan="8">
+      <div class="tube-spec">
+        <span class="tube-spec-lb">↳ 가능 파이수</span>
+        ${TUBE_SHAPES.map(t => `
+          <span class="tube-shape">
+            <span class="plt-opt${sh[t.key]?' on':''}" onclick="toggleTubeShape(${i},'${t.key}')">${t.label}</span>
+            ${sh[t.key] ? `<span class="tube-phi">Φ<input value="${escHtml(row[t.field]||'')}" placeholder="${t.ph}"
+              onchange="updateCapaRow(${i},'${t.field}',this.value.trim())"></span>` : ''}
+          </span>`).join('')}
+      </div>
+    </td>
+  </tr>`;
+}
+function toggleTubeShape(idx, key) {
+  if (!currentId) return;
+  const rec = getRecord(currentId);
+  const r = rec.checks.pkg_tbl[idx];
+  if (!r) return;
+  r.tubeShapes = r.tubeShapes || {};
+  r.tubeShapes[key] = !r.tubeShapes[key];
+  upsertRecord(rec);
+  renderCapaTable(rec.checks.pkg_tbl);
+}
+/* 출력물용 한 줄 요약 — 예: "원형 Φ19·25 / 타원형 Φ35" */
+function tubeSpecText(r) {
+  if (!r || r.name !== '튜브') return '';
+  const sh = r.tubeShapes || {};
+  return TUBE_SHAPES.filter(t => sh[t.key]).map(t => {
+    const v = String(r[t.field] || '').split(/[,\s·/]+/).filter(Boolean).join('·');
+    return `${t.label}${v ? ' Φ' + v : ''}`;
+  }).join(' / ');
 }
 
 /* 일CAPA · 월CAPA · 콜마배정 합계 행 */
@@ -2436,9 +2751,11 @@ function setYN(key, v, btn) {
   }
   const cur = rec.checks[key];
   const row = btn.closest('.yn-row, .custom-yn-row');
-  row.querySelectorAll('.yn-btn[data-v]').forEach(b => b.classList.remove('y-on','n-on'));
-  if      (cur === 'Y') row.querySelector('[data-v="Y"]')?.classList.add('y-on');
-  else if (cur === 'N') row.querySelector('[data-v="N"]')?.classList.add('n-on');
+  row.querySelectorAll('.yn-btn[data-v]').forEach(b => b.classList.remove('y-on','n-on','na-on'));
+  if      (cur === 'Y')  row.querySelector('[data-v="Y"]')?.classList.add('y-on');
+  else if (cur === 'N')  row.querySelector('[data-v="N"]')?.classList.add('n-on');
+  else if (cur === 'NA') row.querySelector('[data-v="NA"]')?.classList.add('na-on');
+  row.closest('.yn-item-wrap')?.classList.toggle('is-na', cur === 'NA');
   updateScoreBar(rec);
 }
 
@@ -2665,7 +2982,7 @@ async function saveEvalDone(id) {
 
   // 평가완료 시 결과 파일을 공용폴더(자동 업로드) 또는 저장 폴더/공유 시트로 전달
   const handle = FSA_SUPPORTED ? await fsaGetSavedDirHandle() : null;
-  const silent = spConfigured() || !!handle;   // 사용자 조작 없이 저장되는 경로
+  const silent = !!handle;                     // 사용자 조작 없이 저장되는 경로
 
   if (silent || !FSA_SUPPORTED) {
     try { await loadXlsxLib(); await doExportExcel(); }
@@ -2871,13 +3188,14 @@ function renderCustomSection(domain, recArg) {
     const photoBadge = hasPhoto ? `<span class="yn-photo-badge">📷${photos.length}</span>` : '';
     const baseNum  = (YN_DEF[domain]||[]).length + idx + 1;
     const numBadge = `<span style="font-size:13px;font-weight:700;color:#f97316;margin-right:5px;">${baseNum}.</span>`;
-    return `<div class="yn-item-wrap" style="border-left:3px solid var(--acc);">
+    return `<div class="yn-item-wrap${cur==='NA'?' is-na':''}" style="border-left:3px solid var(--acc);">
       <div class="custom-yn-row">
         <span class="custom-yn-label">${numBadge}${escHtml(ci.label)}${photoBadge}</span>
         <span class="custom-yn-pts">${ptsSign}pt</span>
         <div class="yn-btns">
           <button class="yn-btn ${ynBtnClass(cur,'Y')}"  data-v="Y"  onclick="setYN('${ci.id}','Y',this)">O</button>
           <button class="yn-btn ${ynBtnClass(cur,'N')}"  data-v="N"  onclick="setYN('${ci.id}','N',this)">X</button>
+          <button class="yn-btn yn-na ${ynBtnClass(cur,'NA')}" data-v="NA" onclick="setYN('${ci.id}','NA',this)" title="해당없음 — 점수 계산에서 제외">N/A</button>
           <button class="yn-btn ${hasNote?'note-on':''}" data-note onclick="toggleItemNote('${ci.id}')" title="메모">💬</button>
           <label class="yn-btn" style="cursor:pointer;" title="사진">📷
             <input type="file" accept="image/*" style="display:none"
@@ -3413,9 +3731,7 @@ function renderTourPhotos(photos, stepIdx) {
 }
 
 function viewPhoto(src) {
-  const w = window.open('');
-  w.document.write(`<img src="${src}" style="max-width:100%;height:auto;">`);
-  w.document.close();
+  openPhotoViewer([{src, memo:'', group:''}], 0);
 }
 
 function deleteTourPhoto(stepIdx, photoIdx) {
@@ -3603,12 +3919,6 @@ async function fsaChooseSaveFolder() {
 /* blob을 지정된 폴더에 직접 저장. 데스크탑(폴더 미설정/권한 거부)·모바일(폴더쓰기 미지원)에서는
    공유 시트(Web Share API)로 OneDrive 등에 바로 보낼 수 있게 하고, 그마저 안 되면 일반 다운로드로 대체 */
 async function fsaSaveBlob(blob, fileName) {
-  // SharePoint 공용 폴더가 설정되어 있으면 최우선 — 실패 시 아래 로컬 경로로 자동 대체
-  if (spConfigured()) {
-    const rec = currentId ? getRecord(currentId) : null;
-    if (await spUploadBlob(blob, fileName, rec)) return;
-  }
-
   if (FSA_SUPPORTED) {
     const handle = await fsaGetSavedDirHandle();
     if (handle && await fsaEnsurePermission(handle)) {
@@ -3714,31 +4024,421 @@ function openSaveSheet(blob, fileName, url, clickAnchor, release) {
   };
 }
 
-/* ══ 16d. SharePoint 자동 업로드 (Power Automate HTTP 트리거) ══
-   IT가 만들어 준 흐름 URL을 저장해 두면, 평가완료 시 Excel/PPT가 공용 폴더로 바로 올라갑니다.
-   전송 형식: POST { fileName, contentType, contentBase64, companyName, visitDate, evaluator } */
-const SP_URL_KEY    = 'cosmedb_sp_flow_url';   // 자동 업로드용 (Power Automate HTTP 트리거)
-const SP_FOLDER_KEY = 'cosmedb_sp_folder_url'; // 공용폴더 바로가기 (브라우저로 여는 주소)
-const SP_FOLDER_DEFAULT = 'https://kolmarglobal-my.sharepoint.com/my?id=%2Fpersonal%2Fjdj%5Fkolmar%5Fco%5Fkr%2FDocuments%2F%EC%8B%A0%EA%B7%9C%EC%B2%98%20%EB%93%B1%EB%A1%9D%ED%8F%89%EA%B0%80%5F%EC%8B%A0%EA%B7%9C%EC%B2%98%20%EC%A0%95%EB%B3%B4&ga=1';
-
-function spGetFolderUrl() {
-  try { return localStorage.getItem(SP_FOLDER_KEY) ?? SP_FOLDER_DEFAULT; } catch(e) { return SP_FOLDER_DEFAULT; }
-}
-function spSetFolderUrl(u) { try { localStorage.setItem(SP_FOLDER_KEY, u || ''); } catch(e) {} }
-
-/* 공용폴더를 새 탭으로 열기 — Microsoft 로그인은 브라우저가 처리 */
-function spOpenFolder() {
-  const u = spGetFolderUrl();
-  if (!u) { toast('공용폴더 주소가 설정되어 있지 않습니다.', 'err'); spOpenSettings(); return; }
-  window.open(u, '_blank', 'noopener');
+/* ══ 사진자료: 모아보기 · 선택/전체 내려받기 ══ */
+const JSZIP_CDN = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+function loadJsZip() {
+  return new Promise((resolve, reject) => {
+    if (typeof JSZip !== 'undefined') { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = JSZIP_CDN; s.onload = resolve;
+    s.onerror = () => reject(new Error('압축 라이브러리 로드 실패 — 네트워크를 확인하세요.'));
+    document.head.appendChild(s);
+  });
 }
 
-function spGetUrl()   { try { return localStorage.getItem(SP_URL_KEY) || ''; } catch(e) { return ''; } }
-function spSetUrl(u)  { try { localStorage.setItem(SP_URL_KEY, u || ''); } catch(e) {} }
-/* 실제 흐름 URL은 항상 https. http는 로컬 테스트용으로만 허용 (배포 환경에선 브라우저가 차단) */
-function spValidUrl(u) { return /^https:\/\//i.test(u) || /^http:\/\/localhost(:\d+)?\//i.test(u); }
-function spConfigured() { return spValidUrl(spGetUrl()); }
+/* 평가에 첨부된 모든 사진을 출처별로 수집 */
+function collectEvalPhotos(rec) {
+  const out = [];
+  const c = rec.checks || {};
+  const pad = n => String(n).padStart(2, '0');
+  (rec.tourSteps || []).forEach((st, si) => {
+    normalizePhotos(st.photos).forEach((p, pi) => {
+      if (p && p.src) out.push({ group:`투어 동선 · ${si+1}. ${st.name}`, src:p.src, memo:p.memo || '',
+        file:`투어${pad(si+1)}_${st.name}_${pi+1}` });
+    });
+  });
+  [['mfg','1.제조'],['mat','2.자재'],['pkg','3.임가공'],['fin','4.완제품'],['ops','5.운영']].forEach(([d, dl]) => {
+    YN_DEF[d].forEach((it, ii) => {
+      normalizePhotos(c[it.key + '_photos']).forEach((p, pi) => {
+        if (p && p.src) out.push({ group:`${dl} · ${ii+1}. ${it.label}`, src:p.src, memo:p.memo || '',
+          file:`${dl.replace('.','')}_${pad(ii+1)}_${it.label}_${pi+1}` });
+      });
+    });
+    (rec.customItems || []).filter(ci => ci.domain === d).forEach(ci => {
+      normalizePhotos(c[ci.id + '_photos']).forEach((p, pi) => {
+        if (p && p.src) out.push({ group:`${dl} · 추가 · ${ci.label}`, src:p.src, memo:p.memo || '',
+          file:`${dl.replace('.','')}_추가_${ci.label}_${pi+1}` });
+      });
+    });
+  });
+  return out;
+}
 
+const safeName = s => String(s || '').replace(/[\\/:*?"<>|\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+
+function dataUrlToBlob(src) {
+  const [head, b64] = String(src).split(',');
+  const mime = (head.match(/data:([^;]+)/) || [])[1] || 'image/jpeg';
+  const bin = atob(b64 || '');
+  const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new Blob([u8], { type: mime });
+}
+
+let _galleryPhotos = [];
+
+function openPhotoGallery() {
+  if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
+  const rec = getRecord(currentId);
+  syncTourSteps(rec);
+  _galleryPhotos = collectEvalPhotos(rec);
+  document.getElementById('galOverlay')?.remove();
+
+  const total = _galleryPhotos.length;
+  const kb = _galleryPhotos.reduce((s, p) => s + Math.round((String(p.src).length * 3 / 4) / 1024), 0);
+  const groups = [];
+  _galleryPhotos.forEach((p, i) => {
+    let g = groups.find(x => x.name === p.group);
+    if (!g) { g = { name:p.group, items:[] }; groups.push(g); }
+    g.items.push(i);
+  });
+
+  const ov = document.createElement('div');
+  ov.id = 'galOverlay';
+  ov.className = 'gal-overlay';
+  ov.innerHTML = `
+    <div class="gal-panel" role="dialog" aria-label="사진자료">
+      <div class="gal-head">
+        <div>
+          <div class="gal-title">📷 사진자료 — ${escHtml(rec.companyName || '업체')}</div>
+          <div class="gal-sub">${total}장 · 약 ${kb >= 1024 ? (kb/1024).toFixed(1) + 'MB' : kb + 'KB'}</div>
+        </div>
+        <button class="btn" onclick="closePhotoGallery()">✕ 닫기</button>
+      </div>
+      ${total ? `
+      <div class="gal-tools">
+        <button class="btn sm" onclick="galSelectAll(true)">전체 선택</button>
+        <button class="btn sm" onclick="galSelectAll(false)">선택 해제</button>
+        <span class="gal-spacer"></span>
+        <button class="btn" id="galDlSel" onclick="downloadPhotos('sel')" disabled>⬇ 선택 내려받기 (0)</button>
+        <button class="btn grn" onclick="downloadPhotos('all')">📦 전체 내려받기 (${total})</button>
+      </div>
+      <div class="gal-body">
+        ${groups.map(g => `
+          <div class="gal-group">
+            <div class="gal-group-name">${escHtml(g.name)} <span>${g.items.length}</span></div>
+            <div class="gal-grid">
+              ${g.items.map(i => `
+                <div class="gal-cell">
+                  <label class="gal-check"><input type="checkbox" data-i="${i}" onchange="galUpdateCount()"></label>
+                  <img src="${_galleryPhotos[i].src}" alt="" loading="lazy" onclick="openPhotoViewer(_galleryPhotos, ${i})">
+                  ${_galleryPhotos[i].memo ? `<div class="gal-memo">${escHtml(_galleryPhotos[i].memo)}</div>` : ''}
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>` : `<div class="gal-empty">이 평가에 첨부된 사진이 없습니다.</div>`}
+    </div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) closePhotoGallery(); });
+  document.body.appendChild(ov);
+}
+
+function closePhotoGallery() { document.getElementById('galOverlay')?.remove(); }
+
+function galSelectAll(on) {
+  document.querySelectorAll('#galOverlay .gal-check input').forEach(cb => cb.checked = on);
+  galUpdateCount();
+}
+function galUpdateCount() {
+  const n = document.querySelectorAll('#galOverlay .gal-check input:checked').length;
+  const btn = document.getElementById('galDlSel');
+  if (btn) { btn.textContent = `⬇ 선택 내려받기 (${n})`; btn.disabled = n === 0; }
+}
+
+/* 한 장이면 사진 그대로, 여러 장이면 ZIP 하나로 묶어서 저장 (모바일에서 저장 창이 여러 번 뜨지 않게) */
+async function downloadPhotos(mode) {
+  const rec = getRecord(currentId);
+  const idx = mode === 'all'
+    ? _galleryPhotos.map((_, i) => i)
+    : [...document.querySelectorAll('#galOverlay .gal-check input:checked')].map(cb => +cb.dataset.i);
+  if (!idx.length) return;
+  const base = safeName(`${rec.companyName || '업체'}_${rec.visitDate || ''}_사진`);
+
+  if (idx.length === 1) {
+    const p = _galleryPhotos[idx[0]];
+    downloadBlob(dataUrlToBlob(p.src), `${base}_${safeName(p.file)}.jpg`);
+    return;
+  }
+  toast(`사진 ${idx.length}장 압축 중...`);
+  try { await loadJsZip(); } catch(e) { toast(e.message, 'err'); return; }
+  const zip = new JSZip();
+  const lines = [`${rec.companyName || ''} 사진자료 (${rec.visitDate || ''})`, `총 ${idx.length}장`, ''];
+  const used = new Set();
+  idx.forEach((i, n) => {
+    const p = _galleryPhotos[i];
+    let name = `${String(n + 1).padStart(3, '0')}_${safeName(p.file)}.jpg`;
+    while (used.has(name)) name = name.replace(/\.jpg$/, '_.jpg');
+    used.add(name);
+    zip.file(name, dataUrlToBlob(p.src));
+    lines.push(`${name}\t${p.group}${p.memo ? '\t메모: ' + p.memo.replace(/\s+/g, ' ') : ''}`);
+  });
+  zip.file('사진목록.txt', '﻿' + lines.join('\r\n'));
+  const blob = await zip.generateAsync({ type:'blob', compression:'STORE' });   // JPEG 는 재압축 이득이 없어 저장만
+  downloadBlob(blob, `${base}.zip`);
+}
+
+/* 앱 안 사진 뷰어 — 크게 보기 · 이전/다음 · 이 사진 저장 */
+let _viewer = { list:[], i:0 };
+function openPhotoViewer(list, i) {
+  _viewer = { list: list || [], i: i || 0 };
+  document.getElementById('pvOverlay')?.remove();
+  const ov = document.createElement('div');
+  ov.id = 'pvOverlay';
+  ov.className = 'pv-overlay';
+  ov.innerHTML = `
+    <div class="pv-top"><span id="pvGroup"></span><button class="btn" onclick="closePhotoViewer()">✕ 닫기</button></div>
+    <div class="pv-stage">
+      <button class="pv-nav" id="pvPrev" onclick="stepPhotoViewer(-1)" aria-label="이전 사진">‹</button>
+      <img id="pvImg" alt="">
+      <button class="pv-nav" id="pvNext" onclick="stepPhotoViewer(1)" aria-label="다음 사진">›</button>
+    </div>
+    <div class="pv-bottom"><div id="pvMemo" class="pv-memo"></div>
+      <button class="btn grn" onclick="saveViewerPhoto()">⬇ 이 사진 저장</button></div>`;
+  ov.addEventListener('click', e => { if (e.target === ov || e.target.classList.contains('pv-stage')) closePhotoViewer(); });
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', _pvKey);
+  renderPhotoViewer();
+}
+function renderPhotoViewer() {
+  const p = _viewer.list[_viewer.i]; if (!p) return;
+  document.getElementById('pvImg').src = p.src;
+  document.getElementById('pvGroup').textContent =
+    (p.group ? p.group + '  ' : '') + (_viewer.list.length > 1 ? `(${_viewer.i + 1}/${_viewer.list.length})` : '');
+  document.getElementById('pvMemo').textContent = p.memo || '';
+  document.getElementById('pvPrev').style.visibility = _viewer.i > 0 ? 'visible' : 'hidden';
+  document.getElementById('pvNext').style.visibility = _viewer.i < _viewer.list.length - 1 ? 'visible' : 'hidden';
+}
+function stepPhotoViewer(d) {
+  const n = _viewer.i + d;
+  if (n < 0 || n >= _viewer.list.length) return;
+  _viewer.i = n; renderPhotoViewer();
+}
+function _pvKey(e) {
+  if (e.key === 'Escape') closePhotoViewer();
+  else if (e.key === 'ArrowLeft') stepPhotoViewer(-1);
+  else if (e.key === 'ArrowRight') stepPhotoViewer(1);
+}
+function closePhotoViewer() {
+  document.getElementById('pvOverlay')?.remove();
+  document.removeEventListener('keydown', _pvKey);
+}
+function saveViewerPhoto() {
+  const p = _viewer.list[_viewer.i]; if (!p) return;
+  const rec = currentId ? getRecord(currentId) : null;
+  const base = safeName(`${rec?.companyName || '사진'}_${p.file || (_viewer.i + 1)}`);
+  downloadBlob(dataUrlToBlob(p.src), `${base}.jpg`);
+}
+
+/* ══ 메일 발송 ══
+   브라우저는 직접 메일을 보낼 수 없으므로, 발신 계정(hyeopsaeng@gmail.com)에 배포한
+   Google Apps Script 웹앱으로 요청을 보내 그 계정 명의로 발송한다.
+   발송 주소·인증키는 기기별 설정(localStorage)에만 저장하고 코드에는 넣지 않는다. */
+const MAIL_FROM        = 'hyeopsaeng@gmail.com';
+const MAIL_URL_KEY     = 'cosmedb_mail_url';
+const MAIL_TOKEN_KEY   = 'cosmedb_mail_token';
+const MAIL_BOOK_KEY    = 'cosmedb_mail_book';
+const MAIL_BOOK_DEFAULT = ['jdj@kolmar.co.kr'];
+const MAIL_MAX_BYTES   = 18 * 1024 * 1024;   // Gmail 첨부 한도(25MB)에 base64 증가분 여유
+
+const lsGet = (k, d='') => { try { return localStorage.getItem(k) ?? d; } catch(e) { return d; } };
+const lsSet = (k, v)     => { try { localStorage.setItem(k, v); } catch(e) {} };
+const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || '').trim());
+
+function mailBook() {
+  try {
+    const raw = localStorage.getItem(MAIL_BOOK_KEY);
+    const arr = raw === null ? MAIL_BOOK_DEFAULT.slice() : JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter(isEmail) : MAIL_BOOK_DEFAULT.slice();
+  } catch(e) { return MAIL_BOOK_DEFAULT.slice(); }
+}
+function saveMailBook(arr) { lsSet(MAIL_BOOK_KEY, JSON.stringify([...new Set(arr.map(x => x.trim().toLowerCase()))])); }
+function mailConfigured() { return /^https:\/\/script\.google(usercontent)?\.com\//.test(lsGet(MAIL_URL_KEY)) && !!lsGet(MAIL_TOKEN_KEY); }
+
+let _mailSel = new Set();
+
+function mailDefaultBody(rec) {
+  const sc = calcScores(rec), g = gradeInfo(sc.total);
+  const doms = [['mfg','제조관리'],['mat','자재관리'],['pkg','임가공'],['fin','완제품'],['ops','운영']]
+    .filter(([k]) => !(rec.type === 'PKG' && k === 'mfg'))
+    .map(([k, l]) => `  · ${l} ${dispScoreOf(rec, sc, k)}/${dispMaxOf(rec, k)}`).join('\n');
+  return [
+    '[신규처 등록평가 결과]', '',
+    `업체명 : ${rec.companyName || '—'}`,
+    `방문일 : ${rec.visitDate || '—'}`,
+    `업체유형 : ${rec.type === 'PKG' ? '충전·포장' : '제조업체'}`,
+    `방문자 : ${rec.visitor || '—'}`,
+    `총점 : ${sc.total}점 (${g.label})`, doms, '',
+    `종합의견 : ${(rec.notes && rec.notes.overall) || '—'}`, '',
+    '※ 상세 내용은 첨부파일을 확인해 주세요.',
+    '본 메일은 신규처 등록평가 앱에서 발송되었습니다.',
+  ].join('\n');
+}
+
+function openMailDialog() {
+  if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
+  const rec = getRecord(currentId);
+  const sc = calcScores(rec), g = gradeInfo(sc.total);
+  const book = mailBook();
+  _mailSel = new Set(book.slice(0, 1));   // 첫 주소는 기본 선택
+  const conf = mailConfigured();
+  document.getElementById('mailOverlay')?.remove();
+  const ov = document.createElement('div');
+  ov.id = 'mailOverlay';
+  ov.className = 'mail-overlay';
+  ov.innerHTML = `
+    <div class="mail-panel" role="dialog" aria-label="메일 발송">
+      <div class="mail-head">
+        <div class="mail-title">✉️ 메일 발송</div>
+        <button class="btn" onclick="closeMailDialog()">✕ 닫기</button>
+      </div>
+      <div class="mail-body">
+        <div class="mail-row"><span class="mail-k">보내는 사람</span>
+          <span class="mail-from">${MAIL_FROM} <em>고정</em></span></div>
+
+        <div class="mail-row top"><span class="mail-k">받는 사람</span>
+          <div style="flex:1;min-width:0;">
+            <div class="mail-chips" id="mailChips"></div>
+            <div class="mail-add">
+              <input id="mailNew" type="email" inputmode="email" placeholder="이메일 직접 입력 후 추가 (주소록에 저장됨)"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();addMailRecipient();}">
+              <button class="btn" onclick="addMailRecipient()">+ 추가</button>
+            </div>
+          </div></div>
+
+        <div class="mail-row"><span class="mail-k">제목</span>
+          <input id="mailSubject" class="form-input" value="${escHtml(`[신규처 등록평가] ${rec.companyName || '업체'} (${rec.visitDate || ''}) — ${sc.total}점 ${g.label}`)}"></div>
+
+        <div class="mail-row top"><span class="mail-k">본문</span>
+          <textarea id="mailBody" class="form-textarea" style="min-height:220px;">${escHtml(mailDefaultBody(rec))}</textarea></div>
+
+        <div class="mail-row"><span class="mail-k">첨부</span>
+          <div class="mail-att">
+            <label><input type="checkbox" id="attXlsx" checked> 체크리스트 Excel</label>
+            <label><input type="checkbox" id="attPptx" checked> 내부보고용 PPT</label>
+            <label><input type="checkbox" id="attPhotos"> 사진자료 ZIP</label>
+          </div></div>
+
+        <details class="mail-conf" ${conf ? '' : 'open'}>
+          <summary>⚙ 발송 설정 ${conf ? '<span class="ok">연결됨</span>' : '<span class="no">설정 필요</span>'}</summary>
+          <div class="mail-conf-body">
+            <div class="mail-help">발신 계정(${MAIL_FROM})에 배포한 <b>Google Apps Script 웹앱 주소</b>와 <b>인증키</b>를 넣어주세요. 기기마다 한 번만 입력하면 됩니다.</div>
+            <input id="mailUrl" class="form-input" placeholder="https://script.google.com/macros/s/…/exec" value="${escHtml(lsGet(MAIL_URL_KEY))}">
+            <input id="mailToken" class="form-input" type="password" placeholder="인증키 (Apps Script 의 TOKEN 과 동일)" value="${escHtml(lsGet(MAIL_TOKEN_KEY))}" style="margin-top:6px;">
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <button class="btn" onclick="saveMailConfig()">저장</button>
+              <button class="btn" onclick="testMailConfig()">연결 확인</button>
+            </div>
+          </div>
+        </details>
+      </div>
+      <div class="mail-foot">
+        <span id="mailStatus" class="mail-status"></span>
+        <button class="btn grn" id="mailSendBtn" onclick="sendEvalMail()">✉️ 발송</button>
+      </div>
+    </div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) closeMailDialog(); });
+  document.body.appendChild(ov);
+  renderMailChips();
+}
+function closeMailDialog() { document.getElementById('mailOverlay')?.remove(); }
+
+function renderMailChips() {
+  const box = document.getElementById('mailChips'); if (!box) return;
+  const book = mailBook();
+  box.innerHTML = book.length
+    ? book.map(a => `<span class="mail-chip${_mailSel.has(a) ? ' on' : ''}">
+        <span onclick="toggleMailRecipient('${escHtml(a)}')">${_mailSel.has(a) ? '✓ ' : ''}${escHtml(a)}</span>
+        <button title="주소록에서 삭제" onclick="removeMailRecipient('${escHtml(a)}')">×</button></span>`).join('')
+    : `<span class="mail-help">저장된 주소가 없습니다. 아래에 입력해 추가하세요.</span>`;
+}
+function toggleMailRecipient(a) { _mailSel.has(a) ? _mailSel.delete(a) : _mailSel.add(a); renderMailChips(); }
+function addMailRecipient() {
+  const inp = document.getElementById('mailNew');
+  const v = (inp.value || '').trim().toLowerCase();
+  if (!isEmail(v)) { toast('이메일 주소 형식을 확인하세요.', 'err'); inp.focus(); return; }
+  const book = mailBook(); if (!book.includes(v)) { book.push(v); saveMailBook(book); }
+  _mailSel.add(v); inp.value = ''; renderMailChips();
+}
+function removeMailRecipient(a) {
+  if (!confirm(`${a} 를 주소록에서 삭제할까요?`)) return;
+  saveMailBook(mailBook().filter(x => x !== a)); _mailSel.delete(a); renderMailChips();
+}
+function saveMailConfig() {
+  const url = document.getElementById('mailUrl').value.trim();
+  const tok = document.getElementById('mailToken').value.trim();
+  if (url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) { toast('Apps Script 웹앱 주소(https://script.google.com/…)를 입력하세요.', 'err'); return; }
+  lsSet(MAIL_URL_KEY, url); lsSet(MAIL_TOKEN_KEY, tok);
+  toast(url && tok ? '발송 설정을 저장했습니다.' : '발송 설정을 비웠습니다.', 'ok');
+  const sum = document.querySelector('#mailOverlay .mail-conf summary');
+  if (sum) sum.innerHTML = `⚙ 발송 설정 ${mailConfigured() ? '<span class="ok">연결됨</span>' : '<span class="no">설정 필요</span>'}`;
+}
+async function testMailConfig() {
+  saveMailConfig();
+  if (!mailConfigured()) return;
+  setMailStatus('연결 확인 중…');
+  try {
+    const r = await fetch(lsGet(MAIL_URL_KEY), { method:'GET', redirect:'follow' });
+    const j = await r.json();
+    setMailStatus(j && j.ok ? '✓ 발송 서버와 연결되었습니다.' : '✕ 응답이 올바르지 않습니다.', !(j && j.ok));
+  } catch(e) { setMailStatus('✕ 연결 실패 — 주소와 배포 권한(모든 사용자)을 확인하세요.', true); }
+}
+function setMailStatus(t, err) {
+  const el = document.getElementById('mailStatus'); if (!el) return;
+  el.textContent = t; el.style.color = err ? 'var(--red)' : 'var(--txt2)';
+}
+
+async function sendEvalMail() {
+  if (!mailConfigured()) { toast('먼저 ⚙ 발송 설정을 입력하세요.', 'err'); document.querySelector('#mailOverlay .mail-conf')?.setAttribute('open',''); return; }
+  const to = [..._mailSel].filter(isEmail);
+  if (!to.length) { toast('받는 사람을 한 명 이상 선택하세요.', 'err'); return; }
+  const subject = document.getElementById('mailSubject').value.trim();
+  const body    = document.getElementById('mailBody').value;
+  const want = { xlsx: document.getElementById('attXlsx').checked,
+                 pptx: document.getElementById('attPptx').checked,
+                 photos: document.getElementById('attPhotos').checked };
+  const btn = document.getElementById('mailSendBtn');
+  btn.disabled = true;
+  try {
+    const files = [];
+    if (want.xlsx) { setMailStatus('체크리스트 Excel 만드는 중…'); await loadXlsxLib(); files.push(await doExportExcel({returnBlob:true})); }
+    if (want.pptx) { setMailStatus('내부보고용 PPT 만드는 중…'); await loadPptxLib(); files.push(await doExportReport({returnBlob:true})); }
+    if (want.photos) {
+      setMailStatus('사진 압축 중…'); await loadJsZip();
+      const rec = getRecord(currentId); syncTourSteps(rec);
+      const list = collectEvalPhotos(rec);
+      if (list.length) {
+        const zip = new JSZip();
+        list.forEach((p, n) => zip.file(`${String(n+1).padStart(3,'0')}_${safeName(p.file)}.jpg`, dataUrlToBlob(p.src)));
+        files.push({ blob: await zip.generateAsync({type:'blob', compression:'STORE'}),
+                     fileName: `${safeName((rec.companyName||'업체') + '_사진')}.zip` });
+      }
+    }
+    const total = files.reduce((s, f) => s + f.blob.size, 0);
+    if (total > MAIL_MAX_BYTES) {
+      setMailStatus(`첨부가 ${(total/1048576).toFixed(1)}MB 로 너무 큽니다 (최대 18MB). 사진 ZIP 을 빼고 보내 주세요.`, true);
+      return;
+    }
+    setMailStatus(`발송 중… (첨부 ${files.length}개, ${(total/1048576).toFixed(1)}MB)`);
+    const attachments = [];
+    for (const f of files) attachments.push({ name:f.fileName, mimeType:f.blob.type || 'application/octet-stream', data: await blobToBase64(f.blob) });
+    const res = await fetch(lsGet(MAIL_URL_KEY), {
+      method:'POST', redirect:'follow',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },   // 사전요청(CORS preflight) 없이 보내기 위함
+      body: JSON.stringify({ token: lsGet(MAIL_TOKEN_KEY), to, subject, body, attachments }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!j.ok) throw new Error(j.error || ('HTTP ' + res.status));
+    setMailStatus(`✓ ${to.length}명에게 발송했습니다.`);
+    toast(`메일 발송 완료 — ${to.join(', ')}`, 'ok');
+    setTimeout(closeMailDialog, 1200);
+  } catch(e) {
+    console.error(e);
+    setMailStatus('✕ 발송 실패: ' + (e.message || '네트워크 오류'), true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* blob → base64 (메일 첨부 전송용) */
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -3748,91 +4448,9 @@ function blobToBase64(blob) {
   });
 }
 
-/* 공용 폴더로 업로드. 성공 true / 실패 false — 실패해도 기존 저장 경로는 그대로 동작 */
-async function spUploadBlob(blob, fileName, rec) {
-  if (!spConfigured()) return false;
-  try {
-    const payload = {
-      fileName,
-      contentType:   blob.type || 'application/octet-stream',
-      contentBase64: await blobToBase64(blob),
-      companyName:   rec?.companyName || '',
-      visitDate:     rec?.visitDate   || '',
-      evaluator:     rec?.visitor     || '',
-      uploadedAt:    new Date().toISOString(),
-    };
-    const res = await fetch(spGetUrl(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    toast('공용 폴더 업로드 완료: ' + fileName, 'ok');
-    return true;
-  } catch (e) {
-    toast('공용 폴더 업로드 실패 (' + (e.message || '네트워크 오류') + ') — 로컬 저장으로 대체됩니다.', 'err');
-    return false;
-  }
-}
-
-function spOpenSettings() {
-  document.getElementById('spOverlay')?.remove();
-  const ov = document.createElement('div');
-  ov.id = 'spOverlay';
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;';
-  ov.innerHTML = `
-    <div style="background:#fff;border-radius:10px;padding:20px;width:640px;max-width:96vw;max-height:92vh;overflow:auto;">
-      <div style="font-size:17px;font-weight:800;color:#1e293b;margin-bottom:4px;">공용폴더 연동</div>
-      <div style="font-size:13px;color:#64748b;margin-bottom:16px;">체크리스트·PPT를 SharePoint(OneDrive) 폴더로 보냅니다.</div>
-
-      <label style="display:block;font-size:14px;font-weight:700;color:#334155;margin-bottom:5px;">① 공용폴더 바로가기</label>
-      <div style="font-size:12px;color:#64748b;margin-bottom:6px;">📂 버튼을 누르면 열리는 폴더 주소입니다. (브라우저로 여는 주소)</div>
-      <textarea id="spFolderInp" rows="3" style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:6px;padding:9px 11px;font-size:13px;font-family:inherit;resize:vertical;">${escHtml(spGetFolderUrl())}</textarea>
-
-      <label style="display:block;font-size:14px;font-weight:700;color:#334155;margin:16px 0 5px;">② 자동 업로드 주소 <span style="font-weight:500;color:#94a3b8;">(선택)</span></label>
-      <div style="font-size:12px;color:#64748b;margin-bottom:6px;">IT에서 받은 <b>Power Automate HTTP 트리거 URL</b>을 넣으면 파일이 자동으로 올라갑니다. 위 폴더 주소로는 자동 업로드가 되지 않습니다.</div>
-      <textarea id="spFlowInp" rows="3" placeholder="https://prod-00.koreacentral.logic.azure.com:443/workflows/..." style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:6px;padding:9px 11px;font-size:13px;font-family:inherit;resize:vertical;">${escHtml(spGetUrl())}</textarea>
-
-      <div style="display:flex;justify-content:space-between;gap:8px;margin-top:18px;flex-wrap:wrap;">
-        <button class="btn" onclick="spOpenFolder()">📂 폴더 열어보기</button>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn" onclick="spCloseSettings()">취소</button>
-          <button class="btn grn" onclick="spSaveSettings()">저장</button>
-        </div>
-      </div>
-    </div>`;
-  ov.addEventListener('click', e => { if (e.target === ov) spCloseSettings(); });
-  document.body.appendChild(ov);
-}
-
-function spCloseSettings() { document.getElementById('spOverlay')?.remove(); }
-
-function spSaveSettings() {
-  const folder = (document.getElementById('spFolderInp')?.value || '').trim();
-  const flow   = (document.getElementById('spFlowInp')?.value   || '').trim();
-  if (folder && !/^https:\/\//i.test(folder)) { toast('폴더 주소는 https:// 로 시작해야 합니다.', 'err'); return; }
-  if (flow   && !spValidUrl(flow))            { toast('업로드 주소는 https:// 로 시작해야 합니다.', 'err'); return; }
-  spSetFolderUrl(folder);
-  spSetUrl(flow);
-  spCloseSettings();
-  updateFsaStatus();
-  toast(flow ? '저장됨 — 파일이 공용폴더로 자동 업로드됩니다.' : '저장됨 — 폴더 바로가기만 설정되었습니다.', 'ok');
-}
-
-async function spTestUpload() {
-  if (!spConfigured()) { toast('먼저 업로드 주소를 설정하세요.', 'err'); return; }
-  toast('연결 테스트 중...');
-  const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-  const blob  = new Blob(['CosmeDB 연결 테스트 — ' + new Date().toLocaleString('ko-KR')],
-                         {type:'text/plain;charset=utf-8'});
-  const ok = await spUploadBlob(blob, `_연결테스트_${stamp}.txt`, {companyName:'연결테스트'});
-  if (ok) toast('공용 폴더에 _연결테스트 파일이 생성되었는지 확인하세요.', 'ok');
-}
-
 async function updateFsaStatus() {
   const el = document.getElementById('fsaStatus');
   if (!el) return;
-  if (spConfigured()) { el.textContent = '☁️ SharePoint 공용 폴더 자동 업로드 사용중'; return; }
   if (!FSA_SUPPORTED) { el.textContent = '모바일: 평가완료 시 공유 시트에서 OneDrive로 저장'; return; }
   const handle = await fsaGetSavedDirHandle();
   el.textContent = handle ? ('저장 폴더: ' + handle.name) : '저장 폴더 미설정 (다운로드로 저장됨)';
@@ -3844,7 +4462,7 @@ async function exportInternalReport() {
   try { await doExportReport(); } catch(e) { console.error(e); toast('PPTX 생성 오류: ' + e.message, 'err'); }
 }
 
-async function doExportReport() {
+async function doExportReport(opts = {}) {
   const rec = getRecord(currentId);
   syncTourSteps(rec);
   const sc  = calcScores(rec);
@@ -3985,15 +4603,18 @@ async function doExportReport() {
         return;
       }
       rows.forEach((vals, ri) => {
-        if (y + 0.32 > BOT) { newPage(); drawHead(); }
+        // 줄바꿈이 있는 칸(예: 튜브 파이수)은 행 높이를 늘림
+        const lines = Math.max(1, ...vals.map(v => String(v ?? '').split('\n').length));
+        const rh = 0.32 + (lines - 1) * 0.17;
+        if (y + rh > BOT) { newPage(); drawHead(); }
         const bg = ri%2===0 ? WH : MG;
         let rx = CX;
         cw.forEach((w,ci) => {
-          s.addShape(pptx.shapes.RECTANGLE, {x:rx, y, w, h:0.32, fill:{color:bg}, line:{color:LG}});
-          s.addText(String(vals[ci] ?? ''), {x:rx+0.05, y:y+0.04, w:w-0.08, h:0.26, fontSize:9, color:DT, align:alignOf(ci), fontFace:FF, valign:'middle', shrinkText:true});
+          s.addShape(pptx.shapes.RECTANGLE, {x:rx, y, w, h:rh, fill:{color:bg}, line:{color:LG}});
+          s.addText(String(vals[ci] ?? ''), {x:rx+0.05, y:y+0.03, w:w-0.08, h:rh-0.06, fontSize:9, color:DT, align:alignOf(ci), fontFace:FF, valign:'middle', shrinkText:true});
           rx += w;
         });
-        y += 0.32;
+        y += rh;
       });
       y += 0.1;
     };
@@ -4020,8 +4641,9 @@ async function doExportReport() {
     // 설비 CAPA
     const capaRows = (c.pkg_tbl || []).map(r => {
       const ad = (r.daily||0)*(r.cnt||0);
+      const tsp = tubeSpecText(r);
       return [
-        (r.name==='기타' ? (r.nameOther||'기타') : r.name) || '—',
+        ((r.name==='기타' ? (r.nameOther||'기타') : r.name) || '—') + (tsp ? `\n${tsp}` : ''),
         (r.daily||0).toLocaleString(),
         String(r.cnt||0),
         ad.toLocaleString(),
@@ -4094,7 +4716,7 @@ async function doExportReport() {
         // X 결과이거나, O이지만 메모/사진이 있는 경우만 표시
         if (!isIssue && !note && !photos.length) return;
         collect(photos, it.label);
-        domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue});
+        domItems.push({label:it.label, result:val==='Y'?'O':val==='N'?'X':val==='NA'?'N/A':'', note, isIssue});
       });
       (rec.customItems||[]).filter(ci=>ci.domain===d.key).forEach(ci => {
         const val=c[ci.id]||null, note=c[ci.id+'_note']||'';
@@ -4102,7 +4724,7 @@ async function doExportReport() {
         const ciIsIssue = ci.pts>0 && val==='N';
         if (!ciIsIssue && !note && !ciPhotos.length) return;
         collect(ciPhotos, ci.label);
-        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':'', note, isIssue:ciIsIssue});
+        domItems.push({label:ci.label, result:val==='Y'?'O':val==='N'?'X':val==='NA'?'N/A':'', note, isIssue:ciIsIssue});
       });
       if (!domItems.length) {
         issueRows.push({domLabel:d.label, domNum:d.num, domScore:sc[d.key], domMax:d.max, label:'해당사항 없음', result:'', note:'', opinion:domNote, isIssue:false, noItems:true});
@@ -4345,6 +4967,7 @@ async function doExportReport() {
   const fileName = `참관보고_${rec.companyName||'업체'}_${rec.visitDate||new Date().toISOString().slice(0,10)}.pptx`;
   const rawBlob = await pptx.write({outputType:'blob'});
   const blob = new Blob([rawBlob], {type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+  if (opts.returnBlob) return { blob, fileName };   // 메일 첨부 등에서 파일만 필요할 때
   await fsaSaveBlob(blob, fileName);
 }
 
@@ -4395,7 +5018,7 @@ function rawDomainScore(rec, domain) {
   return raw;
 }
 
-async function doExportExcel() {
+async function doExportExcel(opts = {}) {
   const rec = getRecord(currentId);
   syncTourSteps(rec);
   const c    = rec.checks || {};
@@ -4441,7 +5064,9 @@ async function doExportExcel() {
   (c.pkg_tbl || []).slice(0, 6).forEach((r, i) => {
     const row = 30 + i;
     put(`H${row}`, r.name === '기타' ? (r.nameOther || '기타') : r.name);
-    if (r.daily) ws.getCell(`J${row}`).value = Number(r.daily);
+    const tsp = tubeSpecText(r);
+    if (tsp) ws.getCell(`J${row}`).value = tsp + (r.daily ? ` (${Number(r.daily).toLocaleString()}/일)` : '');
+    else if (r.daily) ws.getCell(`J${row}`).value = Number(r.daily);
     if (r.cnt)   ws.getCell(`K${row}`).value = Number(r.cnt);
   });
 
@@ -4449,7 +5074,7 @@ async function doExportExcel() {
   ws.getCell('I42').value = isPkg ? '충/포' : '제조+충포';
 
   /* ── 체크리스트 O/X · 메모 ── */
-  const oxOf = v => v === 'Y' ? 'O' : v === 'N' ? 'X' : '';
+  const oxOf = v => v === 'Y' ? 'O' : v === 'N' ? 'X' : v === 'NA' ? 'N/A' : '';
   // 항목명·배점까지 앱 정의로 기록해, 문항이 바뀌어도 양식과 어긋나지 않게 함
   const fillItems = (items, startRow, endRow, naAll) => {
     const slots = endRow - startRow + 1;
@@ -4516,7 +5141,7 @@ async function doExportExcel() {
      (부분배점 항목은 O/X × 배점 합산으로 표현할 수 없어 수식 대신 실제값 사용) */
   [['mfg', 56], ['mat', 64], ['pkg', 80], ['fin', 86], ['ops', 100]].forEach(([d, row]) => {
     const naDomain = isPkg && d === 'mfg';
-    ws.getCell(`G${row}`).value = REAL_MAX[d];
+    ws.getCell(`G${row}`).value = realMaxOf(rec, d);   // 해당없음 항목은 만점에서 제외
     ws.getCell(`H${row}`).value = naDomain ? 0 : Math.max(0, rawDomainScore(rec, d));
   });
 
@@ -4533,6 +5158,7 @@ async function doExportExcel() {
   const fileName = `협력사등록평가서_${rec.companyName || '업체'}_${rec.visitDate || today}.xlsx`;
   const buf  = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  if (opts.returnBlob) return { blob, fileName };   // 메일 첨부 등에서 파일만 필요할 때
   await fsaSaveBlob(blob, fileName);
 }
 
@@ -4578,9 +5204,11 @@ function printChecklist() {
       <td style="padding:3px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;">
         ${numHtml}${it.label}
       </td>
-      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;${pStyle}">${pts}</td>
-      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'Y')}</td>
-      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'N')}</td>
+      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;${v==='NA'?'color:#94a3b8;text-decoration:line-through;':pStyle}">${pts}</td>
+      ${v === 'NA'
+        ? `<td colspan="2" style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;font-size:9px;font-weight:700;color:#475569;background:#f1f5f9;">해당없음</td>`
+        : `<td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'Y')}</td>
+      <td style="padding:3px 4px;border:1px solid #e2e8f0;text-align:center;">${chkBox(v,'N')}</td>`}
       <td style="padding:4px 8px;border:1px solid #e2e8f0;font-size:10px;color:#1e293b;line-height:1.5;">${nl2br(note)}${photoHtml}</td>
     </tr>`;
   }
@@ -4710,7 +5338,7 @@ function printChecklist() {
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${autoMonthly.toLocaleString()}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;text-align:right;">${(r.kolma||0).toLocaleString()}</td>
     <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:9px;color:#64748b;">${r.note||''}</td>
-  </tr>`; }).join('') || `<tr><td colspan="7" style="padding:8px;text-align:center;color:#94a3b8;font-size:9px;border:1px solid #e2e8f0;">등록된 설비 없음</td></tr>`;
+  </tr>${tubeSpecText(r) ? `<tr><td colspan="7" style="padding:3px 6px 4px 18px;border:1px solid #e2e8f0;border-top:none;font-size:9px;color:#0f766e;background:#f0fdfa;">↳ 가능 파이수: ${escHtml(tubeSpecText(r))}</td></tr>` : ''}`; }).join('') || `<tr><td colspan="7" style="padding:8px;text-align:center;color:#94a3b8;font-size:9px;border:1px solid #e2e8f0;">등록된 설비 없음</td></tr>`;
 
   // 일CAPA · 월CAPA · 콜마배정 합계
   const capaTotalRow = capaTbl.length ? (() => {
@@ -5052,7 +5680,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.09.29';
+const APP_VERSION = '2026.11.10';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
