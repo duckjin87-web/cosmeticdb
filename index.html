@@ -537,12 +537,15 @@ body{background:var(--s1);color:var(--txt);
   transition:box-shadow .15s ease,color .15s;
 }
 :root:not([data-ui-theme="bw"]) .yn-btn:hover{color:var(--txt2);}
-:root:not([data-ui-theme="bw"]) .yn-btn.y-on{background:#e1f2e7;box-shadow:var(--neu-in);color:#15803d;font-weight:900;}
-:root:not([data-ui-theme="bw"]) .yn-btn.n-on{background:#f5e3e5;box-shadow:var(--neu-in);color:#dc2626;font-weight:900;}
-:root:not([data-ui-theme="bw"]) .yn-btn.na-on{background:#e3e8ef;box-shadow:var(--neu-in);color:#334155;font-weight:800;}
+/* 선택된 O·X·N/A: 검정으로 통일, 음영 없음 (테두리·굵기로만 구분) */
+:root:not([data-ui-theme="bw"]) .yn-btn.y-on,
+:root:not([data-ui-theme="bw"]) .yn-btn.n-on,
+:root:not([data-ui-theme="bw"]) .yn-btn.na-on,
+:root:not([data-ui-theme="bw"]) .neg-item .yn-btn.y-on,
+:root:not([data-ui-theme="bw"]) .neg-item .yn-btn.n-on{
+  background:var(--neu);box-shadow:none;border:2.5px solid #000;color:#000;font-weight:900;
+}
 :root:not([data-ui-theme="bw"]) .yn-btn.note-on{box-shadow:var(--neu-in);color:#0284c7;}
-:root:not([data-ui-theme="bw"]) .neg-item .yn-btn.y-on{background:#f5e3e5;color:#dc2626;}
-:root:not([data-ui-theme="bw"]) .neg-item .yn-btn.n-on{background:#e1f2e7;color:#15803d;}
 :root:not([data-ui-theme="bw"]) .plt-opt{background:var(--neu);border:none;border-radius:10px;box-shadow:var(--neu-up-s);}
 :root:not([data-ui-theme="bw"]) .plt-opt.on{box-shadow:var(--neu-in-s);background:#dff0fb;color:#0369a1;font-weight:700;}
 :root:not([data-ui-theme="bw"]) .plt-opt.plan.on{background:#fdeedd;color:#c2410c;}
@@ -1433,7 +1436,6 @@ const YN_DEF = {
   mfg:[
     {key:'mfg_q1',  label:'원료 입고검사 실시',                  pts:1},
     {key:'mfg_q2',  label:'원료 보관조건 유지',                  pts:1},
-    {key:'mfg_q3',  label:'배합기록 작성',                       pts:1},
     {key:'mfg_q4',  label:'자체 판정기준 보유',                  pts:2},
     {key:'mfg_q5',  label:'자체 성적서 공유 가능',               pts:2},
     {key:'mfg_q7',  label:'샘플 발송 가능',                      pts:1},
@@ -1445,7 +1447,6 @@ const YN_DEF = {
     {key:'mat_q2', label:'적재공간 CAPA 여유',                    pts:1},
     {key:'mat_q3', label:'자재관리 체계(구획/고객사별/환입/폐기)', pts:1},
     {key:'mat_q4', label:'현장 소분투입',                         pts:2},
-    {key:'mat_q6', label:'잔량 환입조건',                         pts:1},
     {key:'mat_q7', label:'자재 책임자 지정',                      pts:1},
     {key:'mat_q8', label:'자재관리 프로그램(파일) / 실시간관리 가능', pts:1},
   ],
@@ -1483,7 +1484,7 @@ const YN_DEF = {
   ]
 };
 
-const REAL_MAX  = { mfg:10, mat:9, pkg:19, fin:7, ops:18 }; // pkg = 문항 15 + 특이공정 2 + 기술인력 2 / ops = 문항 11 + 인증 7
+const REAL_MAX  = { mfg:9, mat:8, pkg:19, fin:7, ops:18 }; // mfg = 7문항 9점 / mat = 6문항 8점 / pkg = 문항 15 + 특이공정 2 + 기술인력 2 / ops = 문항 11 + 인증 7
 
 const PKG12_OPTS = [
   {key:'shrink',  label:'수축'},
@@ -5178,9 +5179,7 @@ function printChecklist() {
   function chkBox(val, target) {
     const label = target === 'Y' ? 'O' : 'X';
     if (val === target) {
-      const cfg = target === 'Y'
-        ? { bc:'#16a34a', bg:'#dcfce7', c:'#16a34a' }
-        : { bc:'#dc2626', bg:'#fee2e2', c:'#dc2626' };
+      const cfg = { bc:'#000', bg:'#fff', c:'#000' };   // 선택 표시는 검정으로 통일, 음영 없음
       return `<span style="display:inline-block;width:18px;height:18px;border:1.5px solid ${cfg.bc};border-radius:3px;background:${cfg.bg};text-align:center;line-height:16px;font-size:10px;font-weight:700;color:${cfg.c};">${label}</span>`;
     }
     return `<span style="display:inline-block;width:18px;height:18px;border:1.5px solid #cbd5e1;border-radius:3px;"></span>`;
@@ -5684,7 +5683,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.11.10b';
+const APP_VERSION = '2026.11.12';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
