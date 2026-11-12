@@ -64,14 +64,16 @@
   background:#fff;border:1px solid #999;color:#999;border-radius:0;font-weight:600;
 }
 [data-ui-theme="bw"] .yn-btn:hover{border-color:#000;color:#000;}
+/* 흑백모드 선택 O·X·N/A: 테두리 대신 옅은 회색 음영 + 눌림 */
 [data-ui-theme="bw"] .yn-btn.y-on,
 [data-ui-theme="bw"] .yn-btn.n-on,
-[data-ui-theme="bw"] .yn-btn.note-on,
-[data-ui-theme="bw"] .neg-item .yn-btn.y-on,
 [data-ui-theme="bw"] .yn-btn.na-on,
+[data-ui-theme="bw"] .neg-item .yn-btn.y-on,
 [data-ui-theme="bw"] .neg-item .yn-btn.n-on{
-  background:#fff;border:2.5px solid #000;color:#000;font-weight:900;
+  background:#e3e3e3;border:1px solid #999;color:#000;font-weight:900;
+  box-shadow:inset 3px 3px 6px rgba(0,0,0,.18);
 }
+[data-ui-theme="bw"] .yn-btn.note-on{background:#fff;border:2.5px solid #000;color:#000;font-weight:900;}
 [data-ui-theme="bw"] .plt-opt{border:1px solid #999;background:#fff;color:#555;border-radius:0;}
 [data-ui-theme="bw"] .plt-opt.on,
 [data-ui-theme="bw"] .plt-opt.on.both,
@@ -537,13 +539,14 @@ body{background:var(--s1);color:var(--txt);
   transition:box-shadow .15s ease,color .15s;
 }
 :root:not([data-ui-theme="bw"]) .yn-btn:hover{color:var(--txt2);}
-/* 선택된 O·X·N/A: 검정으로 통일, 음영 없음 (테두리·굵기로만 구분) */
+/* 선택된 O·X·N/A (B안): 눌림 모션 + 옅은 남색 음영, 짙은 남색 글자 — 테두리 없음 */
 :root:not([data-ui-theme="bw"]) .yn-btn.y-on,
 :root:not([data-ui-theme="bw"]) .yn-btn.n-on,
 :root:not([data-ui-theme="bw"]) .yn-btn.na-on,
 :root:not([data-ui-theme="bw"]) .neg-item .yn-btn.y-on,
 :root:not([data-ui-theme="bw"]) .neg-item .yn-btn.n-on{
-  background:var(--neu);box-shadow:none;border:2.5px solid #000;color:#000;font-weight:900;
+  background:#dbe2f1;border:none;color:#1b2a52;font-weight:900;
+  box-shadow:inset 4px 4px 9px #bcc6d9,inset -4px -4px 9px #f6f9ff;
 }
 :root:not([data-ui-theme="bw"]) .yn-btn.note-on{box-shadow:var(--neu-in);color:#0284c7;}
 :root:not([data-ui-theme="bw"]) .plt-opt{background:var(--neu);border:none;border-radius:10px;box-shadow:var(--neu-up-s);}
@@ -5683,7 +5686,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.11.12';
+const APP_VERSION = '2026.11.12b';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
