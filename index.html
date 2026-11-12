@@ -4320,6 +4320,7 @@ function openMailDialog() {
 
         <div class="mail-row"><span class="mail-k">첨부</span>
           <div class="mail-att">
+            <label><input type="checkbox" id="attPdf" checked> 체크리스트 PDF</label>
             <label><input type="checkbox" id="attXlsx" checked> 체크리스트 Excel</label>
             <label><input type="checkbox" id="attPptx" checked> 내부보고용 PPT</label>
             <label><input type="checkbox" id="attPhotos"> 사진자료 ZIP</label>
@@ -4400,13 +4401,15 @@ async function sendEvalMail() {
   if (!to.length) { toast('받는 사람을 한 명 이상 선택하세요.', 'err'); return; }
   const subject = document.getElementById('mailSubject').value.trim();
   const body    = document.getElementById('mailBody').value;
-  const want = { xlsx: document.getElementById('attXlsx').checked,
+  const want = { pdf:  document.getElementById('attPdf').checked,
+                 xlsx: document.getElementById('attXlsx').checked,
                  pptx: document.getElementById('attPptx').checked,
                  photos: document.getElementById('attPhotos').checked };
   const btn = document.getElementById('mailSendBtn');
   btn.disabled = true;
   try {
     const files = [];
+    if (want.pdf)  { setMailStatus('체크리스트 PDF 만드는 중…'); files.push(await buildChecklistPdf(getRecord(currentId))); }
     if (want.xlsx) { setMailStatus('체크리스트 Excel 만드는 중…'); await loadXlsxLib(); files.push(await doExportExcel({returnBlob:true})); }
     if (want.pptx) { setMailStatus('내부보고용 PPT 만드는 중…'); await loadPptxLib(); files.push(await doExportReport({returnBlob:true})); }
     if (want.photos) {
@@ -4443,6 +4446,85 @@ async function sendEvalMail() {
     setMailStatus('✕ 발송 실패: ' + (e.message || '네트워크 오류'), true);
   } finally {
     btn.disabled = false;
+  }
+}
+
+/* ══ 체크리스트 PDF 파일 생성 (메일 첨부용) ══
+   인쇄 화면(buildChecklistHtml)을 숨은 A4 폭 화면에 그린 뒤 이미지로 떠서 PDF 로 묶는다.
+   이미지 방식이라 한글 글꼴이 깨지지 않으며, 표의 행·사진 카드가 페이지 경계에서
+   잘리지 않도록 행 단위로 페이지를 나눈다. */
+const H2C_CDN   = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+const JSPDF_CDN = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+function loadScriptOnce(src, ready) {
+  return new Promise((resolve, reject) => {
+    if (ready()) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve;
+    s.onerror = () => reject(new Error('PDF 라이브러리 로드 실패 — 네트워크를 확인하세요.'));
+    document.head.appendChild(s);
+  });
+}
+async function loadPdfLibs() {
+  await loadScriptOnce(H2C_CDN,   () => typeof html2canvas !== 'undefined');
+  await loadScriptOnce(JSPDF_CDN, () => !!(window.jspdf && window.jspdf.jsPDF));
+}
+
+async function buildChecklistPdf(rec) {
+  await loadPdfLibs();
+  syncTourSteps(rec);
+  const PAGE_W = 794;                                  // A4 폭(96dpi)
+  const MARGIN_MM = 8;
+  const usableH = Math.floor(PAGE_W * (297 - MARGIN_MM * 2) / 210);
+
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = `position:fixed;left:-10000px;top:0;width:${PAGE_W}px;height:1200px;border:0;visibility:hidden;`;
+  document.body.appendChild(frame);
+  try {
+    const doc = frame.contentDocument;
+    doc.open();
+    doc.write(buildChecklistHtml(rec).replace('</head>',
+      '<style>.no-print{display:none!important}html,body{background:#fff}body{margin:0 auto}</style></head>'));
+    doc.close();
+    await new Promise(r => setTimeout(r, 60));
+    await Promise.all([...doc.images].map(img => img.complete ? 0 :
+      new Promise(r => { img.onload = img.onerror = r; })));
+
+    const body = doc.body;
+    const totalH = Math.ceil(body.scrollHeight);
+    frame.style.height = totalH + 'px';
+    // 페이지를 나눠도 되는 지점: 표 행·사진 카드·큰 블록의 아래 끝
+    const top0 = body.getBoundingClientRect().top;
+    const cuts = [...body.querySelectorAll('tr, .keep, body > div, body > table')]
+      .map(el => Math.round(el.getBoundingClientRect().bottom - top0))
+      .filter(y => y > 0 && y < totalH).sort((a, b) => a - b);
+
+    const scale = Math.min(2, 30000 / totalH);         // 아주 긴 문서는 캔버스 한도에 맞춰 축소
+    const canvas = await html2canvas(body, { scale, backgroundColor:'#ffffff', useCORS:true,
+      windowWidth: PAGE_W, width: PAGE_W, height: totalH, logging:false });
+
+    const pdf = new window.jspdf.jsPDF({ unit:'mm', format:'a4', compress:true });
+    const mmPerPx = 210 / PAGE_W;
+    let start = 0, page = 0;
+    while (start < totalH - 2) {
+      const limit = start + usableH;
+      let end = totalH <= limit ? totalH
+        : (cuts.filter(y => y > start + usableH * 0.45 && y <= limit).pop() || limit);
+      const slice = document.createElement('canvas');
+      slice.width = canvas.width;
+      slice.height = Math.max(1, Math.round((end - start) * scale));
+      const g = slice.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, slice.width, slice.height);
+      g.drawImage(canvas, 0, Math.round(start * scale), canvas.width, slice.height, 0, 0, slice.width, slice.height);
+      if (page++) pdf.addPage();
+      pdf.addImage(slice.toDataURL('image/jpeg', 0.86), 'JPEG', 0, MARGIN_MM, 210, (end - start) * mmPerPx);
+      start = end;
+    }
+    const blob = pdf.output('blob');
+    const fileName = `체크리스트_${rec.companyName || '업체'}_${rec.visitDate || new Date().toISOString().slice(0,10)}.pdf`;
+    return { blob: new Blob([blob], { type:'application/pdf' }), fileName, pages: page };
+  } finally {
+    frame.remove();
   }
 }
 
@@ -5173,7 +5255,11 @@ async function doExportExcel(opts = {}) {
 function printChecklist() {
   if (!currentId) { toast('평가 항목을 먼저 선택하세요.', 'err'); return; }
   const _pw = _printPrepareWindow(); if (!_pw) return; // 창 먼저 열기 (iOS 제스처 컨텍스트 보존)
-  const rec = getRecord(currentId);
+  _printHtml(buildChecklistHtml(getRecord(currentId)), _pw);
+}
+
+/* 체크리스트 인쇄용 HTML — 인쇄창과 PDF 파일 생성(메일 첨부)이 함께 사용 */
+function buildChecklistHtml(rec) {
   syncTourSteps(rec);
   const sc  = calcScores(rec);
   const g   = gradeInfo(sc.total);
@@ -5573,7 +5659,7 @@ function printChecklist() {
   </div>
   </body></html>`;
 
-  _printHtml(html, _pw);
+  return html;
 }
 
 
@@ -5686,7 +5772,7 @@ function _initMobileLayout() {
 
 /* ══ 20. 초기화 ══ */
 /* 배포 버전 — 태블릿마다 같은 버전이 깔려 있는지 확인용 */
-const APP_VERSION = '2026.11.12b';
+const APP_VERSION = '2026.11.12c';
 
 /* ══ 21b. 저장소 영구보존 · 사용량 표시 ══
    브라우저는 공간이 부족하거나 오래 방문이 없으면 저장 데이터를 임의로 지웁니다.
